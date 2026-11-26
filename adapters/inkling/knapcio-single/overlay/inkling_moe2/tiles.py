@@ -12,7 +12,7 @@ FlashInfer's own autotuner offers); other calls go to the stock function.
 
 Both choices are host-side functions of static shapes (tokens = ids.shape[0], rows = tokens * top_k), so a CUDA
 graph keeps the kernel it was captured with. Only configurations measured bit-identical to the shipped choice on
-GB10 are in the default tables (results/ in the track directory, bench_moe2.py).
+GB10 are in the default tables (development results, bench_moe2.py).
 
 Grammar (whitespace ignored), ranges inclusive:
   INKLING_MOE2_NVFP4 = rule (";" rule)*   rule = LO "-" HI ["@" WIDTH] ":" kv ("," kv)*

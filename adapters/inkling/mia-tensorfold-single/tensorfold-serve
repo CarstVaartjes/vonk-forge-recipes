@@ -1,7 +1,7 @@
 #!/bin/sh
 # Entrypoint for the single-Spark Inkling-2-Mini TensorFold recipe. The recipe
 # passes only named `tensorfold-native serve` options; the checkpoint is always
-# mounted at /models/ink, which is also where the drafter (mtp.safetensors) is.
+# mounted at /models/ink; the DFlash2 drafter is mounted at /models/draft.
 set -eu
 : "${HOME:?}" "${CUDA_CACHE_PATH:?}" "${TORCH_EXTENSIONS_DIR:?}" "${TRITON_CACHE_DIR:?}" "${TMPDIR:?}"
 # The platform binds /outputs/cache; the cache and temporary directories below

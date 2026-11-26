@@ -154,7 +154,8 @@ commit); CI passes `.`. The type gate (`scripts/check-python-types`, pyright
 whole working tree and requires zero errors: a deliberate error carries a
 `# pyright: ignore[<rule>]` on its line, and an ignore that no longer suppresses
 anything fails. Provider URLs open only through `recipe_tooling.upstream_http`
-(`TID251` bans `urlopen` and `build_opener` elsewhere).
+(`TID251` bans `urlopen`, `build_opener` and `HTTPRedirectHandler` elsewhere; it drops
+`Authorization` on cross-origin redirects).
 `tests/tools/test_python_gate_configuration.py` guards the configuration and CI wiring.
 
 ## CI and publication
@@ -193,7 +194,7 @@ below).
 - Full checks build the contracts wheel and import/resolve examples from a clean
   external consumer directory. Generated indexes, packages and coverage are
   ignored build outputs, not committed state.
-- Repository-wide policy files (base-image and Model-revision holds, creators,
+- Repository-wide policy files (base-image holds, optionally naming the GitHub `source` they stand for, and Model-revision holds, creators,
   kit-image and memory-envelope exceptions, published images, upstream watch, the sweep's
   authority id, boost words and owner profiles) live in `policy/`,
   not the root (`adapter-sources.json` stays there).

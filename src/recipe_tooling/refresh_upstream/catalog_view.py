@@ -274,6 +274,51 @@ def installs_library(directory: Path | None, repo: str) -> bool:
     return False
 
 
+def release_asset_only(directory: Path | None, repo: str) -> bool:
+    """Whether the adapter uses ``repo`` only through its published release downloads.
+
+    ``github.com/<repo>/releases/download/`` is the only way it fetches the repository:
+    no clone, archive, codeload, raw URL, bare fetch/checkout or file named after a
+    commit. The download is in the Dockerfile (what the refresh rewrites and checks).
+    What it runs is the release asset, so a move is judged by the release, not by
+    source changes. A ``github.com/<repo>/blob/...`` link is a web page, not a fetch.
+    """
+    if directory is None or not directory.is_dir():
+        return False
+    escaped = re.escape(repo)
+    other = re.compile(
+        "|".join(
+            (
+                *whole_repo_patterns(escaped)[:-1],
+                rf"raw\.githubusercontent\.com/{escaped}/",
+                rf"github\.com/{escaped}/raw/",
+            )
+        ),
+        re.IGNORECASE,
+    )
+    mention = re.compile(rf"github\.com/{escaped}", re.IGNORECASE)
+    download = re.compile(rf"github\.com/{escaped}/releases/download/", re.IGNORECASE)
+    downloads = False
+    for path in sorted(directory.rglob("*")):
+        if not path.is_file() or path.is_symlink():
+            continue
+        if re.search(r"[0-9a-f]{12,}", path.name):
+            return False
+        if path.stat().st_size > 1_000_000 or path.suffix in {".gz", ".zip", ".tar"}:
+            continue
+        text = path.read_text(encoding="utf-8", errors="replace")
+        if other.search(text) or (
+            mention.search(text) and re.search(WEAK_WHOLE_REPO, text)
+        ):
+            return False
+        if download.search(text):
+            # Only the Dockerfile's download is moved and verified by the refresh.
+            if path.name != "Dockerfile" or path.parent != directory:
+                return False
+            downloads = True
+    return downloads
+
+
 def adapter_files(directory: Path) -> set[str]:
     """Relative paths of the adapter's files that could be copies of upstream files."""
     own = {"Dockerfile", vendored.MANIFEST, vendored.KIT_LOCK}

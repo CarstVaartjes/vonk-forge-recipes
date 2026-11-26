@@ -638,7 +638,7 @@ cut. `tests/vcap/test_policy.py` checks this three ways:
 
 ### Replay (round 2 data, stock engine, full width + union counter)
 
-Data: `R2SL-s06` (Spark_06, 2026-11-21): 36,201 request-steps; thinking c1/c4/c8
+Data: `R2SL-s06` (GB10, 2026-11-21): 36,201 request-steps; thinking c1/c4/c8
 (sampled T = 0.8), decode table prose+code c1-c16 (greedy), speedbench quick c1.
 Replay tool: `bsreplay.py` (development tool, not shipped). Step time `T = F(bs) + 0.97 ms x U`
 (`U` = expert union per MoE visit; `F(1) = 33.3`, `F(8) = 59.6` ms from the c1 and

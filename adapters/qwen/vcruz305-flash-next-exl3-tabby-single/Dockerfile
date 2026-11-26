@@ -6,7 +6,7 @@
 # from the cu130 index, compiles the fork's CUDA extension for sm_121 and
 # installs the latest vcruz305/tabbyAPI main. This image performs the same
 # installation on a digest-pinned CUDA 13.4.1 devel base, with the engine fork
-# and TabbyAPI forks locked to their declared master/main heads on 2026-11-22
+# and TabbyAPI forks locked to their declared master/main heads on 2026-11-25
 # (ExLlamaV3 1.6.7.post1). The upstream launch scripts are not
 # run; tabby-serve replaces serve.sh and renders the vendored tabby-config.yml
 # the same way.
@@ -16,7 +16,7 @@ LABEL org.opencontainers.image.source="https://github.com/vcruz305/Qwen3.8-Flash
       org.opencontainers.image.revision="49850ef896372407c5a56773bcf6dae661ab6ab9" \
       org.opencontainers.image.licenses="MIT AND AGPL-3.0-only" \
       io.vonk.exllamav3.source="https://github.com/vcruz305/exllamav3" \
-      io.vonk.exllamav3.revision="cd37fded85c4e1f561368b74cb5d237aae1c1cd6" \
+      io.vonk.exllamav3.revision="c702887ba7be368e1714339dd755a7c3c9b263d5" \
       io.vonk.tabbyapi.source="https://github.com/vcruz305/tabbyAPI" \
       io.vonk.tabbyapi.revision="a2898191eed710b55066d699ce829a976b4b3272"
 

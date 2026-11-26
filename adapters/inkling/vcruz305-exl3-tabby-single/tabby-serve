@@ -5,8 +5,8 @@ Upstream's serve.sh renders a TabbyAPI config from shell variables and starts
 `python main.py --config` from the TabbyAPI directory. This wrapper does the
 same from command-line flags, so the recipe's settings can bind to them. Host,
 port and the model view directory are platform specific; every other value is
-the flag's, defaulting to upstream's measured set (24,576-token context, FP16
-KV cache, one stream, the pack's MTP draft head).
+the flag's, defaulting to upstream's measured set (262,144-token context, FP16
+KV cache, one stream, the separate DFlash2 drafter).
 """
 
 from __future__ import annotations
@@ -19,6 +19,8 @@ import sys
 from pathlib import Path
 
 MODEL_DIR = Path("/models/target")
+DRAFT_DIR = Path("/models/draft")
+DRAFT_NAME = "Inkling-2-Mini-DFlash2"
 TEMPLATE = Path("/opt/vonk/tabby-config.yml")
 TABBY = Path("/opt/tabbyAPI")
 
@@ -26,12 +28,12 @@ parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--served-name", default="Inkling-2-Mini-SAGE-REXL3-4.23bpw")
 parser.add_argument("--host", default="0.0.0.0")
 parser.add_argument("--port", type=int, default=8000)
-parser.add_argument("--max-seq-len", type=int, default=24576)
+parser.add_argument("--max-seq-len", type=int, default=262144)
 parser.add_argument("--cache-size", type=int, default=None)
 parser.add_argument("--cache-mode", default="FP16")
 parser.add_argument("--chunk-size", type=int, default=2048)
 parser.add_argument("--max-batch-size", type=int, default=1)
-parser.add_argument("--draft", choices=("mtp", "off"), default="mtp")
+parser.add_argument("--draft", choices=("mtp", "dflash2", "off"), default="dflash2")
 options = parser.parse_args()
 
 # Upstream's own sizing checks (serve.sh): the KV pool defaults to one full context.
@@ -73,6 +75,18 @@ for entry in view.iterdir():
         entry.unlink()
 (view / options.served_name).symlink_to(MODEL_DIR)
 
+# DFlash2 is a separate model directory: serve.sh gives Tabby a second view
+# holding one symlink to it, named for the drafter.
+draft_fields = ""
+if options.draft == "dflash2":
+    draft_view = state / "draft"
+    draft_view.mkdir(parents=True, exist_ok=True)
+    for entry in draft_view.iterdir():
+        if entry.is_symlink():
+            entry.unlink()
+    (draft_view / DRAFT_NAME).symlink_to(DRAFT_DIR)
+    draft_fields = f"\n  draft_model_dir: {draft_view}\n  draft_model_name: {DRAFT_NAME}"
+
 values = {
     "HOST": options.host,
     "PORT": options.port,
@@ -84,7 +98,8 @@ values = {
     "CACHE_MODE": options.cache_mode,
     "CHUNK_SIZE": options.chunk_size,
     "MAX_BATCH_SIZE": options.max_batch_size,
-    "DRAFT_MODE": "mtp" if options.draft == "mtp" else "disabled",
+    "DRAFT_MODE": {"mtp": "mtp", "dflash2": "model", "off": "disabled"}[options.draft],
+    "DRAFT_MODEL_FIELDS": draft_fields,
 }
 config = state / "config.yml"
 config.write_text(

@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
-"""Controller launcher for one rank of the TensorFold 1.3.4 Sage-S2.1-Flash (GLM-5.3-Flash shape) TP launch.
+"""Controller launcher for one rank of the TensorFold Sage-S2.1-Flash (GLM-5.3-Flash shape) TP launch.
 
 The platform appends `--tp`, `--rank`, `--master VONK_MASTER_ADDR` and `--master-port VONK_MASTER_PORT` to the named
-`tensorfold-native serve` options. The native GLM family reads the pair from the environment instead, as TensorFold's
-GLM CUDA recipe sets it: TF_GLM_RANK, TF_GLM_WORLD, NCCL_COMM_ID (rank 0's rendezvous), NCCL_SOCKET_IFNAME, NCCL_IB_HCA and
-TF_ROCE_HCA. Both ranks get the same serve options, so only the rank differs. The Controller supplies the rendezvous,
-the interface and the RoCE rails; this launcher fails closed when any is missing or malformed.
+`tensorfold-native serve` options. TensorFold's GLM CUDA recipe takes exactly these flags (the TF_GLM_RANK and
+TF_GLM_WORLD aliases are retired in 1.4.0, and NCCL_COMM_ID is derived from --master and --master-port), so this launcher
+resolves the rendezvous placeholders to the real address and port and passes the four flags on. NCCL_SOCKET_IFNAME,
+NCCL_IB_HCA and TF_ROCE_HCA stay environment. Both ranks get the same serve options, so only the rank differs. The
+Controller supplies the rendezvous, the interface and the RoCE rails; this launcher fails closed when any is missing or
+malformed.
 """
 
 import os
@@ -73,11 +75,7 @@ os.makedirs(os.environ["TMPDIR"], exist_ok=True)
 arguments = sys.argv[1:]
 world, rank, master, port = rendezvous(arguments)
 rails = fabric()
-os.environ.update(
-    TF_GLM_RANK=str(rank),
-    TF_GLM_WORLD=str(world),
-    NCCL_COMM_ID=f"{master}:{port}",
-    # The Controller supplies the RoCE rails; the engine's RoCE gathers get every authorized rail in TF_ROCE_HCA.
-    TF_ROCE_HCA=",".join(rails),
-)
-os.execv(ENGINE, [ENGINE, "serve", MODEL, *arguments])
+# The Controller supplies the RoCE rails; the engine's RoCE gathers get every authorized rail in TF_ROCE_HCA.
+os.environ["TF_ROCE_HCA"] = ",".join(rails)
+placement = ["--tp", str(world), "--rank", str(rank), "--master", master, "--master-port", str(port)]
+os.execv(ENGINE, [ENGINE, "serve", MODEL, *arguments, *placement])

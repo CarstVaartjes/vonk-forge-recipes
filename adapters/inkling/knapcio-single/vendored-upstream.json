@@ -1,6 +1,13 @@
 {
   "kit": {
     "dependencies": {
+      "drafter": {
+        "binds": "drafter",
+        "datasource": "hf-revision",
+        "file": "scripts/launch.sh",
+        "pattern": "^DFLASH2_REVISION=(?P<version>[0-9a-f]{40})\\b",
+        "repo": "incoai/Inkling-2-Mini-DFlash2"
+      },
       "image": {
         "datasource": "oci-image",
         "file": "scripts/launch.sh",

@@ -44,7 +44,7 @@ Tables can be replaced: `INKLING_MOE2_NVFP4`, `INKLING_MOE2_MXFP8` (grammar in `
 
 and in `scripts/launch.sh`: `-e INKLING_MOE2="${MOE2:-tiles}"`.
 
-## Evidence (GB10, Spark_06, 2026-11-21)
+## Evidence (GB10, 2026-11-21)
 
 Bench: `results/kbench/round2/moe/bench_moe2.py` with real routing: the CPU oracle's top-8 ids (engine/ref/inkling2_ref.py,
 teacher-forced on 16 SGLang greedy outputs, 420 positions, 48 visits) cut into verify steps of B requests x 8
