@@ -26,6 +26,7 @@ class CapabilityName(StrEnum):
     THREE_D_GENERATION = "3d-generation"
     AUDIO_GENERATION = "audio-generation"
     AUDIO_UNDERSTANDING = "audio-understanding"
+    BACKGROUND_REMOVAL = "background-removal"
     CHAT = "chat"
     CODE_GENERATION = "code-generation"
     DECISION = "decision"
@@ -63,6 +64,7 @@ _UNDERSTANDING = (
 _GENERATORS = (
     CapabilityName.THREE_D_GENERATION,
     CapabilityName.AUDIO_GENERATION,
+    CapabilityName.BACKGROUND_REMOVAL,
     CapabilityName.IMAGE_EDITING,
     CapabilityName.IMAGE_GENERATION,
     CapabilityName.IMAGE_UPSCALING,
