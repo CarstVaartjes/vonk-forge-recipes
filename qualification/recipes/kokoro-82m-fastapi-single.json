@@ -1,0 +1,18 @@
+{
+  "id": "vonk-forge/kokoro-82m-fastapi-single",
+  "service_recipes": {
+    "alias": "kokoro",
+    "higher_tiers": {
+      "recovery": [
+        "Controller stop/start, exact alias, and offline warm-cache restart"
+      ],
+      "stress": [
+        "A long multi-paragraph input that the server splits into chunks"
+      ]
+    },
+    "smoke_cases": [
+      "M0",
+      "TTS_SPEECH"
+    ]
+  }
+}
