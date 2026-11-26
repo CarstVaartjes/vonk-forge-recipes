@@ -1,0 +1,41 @@
+--extra-index-url https://download.pytorch.org/whl/cu130
+
+# The creator's environment is torch 2.1 to 2.5 on CUDA 12.x (README); no cu12x aarch64 sm_121 build
+# of those exists, so the stack is the GB10-proven Foley/CHORD one: torch 2.14.0 on cu130.
+torch==2.14.0
+# CUDA closure of that torch, held at the versions the Foley lock resolved (the others match).
+cuda-bindings==13.3.1
+cuda-pathfinder==1.7.0
+nvidia-nvjitlink==13.3.33
+
+# The creator's requirements.txt pins that inference imports: numpy 1.26.4, x-transformers 1.26.6 and
+# pytorch-custom-utils 0.0.21 (its save_load and module_device, which also bring accelerate, optree
+# and pytorch-warmup). trimesh is this recipe's pin, not the creator's (upstream lists it unpinned):
+# the creator's sample_pc passes a Trimesh object to trimesh.load, which works on 4.5.3 and raises
+# NotImplementedError on 4.6.13 through 5.1.0.
+numpy==1.26.4
+trimesh==4.5.3
+x-transformers==1.26.6
+pytorch-custom-utils==0.0.21
+# transformers is imported at module level by the point-cloud encoder (the CLIPModel import; its
+# weights load is commented out upstream). Upstream lists no transformers; 4.57.1 is this recipe's pin,
+# the version the Foley/CHORD stack on this torch proves.
+transformers==4.57.1
+einops
+beartype
+networkx
+scipy
+six
+omegaconf
+scikit-image
+tqdm
+pyyaml
+# Left out: the creator's training, metrics and rendering requirements (deepspeed, pytorch_lightning,
+# mesh2sdf, point-cloud-utils, meshgpt-pytorch, classifier-free-guidance-pytorch,
+# vector-quantize-pytorch, ema-pytorch, torch_geometric, torchtyping, matplotlib, wandb, pyrr,
+# opencv-python, pyrender, open3d-python, easydict, chardet), which inference never imports.
+
+# vonk-agent-protocol 4.1.0 requirements (jsonschema>=4.26.0, pydantic>=2.13.5): the wheel is
+# installed with --no-deps, so the hash lock carries them (as in adapters/three-d/kimodo).
+pydantic==2.13.5
+jsonschema==4.26.0

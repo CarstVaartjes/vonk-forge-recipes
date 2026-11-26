@@ -1,0 +1,34 @@
+{
+  "dependencies": [],
+  "files": [
+    {
+      "id": "bpt-8-16-500m-94b587484efd-ef7474f7a3",
+      "path": "bpt-8-16-500m.pt",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "94b587484efdcc75f5579f15c064b6f9a6697018aa619557341374f8dc705824",
+      "size_bytes": 1636512878
+    }
+  ],
+  "format": {
+    "precision": "unspecified",
+    "quantization": "none"
+  },
+  "identity": {
+    "model": {
+      "publisher": "whaohan",
+      "slug": "bpt"
+    },
+    "publisher": "whaohan",
+    "slug": "bpt-8-16-500m-4a7c93a2",
+    "variant": "4a7c93a2",
+    "version": "4a7c93a2"
+  },
+  "kind": "model",
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/whaohan/bpt",
+    "revision": "4a7c93a2691b38682fc33ba8a414f2bf849700e3"
+  }
+}

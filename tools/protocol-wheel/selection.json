@@ -38,6 +38,10 @@
       "wheel_directory": ""
     },
     {
+      "context": "adapters/three-d/bpt",
+      "wheel_directory": ""
+    },
+    {
       "context": "adapters/three-d/gem-x-motion",
       "wheel_directory": ""
     },
