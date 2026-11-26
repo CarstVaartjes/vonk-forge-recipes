@@ -1656,7 +1656,12 @@ Commit authored sources only. `catalog-index.json`,
 `qualification/coverage/` are build outputs: Git ignores them, CI builds and
 validates them for every pull request, and publication builds them from the
 release commit. The release also ships `catalog-index-v2.schema.json`, the generated schema of the
-`CatalogIndex` contract that `catalog-index.json` is built through. Build them locally with one command when a tool or test outside
+`CatalogIndex` contract that `catalog-index.json` is built through, and
+`future-canary-index.json`, the future vector (`tools/build-future-vector`): the index with an
+unknown word at every closed-word site outside an execution document (the build fails if the contract reader does not keep it), an unknown field on every closed object and
+one recipe entry with an unknown serving kind. A consumer reads it on its own release and must
+keep every entry but that one; `tests/tools/test_future_vector.py` runs the same proof against the
+contract reader, and a new tolerant site is found by the schema walk, never added by hand. Build them locally with one command when a tool or test outside
 the suite needs them:
 
 ```bash

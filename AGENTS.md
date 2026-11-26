@@ -335,7 +335,14 @@ label, description and category and every qualification status's meaning and whe
 verified. Change user-facing words only there; the site, Controller UI and vonkctl render the
 release's copy. A new `CapabilityName` or `QualificationStatus` without an entry fails the catalog build (`require_complete_vocabulary`).
 `tools/build-catalog-index --release-dir DIR` builds catalog/qualification
-indexes, recipe archives, coverage and `SHA256SUMS`. The signed release contains
+indexes, recipe archives, coverage, the future vector and `SHA256SUMS`. The future vector
+(`future-canary-index.json`, built by `tools/build-future-vector` from the index and its schema,
+signed with the release) is the reader test every consumer runs on its own release: an index with
+an unknown word at every closed-word site outside an execution document, an unknown field on every closed object, and one
+recipe entry whose serving kind is unknown (a reader withholds it and the rest applies). The
+sites come from walking the schema over the real index, so a new site is covered with no hand
+list; it keeps only the entries that cover every schema shape (plus the Models they pin) to
+stay within the index size limit, and it is never a catalog. The signed release contains
 one deterministic `recipe-library.tar`, built by `tools/build-release-bundle`:
 flat sorted regular members, ustar names at most 100 bytes, normalized ownership,
 mode 0644 and time zero. It contains `SHA256SUMS`, its Sigstore bundle and exactly
