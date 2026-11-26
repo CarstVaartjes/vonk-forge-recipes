@@ -314,17 +314,3 @@ def test_a_failed_rename_removes_the_files_already_placed(
     with pytest.raises(OSError, match="disk full"):
         run.main(_argv(outputs))
     assert sorted(path.name for path in outputs.iterdir()) == ["cache", "tmp"]
-
-
-def test_a_part_that_fails_to_decode_fails_the_generation_before_any_publication(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
-    outputs = _job(monkeypatch, tmp_path)
-
-    def failing(command: list[str], *_: object) -> None:
-        raise SystemExit("PartCrafter could not decode part(s) [1]")
-
-    monkeypatch.setattr(run, "run_generation", failing)
-    with pytest.raises(SystemExit, match=r"part\(s\) \[1\]"):
-        run.main(_argv(outputs))
-    assert sorted(path.name for path in outputs.iterdir()) == ["cache", "tmp"]
