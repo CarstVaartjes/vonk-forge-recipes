@@ -1,0 +1,31 @@
+{
+  "kit": {
+    "dependencies": {
+      "engine": {
+        "datasource": "git-ref",
+        "file": "tensorfold/recipe.sh",
+        "pattern": "^#   engine      ashhart/TensorFold v[0-9.]+, commit (?P<version>[0-9a-f]{40}) ",
+        "repo": "ashhart/TensorFold"
+      },
+      "mia-kit": {
+        "datasource": "git-ref",
+        "file": "tensorfold/recipe.sh",
+        "pattern": "^MIA_REV=(?P<version>[0-9a-f]{40})$",
+        "repo": "MiaAI-Lab/Qwen3.8-Flash-Next-Single-DGX-Spark-TensorFold"
+      },
+      "model": {
+        "binds": "primary",
+        "datasource": "hf-revision",
+        "file": "tensorfold/recipe.sh",
+        "pattern": "^  local M; M=\\$\\(ls -d \"\\$HF_CACHE\"/hub/models--nvidia--Qwen3\\.8-Flash-Next-FP4-Local/snapshots/(?P<version>[0-9a-f]{40})\\)$",
+        "repo": "nvidia/Qwen3.8-Flash-Next-FP4-Local"
+      }
+    }
+  },
+  "ours": [
+    "kit-config",
+    "licenses/",
+    "scan-sm121.py",
+    "tensorfold-serve"
+  ]
+}
