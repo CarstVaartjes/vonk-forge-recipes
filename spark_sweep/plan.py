@@ -12,6 +12,7 @@ from .identity import current_identity
 from .qualification import (
     local_status,
     merged_state_evidence,
+    recheck_due,
     recipe_evidence,
     unpublishable_requeue_due,
 )
@@ -120,6 +121,7 @@ def retesting(
     enrolled_sparks: int,
     state_data: Mapping[str, Any],
     root: Path,
+    recheck: Collection[str] = (),
 ) -> set[str]:
     """The recipes `run` would requeue, by its evidence and its due-rule."""
     saved = merged_state_evidence(state_data.get("qualification_evidence", {}), root)
@@ -141,6 +143,9 @@ def retesting(
             lambda identity=identity: identity,
             unpublishable=unpublishable_requeue_due(
                 view, evidence, identity, recipe, entry, release
+            ),
+            recheck=recheck_due(
+                recheck, recipe.key, recipe.content_sha256, evidence, release
             ),
         )
         if why is not None:
