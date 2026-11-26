@@ -27,6 +27,7 @@ from recipe_tooling.refresh_upstream import publish as refresh_publish
 from recipe_tooling.upstream_drift import embedded as drift_embedded
 from recipe_tooling.upstream_drift import heads as drift_heads
 from recipe_tooling.upstream_drift import inventory as drift_inventory
+from recipe_tooling.upstream_http import UpstreamBusy
 
 
 class AppCommandBoundaryTests(unittest.TestCase):
@@ -73,7 +74,14 @@ class PerRecipeFaultTests(unittest.TestCase):
         )
         return refresh_model.Assessment(recipe_id, items=[item], **kwargs)
 
-    def run_refresh(self, assessments, *, assess_fault=None, **patches):
+    def run_refresh(
+        self,
+        assessments,
+        *,
+        assess_fault=None,
+        fault=None,
+        **patches,
+    ):
         """Run command_run over the assessments; return (exit code, summary).
 
         GitHub is never reached: ``gh`` and ``sync_issue`` are patched unless a test
@@ -95,7 +103,9 @@ class PerRecipeFaultTests(unittest.TestCase):
 
             def assess(self, recipe_id: str):
                 if recipe_id == assess_fault:
-                    raise ValueError("Expecting value: line 1 column 1 (char 0)")
+                    raise fault or ValueError(
+                        "Expecting value: line 1 column 1 (char 0)"
+                    )
                 return assessments[recipe_id]
 
         def read_optional(source, action, *_arguments, **_keywords):
@@ -221,6 +231,19 @@ class PerRecipeFaultTests(unittest.TestCase):
         assert self.synced == []  # the failed recipe's issue is untouched
         assert summary.unreachable == []
         assert summary.failures[0].startswith("a: ValueError: Expecting value")
+
+    def test_a_busy_provider_escaping_an_assessment_is_unreachable_not_a_failure(
+        self,
+    ) -> None:
+        code, summary = self.run_refresh(
+            {"a": self.drifted("a"), "b": self.drifted("b")},
+            assess_fault="a",
+            fault=UpstreamBusy("provider returned HTTP 429"),
+            publish_mechanical=lambda *_: 7,
+        )
+        assert code == 0
+        assert summary.failures == []
+        assert summary.unreachable[0].startswith("a: provider returned HTTP 429")
 
 
 class AppKeyLifetimeTests(unittest.TestCase):

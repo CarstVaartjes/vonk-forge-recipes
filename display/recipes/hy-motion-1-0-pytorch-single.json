@@ -1,0 +1,40 @@
+{
+  "alignment": "unspecified",
+  "component_bindings": [
+    "assets",
+    "clip-l",
+    "qwen3-8b"
+  ],
+  "description": "Single-Spark Tencent HY-Motion 1.0 job: a text prompt becomes a 30 fps human motion on the creator's 52-joint SMPL-H-layout wooden skeleton, from the full HY-Motion-1.0 checkpoint with the creator's own runtime, guidance scale 5.0 and default 50 flow-matching steps. The prompt rewriter and duration estimator are off, so the prompt is used as written and the duration is a setting (0.7 to 12 seconds). The text encoders are Qwen3-8B and CLIP ViT-L/14 (about 22 GB together with the motion model). The creator exports FBX through the Autodesk FBX SDK, which has no aarch64 build, so this recipe writes the BVH itself from the creator's skeleton template and motion parameters (centimetres, 30 fps); the output is one motion.zip holding motion.bvh and motion.npz, meant for retargeting in Blender. The model generates the 22 body joints; the 30 finger joints stay at the SMPL-H mean pose. Released under the Tencent HY-Motion 1.0 Community License, whose territory excludes the European Union, the United Kingdom and South Korea (information only).",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "hy-motion-1-0-pytorch-single"
+  },
+  "kind": "recipe-display",
+  "knobs": {
+    "duration-seconds": {
+      "description": "Length of the generated motion at 30 frames per second (20 to 360 frames).",
+      "label": "Duration",
+      "unit": "s"
+    },
+    "seed": {
+      "description": "Random seed of the flow-matching noise; the same seed and prompt give the same motion.",
+      "label": "Seed"
+    }
+  },
+  "tags": [
+    "executable",
+    "tencent",
+    "hy-motion",
+    "motion-generation",
+    "text-to-motion",
+    "animation",
+    "bvh",
+    "smpl-h",
+    "pytorch-pipeline",
+    "single",
+    "spark",
+    "native"
+  ],
+  "title": "HY-Motion 1.0 text-to-motion PyTorch single Spark"
+}

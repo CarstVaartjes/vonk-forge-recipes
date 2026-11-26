@@ -1,0 +1,79 @@
+{
+  "dependencies": [],
+  "files": [
+    {
+      "id": "config-8a09b467700c-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "8a09b467700c58138c29d53c605b34ebc69beaadd13274a8a2af8ad2c2f4032a",
+      "size_bytes": 4519
+    },
+    {
+      "id": "merges-9fd691f7c803-b0d6dcfed4",
+      "path": "merges.txt",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "9fd691f7c8039210e0fced15865466c65820d09b63988b0174bfe25de299051a",
+      "size_bytes": 524619
+    },
+    {
+      "id": "model-a2bf730a0c7d-9d75c1098f",
+      "path": "model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "a2bf730a0c7debf160f7a6b50b3aaf3703e7e88ac73de7a314903141db026dcb",
+      "size_bytes": 1710540580
+    },
+    {
+      "id": "special-tokens-map-f8c0d6c39aee-c07a9be597",
+      "path": "special_tokens_map.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "f8c0d6c39aee3f8431078ef6646567b0aba7f2246e9c54b8b99d55c22b707cbf",
+      "size_bytes": 389
+    },
+    {
+      "id": "tokenizer-config-deef455e52fa-94d5c6ba8f",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "deef455e52fa5e8151e339add0582e4235f066009601360999d3a9cda83b1129",
+      "size_bytes": 905
+    },
+    {
+      "id": "vocab-3f0c4f7d2086-ba05d8e2e4",
+      "path": "vocab.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "3f0c4f7d2086b61b38487075278ea9ed04edb53a03cbb045b86c27190fa8fb69",
+      "size_bytes": 961143
+    }
+  ],
+  "format": {
+    "precision": "fp32",
+    "quantization": "none"
+  },
+  "identity": {
+    "model": {
+      "publisher": "openai",
+      "slug": "clip-vit-large-patch14"
+    },
+    "publisher": "openai",
+    "slug": "clip-vit-large-patch14-text-32bd6428",
+    "variant": "32bd6428",
+    "version": "32bd6428"
+  },
+  "kind": "model",
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/openai/clip-vit-large-patch14",
+    "revision": "32bd64288804d66eefd0ccbe215aa642df71cc41"
+  }
+}

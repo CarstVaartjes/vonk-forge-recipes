@@ -1,0 +1,25 @@
+{
+  "capabilities": [],
+  "description": "OpenAI CLIP ViT-L/14 with its safetensors weights, tokenizer and configuration: the sentence encoder (text tower, pooled output) HY-Motion loads with CLIPTextModel. The pinned model card cautions against deployed use; that is recorded separately from the upstream MIT license.",
+  "family_title": "CLIP ViT Large Patch14",
+  "identity": {
+    "publisher": "openai",
+    "slug": "clip-vit-large-patch14-text-32bd6428"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "openai"
+    ],
+    "spdx": "MIT",
+    "url": "https://github.com/openai/CLIP/blob/d05afc436d78f1c48dc0dbf8e5980a9d471f35f6/LICENSE"
+  },
+  "modalities": [
+    "embeddings"
+  ],
+  "model_title": "CLIP ViT Large Patch14",
+  "tags": [
+    "openai",
+    "clip-vit-large-patch14"
+  ]
+}

@@ -42,6 +42,7 @@ from recipe_tooling.refresh_upstream import publish as refresh_publish
 from recipe_tooling.upstream_drift import embedded as drift_embedded
 from recipe_tooling.upstream_drift import heads as drift_heads
 from recipe_tooling.upstream_drift import inventory as drift_inventory
+from recipe_tooling.upstream_http import UpstreamBusy
 
 
 class AnonymousHeadClient:
@@ -113,6 +114,12 @@ def command_run(arguments: argparse.Namespace) -> int:
         def assess_one(recipe_id: str) -> refresh_model.Assessment:
             try:
                 return assessor.assess(recipe_id)
+            except (
+                UpstreamBusy
+            ) as error:  # not checked this run; the next run asks again
+                return refresh_model.Assessment(
+                    recipe_id, unreachable=[str(error)[:200]]
+                )
             except Exception as error:  # noqa: BLE001 - one recipe's fault must not starve the rest
                 record_failure(summary, recipe_id, error)
                 failed.add(recipe_id)
