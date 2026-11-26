@@ -442,6 +442,14 @@ jobs:
           set -euo pipefail
           python3 tools/check-nccl-ib-hca --diff "$RUNNER_TEMP/added.diff"
 
+      # The contracts wheel holds wire only: an added public function must be named in
+      # SHARED_FUNCTIONS, and no added line walks the filesystem. Checks only added lines.
+      - name: Reject new producer-side code in the contracts wheel
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/check-wire-only --diff "$RUNNER_TEMP/added.diff"
+
       - name: Reject new tests that gate on a real recipe's declared memory
         shell: bash
         run: |

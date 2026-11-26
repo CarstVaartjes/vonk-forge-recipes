@@ -11,6 +11,9 @@ from jsonschema import Draft202012Validator
 from pydantic import ValidationError
 from repo_root import ROOT
 
+from recipe_tooling.library_checks import (
+    validate_library,
+)
 from vonk_forge_contracts import (
     GitHubLfsSource,
     GitHubReleaseSource,
@@ -37,7 +40,6 @@ from vonk_forge_contracts.recipe import (
 )
 from vonk_forge_contracts.resolver import (
     ContractResolutionError,
-    validate_library,
     validate_model_references,
     validate_recipe_models,
     validate_recipe_package_paths,

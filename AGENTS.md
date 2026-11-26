@@ -49,7 +49,7 @@ Recipe memory policy lives in the authoring guide's memory section.
 ## Sweep evidence workflow
 
 Hardware qualification uses `RecipeQualificationEvidence` and
-`derive_status`. Store public evidence in
+`recipe_tooling.qualification.status.derive_status`. Store public evidence in
 `qualification/evidence/<publisher>/<recipe-slug>.json`, separate from recipes.
 Proven recipes are never broken pre-emptively: preserve the last pass during a
 re-check. Evidence is newest-only: a revert to a content digest whose records were
@@ -278,10 +278,10 @@ word a newer minor added as an `UnrecognisedWord`, drops an unreadable optional 
 API facts, qualification, prebuilt image, measured memory; the entry stays), skips an entry whose
 execution data is malformed, and refuses the index only for a wrong envelope or contract major or
 a digest mismatch; each recipe entry's `served_capabilities` is derived at build time by the
-contract's `served_capabilities` from its endpoint Models only (never authored; a binding its
+`recipe_tooling.qualification.api_checks.served_capabilities` from its endpoint Models only (never authored; a binding its
 recipe display lists in `component_bindings` is a component whose capabilities never count,
 here, in `multimodal` or in `tools/check-recipe-api`; mark every component binding whatever
-its capabilities, and `validate_library` refuses an unknown id); `read_catalog_index` is
+its capabilities, and `recipe_tooling.library_checks.validate_library` refuses an unknown id); `read_catalog_index` is
 the strict whole-index form for producers and tests. The envelope and package
 schema versions live only there; change the shape in the model and run
 `tools/generate-contract-schemas`.
@@ -319,14 +319,20 @@ Dead fields follow one rule, so retiring a field never churns identities: a new 
 born optional and absent when unset (the classifier makes a new required field on an
 existing model breaking); retiring one is stop reading, make it optional, deploy the
 consumers, stop writing, let documents shed it by attrition, and delete it only at zero.
-`vonk_forge_contracts` holds only documents, and the functions over
+`vonk_forge_contracts` holds only wire: the documents, and the functions over
 them, that more than one process reads (Controller, vonkctl, publication, recipe
-producers). A tool's own state, and its projection of another system's wire
+producers). A thing is wire when a consumer imports it or an imported model's
+fields reach it; `SHARED_FUNCTIONS` in its `__init__.py` is the one owner list of the
+public functions, and `tools/check-wire-only` (validate.yml) rejects an added public
+function outside it and any added filesystem traversal (`glob`, `iterdir`, `os.walk`, a
+`library_root` or `root: Path` parameter). Library checks, status derivation and the
+sweep-only enums live in `recipe_tooling` (`library_checks`, `qualification/status`,
+`qualification/api_checks`). A tool's own state, and its projection of another system's wire
 shape, live in that tool (the sweep's records: `spark_sweep/sweep_contract.py`).
 The index also publishes the vocabulary (`vonk_forge_contracts.vocabulary`): every capability's
 label, description and category and every qualification status's meaning and whether it counts as
 verified. Change user-facing words only there; the site, Controller UI and vonkctl render the
-release's copy. A new `CapabilityName` or `QualificationStatus` without an entry fails at import.
+release's copy. A new `CapabilityName` or `QualificationStatus` without an entry fails the catalog build (`require_complete_vocabulary`).
 `tools/build-catalog-index --release-dir DIR` builds catalog/qualification
 indexes, recipe archives, coverage and `SHA256SUMS`. The signed release contains
 one deterministic `recipe-library.tar`, built by `tools/build-release-bundle`:

@@ -26,6 +26,9 @@ import copy
 from dataclasses import dataclass
 from typing import Any
 
+from recipe_tooling.qualification.api_checks import (
+    integer_argument,
+)
 from vonk_forge_contracts.api import (
     ApiReasoningAlwaysOn,
     ApiReasoningSwitch,
@@ -36,7 +39,6 @@ from vonk_forge_contracts.api import (
     ChatApi,
     RecipeApi,
 )
-from vonk_forge_contracts.api_checks import integer_argument
 from vonk_forge_contracts.recipe import (
     RecipeDecisionSettings,
     RecipeDefinition,

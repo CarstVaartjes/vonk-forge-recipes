@@ -15,30 +15,37 @@ from jsonschema import Draft202012Validator
 from pydantic import ValidationError
 from repo_root import ROOT
 
+from recipe_tooling.library_checks import (
+    validate_recipe_apis,
+)
+from recipe_tooling.qualification.api_checks import (
+    CONTEXT_ARGUMENTS,
+    INPUT_MODALITY_CAPABILITIES,
+    RecipeApiError,
+    accepted_modalities,
+    check_api_models,
+    check_recipe_api,
+    endpoint_capabilities,
+    served_capabilities,
+)
 from vonk_forge_contracts import (
     CapabilityName,
     RecipeApi,
-    RecipeApiError,
     RecipeDefinition,
-    check_api_models,
-    check_recipe_api,
     document_sha256,
-    endpoint_capabilities,
     published_json,
     read_recipe_api,
     recipe_api_json_schema,
-    served_capabilities,
 )
 from vonk_forge_contracts.api import ApiTokenArgument
-from vonk_forge_contracts.api_checks import (
-    CONTEXT_ARGUMENTS,
-    INPUT_MODALITY_CAPABILITIES,
-    accepted_modalities,
+from vonk_forge_contracts.resolver import (
+    ContractResolutionError,
 )
-from vonk_forge_contracts.resolver import ContractResolutionError, validate_recipe_apis
 
 EXAMPLES = ROOT / "contracts/src/vonk_forge_contracts/examples"
 INVALID = EXAMPLES / "invalid"
+# Vectors only ``check_recipe_api`` refuses: producer-side, so not shipped in the wheel.
+CHECKED = ROOT / "tests/fixtures/api-checks"
 APIS = sorted((ROOT / "api/recipes").glob("*.json"))
 GUARD = runpy.run_path(str(ROOT / "tools/check-recipe-api"))
 
@@ -127,7 +134,8 @@ def _refuse(contract: str, document: dict[str, Any]) -> None:
 
 API_VECTORS = sorted(
     path
-    for path in INVALID.glob("recipe-api-*.json")
+    for folder in (INVALID, CHECKED)
+    for path in folder.glob("recipe-api-*.json")
     if not path.name.endswith(".expect.json")
 )
 

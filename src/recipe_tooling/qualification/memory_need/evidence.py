@@ -17,13 +17,15 @@ from recipe_tooling.qualification.memory_need.constants import (
     budget_margin_bytes,
 )
 from recipe_tooling.qualification.memory_need.geometry import MemoryInputs
+from recipe_tooling.qualification.status import (
+    derive_status,
+)
 from vonk_forge_contracts import (
     PublishedRoleMemory,
     QualificationMeasuredRoleMemory,
     QualificationStatus,
     RecipeDefinition,
     RecipeQualificationEvidence,
-    derive_status,
     document_sha256,
 )
 

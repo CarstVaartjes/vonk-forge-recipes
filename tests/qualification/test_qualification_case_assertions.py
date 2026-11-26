@@ -15,6 +15,9 @@ from recipe_tooling.qualification.case_assertions import (
     require_valid_case_assertions,
 )
 from recipe_tooling.qualification.definitions_loader import load_definitions
+from recipe_tooling.qualification.status import (
+    published_status,
+)
 from spark_sweep.smoke import check_assertions, check_quality
 from vonk_forge_contracts import (
     QualificationEvidenceRecord,
@@ -23,7 +26,6 @@ from vonk_forge_contracts import (
     QualificationStatus,
     QualificationUnverifiedReason,
     RecipeQualificationEvidence,
-    published_status,
 )
 from vonk_forge_contracts.canonical import document_sha256
 from vonk_forge_contracts.recipe import RecipeJobSettings

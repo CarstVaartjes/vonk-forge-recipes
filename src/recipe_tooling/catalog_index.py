@@ -16,7 +16,17 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 
 from recipe_tooling.adapter_sources import materialize_or_exit
+from recipe_tooling.library_checks import (
+    require_complete_vocabulary,
+    validate_families,
+    validate_library,
+    validate_recipe_apis,
+)
 from recipe_tooling.paths import REPO_ROOT
+from recipe_tooling.qualification.api_checks import (
+    endpoint_capabilities,
+    served_capabilities,
+)
 from recipe_tooling.qualification.case_assertions import require_valid_case_assertions
 from recipe_tooling.qualification.definitions_loader import load_definitions
 from recipe_tooling.qualification.documents import (
@@ -35,6 +45,9 @@ from recipe_tooling.qualification.memory_need.evidence import (
 )
 from recipe_tooling.qualification.memory_need.warnings import memory_warnings
 from recipe_tooling.qualification.service_aliases import require_valid_service_aliases
+from recipe_tooling.qualification.status import (
+    published_status,
+)
 from recipe_tooling.qualification.tolerant import InputDiagnostic
 from vonk_forge_contracts import (
     CONTRACT_VERSION,
@@ -54,17 +67,11 @@ from vonk_forge_contracts import (
     RecipeDefinition,
     catalog_vocabulary,
     document_sha256,
-    endpoint_capabilities,
     published_index_json,
     published_json,
-    published_status,
-    served_capabilities,
 )
 from vonk_forge_contracts.resolver import (
-    validate_families,
-    validate_library,
     validate_model_references,
-    validate_recipe_apis,
 )
 
 REPOSITORY = "CarstVaartjes/vonk-forge-recipes"
@@ -839,6 +846,7 @@ def build(
     ]
     if not re.fullmatch(r"[0-9a-f]{40}", source_commit):
         raise SystemExit("source commit must be a full SHA-1")
+    require_complete_vocabulary()
     index = CatalogIndex.model_validate(
         {
             "schema_version": INDEX_SCHEMA_VERSION,
