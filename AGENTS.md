@@ -291,18 +291,23 @@ and the placeholder `__version__ = "<CONTRACT_MAJOR>.0.0"`, so source-tree and P
 indexes carry the placeholder and every consumer compares only the major. A PR never edits
 `__version__`; it raises `CONTRACT_MAJOR` by exactly one for a breaking change and changes
 nothing in `_version.py` otherwise. `tools/contract-version`
-(`src/recipe_tooling/contract_version.py`, standard library only) classifies the schemas
-and examples against the last `v*` tag; `.github/scripts/contract-version` is its git edge,
+(`src/recipe_tooling/contract_version.py`, standard library only) classifies the schemas,
+the examples and the `SHARED_FUNCTIONS` names in the package `__init__.py` (read, never
+imported; not compared while either tree lacks the list) against the last `v*` tag; `.github/scripts/contract-version` is its git edge,
 and validate.yml's "Contract change class" step runs it on every PR and prints the class:
 
 - **breaking**: a property, definition, `anyOf`/`oneOf` alternative or file removed;
   `required` grown, including a new required property on an existing model; a type, const
   or `$ref` changed incompatibly; an enum shrunk; a bound, pattern or format narrowed or
-  added; an existing example no longer holds a value it held. It fails the PR unless
+  added; an existing example no longer holds a value it held; a name removed from
+  `SHARED_FUNCTIONS`. It fails the PR unless
   `CONTRACT_MAJOR` is one above the released major.
-- **minor**: any other schema or example change: something added, a requirement or bound
-  relaxed, an annotation changed, a new example, or an example that only gained keys or
-  appended items (a born-optional field shows up in a full dump as a new key).
+- **minor**: any other schema or example change: something added (including a name in
+  `SHARED_FUNCTIONS`), a requirement or bound relaxed, an annotation changed, a new example,
+  or an example that only gained keys or appended items (a born-optional field shows up in
+  a full dump as a new key). A union is compared member by member, with a nested or
+  referenced union expanded, an old member kept when a new one accepts at least as much,
+  and a `const` read as a one-member `enum`.
 - **patch**: `contracts/src` changed with identical schemas and examples (a removed module,
   a fix). The Controller reads only the newest release within its own major.
 - **none**: `contracts/src` unchanged since the tag; recipe changes update that release.

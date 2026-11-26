@@ -84,18 +84,49 @@ class Finding:
 class Surface:
     """One released tree's published surface: every input the class is computed over.
 
-    Each field is one input, compared by its own function in ``findings``; a new
-    input (for example the shared-function list) is a new field there.
+    Each field is one input, compared by its own function in ``findings``.
+    ``shared_functions`` is the package's ``SHARED_FUNCTIONS`` names, or None for a
+    tree that has no such list (it is then not compared).
     """
 
     schemas: Mapping[str, object] = field(default_factory=dict)
     vectors: Mapping[str, bytes] = field(default_factory=dict)
+    shared_functions: frozenset[str] | None = None
 
 
-def read_surface(schemas: Path, vectors: Path) -> Surface:
-    """Read a schema directory (``*.json``) and a vector tree (every file)."""
+def shared_functions(package_init: str) -> frozenset[str] | None:
+    """The names in ``SHARED_FUNCTIONS = (...)`` of an ``__init__.py``, read, never imported."""
+
+    for node in ast.parse(package_init).body:
+        if isinstance(node, ast.Assign) and len(node.targets) == 1:
+            target, value = node.targets[0], node.value
+        elif isinstance(node, ast.AnnAssign) and node.value is not None:
+            target, value = node.target, node.value
+        else:
+            continue
+        if isinstance(target, ast.Name) and target.id == "SHARED_FUNCTIONS":
+            if not isinstance(value, (ast.Tuple, ast.List)):
+                raise ContractVersionError("SHARED_FUNCTIONS must be a literal tuple")
+            return frozenset(
+                item.value
+                for item in value.elts
+                if isinstance(item, ast.Constant) and isinstance(item.value, str)
+            )
+    return None
+
+
+def read_surface(
+    schemas: Path, vectors: Path, package_init: Path | None = None
+) -> Surface:
+    """Read a schema directory (``*.json``), a vector tree (every file) and,
+    when given, the package ``__init__.py`` holding ``SHARED_FUNCTIONS``."""
 
     return Surface(
+        shared_functions=(
+            None
+            if package_init is None or not package_init.is_file()
+            else shared_functions(package_init.read_text("utf-8"))
+        ),
         schemas={
             path.name: json.loads(path.read_text("utf-8"))
             for path in sorted(schemas.glob("*.json"))
@@ -114,7 +145,19 @@ def findings(base: Surface, head: Surface) -> list[Finding]:
     return [
         *_files(base.schemas, head.schemas, "schema", _schema_file),
         *_files(base.vectors, head.vectors, "vector", _vector_file),
+        *_shared(base.shared_functions, head.shared_functions),
     ]
+
+
+def _shared(
+    base: frozenset[str] | None, head: frozenset[str] | None
+) -> Iterator[Finding]:
+    if base is None or head is None:
+        return
+    for name in sorted(base - head):
+        yield Finding(ChangeClass.BREAKING, "SHARED_FUNCTIONS", f"{name} removed")
+    for name in sorted(head - base):
+        yield Finding(ChangeClass.MINOR, "SHARED_FUNCTIONS", f"{name} added")
 
 
 def change_class(found: Sequence[Finding], *, src_changed: bool) -> ChangeClass:
@@ -293,6 +336,7 @@ class _SchemaWalk:
         if not isinstance(base, dict) or not isinstance(head, dict):
             self.add(ChangeClass.BREAKING, where, "schema changed")
             return
+        base, head = _const_as_enum(base), _const_as_enum(head)
         # Wrap first: a ``$ref`` that became one alternative of a union stays a ref.
         base, head = self._as_alternatives(base, head)
         base, head = self._dereferenced(base, head)
@@ -331,7 +375,7 @@ class _SchemaWalk:
         elif key == "uniqueItems":
             narrowed = new is True
             self.relaxed_unless(where, "uniqueItems", narrowed=narrowed)
-        elif key in ("const", "pattern", "format", "default"):
+        elif key in ("pattern", "format", "default"):
             self.only_removal_relaxes(key, old, new, where)
         else:
             self.add(ChangeClass.BREAKING, where, f"{key} changed")
@@ -455,18 +499,53 @@ class _SchemaWalk:
             return
         self.schema(before, after, f"{where}->{new}")
 
+    def _members(self, side: int, items: object, refs: frozenset[str]) -> list[object]:
+        """A union's alternatives, with a nested or referenced union expanded."""
+
+        members: list[object] = []
+        for item in _list(items):
+            node, seen = item, refs
+            if isinstance(item, dict) and set(item) - _ANNOTATIONS == {"$ref"}:
+                ref = item["$ref"]
+                if isinstance(ref, str) and ref not in refs:
+                    node, seen = self._resolve(side, ref), refs | {ref}
+            if isinstance(node, dict):
+                nested = [key for key in _ALTERNATIVES if key in node]
+                if len(nested) == 1 and set(node) - _ANNOTATIONS == set(nested):
+                    members.extend(self._members(side, node[nested[0]], seen))
+                    continue
+            members.append(item)
+        return members
+
+    def _trial(self, before: object, after: object, where: str) -> list[Finding]:
+        """The findings of one comparison, without recording them."""
+
+        trial = _SchemaWalk(*self.roots)
+        trial.seen = set(self.seen)
+        trial.schema(before, after, where)
+        return trial.found
+
     def alternatives(self, old: object, new: object, where: str) -> None:
         if old is _ABSENT or new is _ABSENT:
             self.relaxed_unless(where, "alternatives", narrowed=old is _ABSENT)
             return
-        unmatched_new = list(_list(new))
-        unmatched_old = []
-        for item in _list(old):
+        unmatched_new = self._members(1, new, frozenset())
+        unmatched_old: list[object] = []
+        for item in self._members(0, old, frozenset()):
             if item in unmatched_new:
                 unmatched_new.remove(item)
             else:
                 unmatched_old.append(item)
-        if len(unmatched_old) == len(unmatched_new):
+        # An old alternative is kept when some new one accepts at least as much.
+        for item in list(unmatched_old):
+            for index, candidate in enumerate(unmatched_new):
+                found = self._trial(item, candidate, f"{where}/{index}")
+                if all(entry.change is not ChangeClass.BREAKING for entry in found):
+                    self.found.extend(found)
+                    unmatched_old.remove(item)
+                    del unmatched_new[index]
+                    break
+        if unmatched_old and len(unmatched_old) == len(unmatched_new):
             for index, (before, after) in enumerate(
                 zip(unmatched_old, unmatched_new, strict=True)
             ):
@@ -550,6 +629,15 @@ class _SchemaWalk:
             self.add(ChangeClass.MINOR, where, f"{what} relaxed or added")
 
 
+def _const_as_enum(node: dict[str, object]) -> dict[str, object]:
+    """``const: x`` is ``enum: [x]``, so a const that grew into an enum is a widening."""
+
+    if "const" not in node:
+        return node
+    rest = {key: value for key, value in node.items() if key != "const"}
+    return rest if "enum" in node else {**rest, "enum": [node["const"]]}
+
+
 def _list(value: object) -> list[object]:
     return list(value) if isinstance(value, list) else [value]
 
@@ -559,8 +647,12 @@ def _list(value: object) -> list[object]:
 
 def _next(arguments: argparse.Namespace) -> int:
     found = findings(
-        read_surface(arguments.base_schemas, arguments.base_vectors),
-        read_surface(arguments.head_schemas, arguments.head_vectors),
+        read_surface(
+            arguments.base_schemas, arguments.base_vectors, arguments.base_init
+        ),
+        read_surface(
+            arguments.head_schemas, arguments.head_vectors, arguments.head_init
+        ),
     )
     change = change_class(found, src_changed=arguments.src_changed == "yes")
     for item in found:
@@ -605,6 +697,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     compute = commands.add_parser("next", help="print the next version, or none")
     for name in ("base-schemas", "base-vectors", "head-schemas", "head-vectors"):
         compute.add_argument(f"--{name}", type=Path, required=True)
+    for name in ("base-init", "head-init"):
+        compute.add_argument(
+            f"--{name}", type=Path, help="the package __init__.py with SHARED_FUNCTIONS"
+        )
     compute.add_argument("--base-version", required=True)
     compute.add_argument("--major", type=int, required=True)
     compute.add_argument("--src-changed", choices=("yes", "no"), required=True)

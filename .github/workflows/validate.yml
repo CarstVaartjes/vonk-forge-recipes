@@ -212,7 +212,9 @@ jobs:
       # the minor and patch from the change class against the last v* tag. A
       # breaking class without CONTRACT_MAJOR one above the released major fails.
       # Git runs here; the tool takes the released tree as directories.
+      # On main, publish.yml's contract-version job runs the same computation.
       - name: Contract change class
+        if: ${{ !inputs.contract_version }}
         shell: bash
         run: |
           set -euo pipefail

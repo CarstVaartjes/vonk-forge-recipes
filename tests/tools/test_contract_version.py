@@ -16,6 +16,7 @@ from recipe_tooling.contract_version import (
     findings,
     main,
     next_version,
+    shared_functions,
 )
 
 PROPERTIES: dict[str, object] = {
@@ -27,7 +28,9 @@ REQUIRED = ["name", "kind", "requires_token"]
 
 
 def model(
-    properties: dict[str, object] | None = None, required: list[str] | None = None
+    properties: dict[str, object] | None = None,
+    required: list[str] | None = None,
+    defs: dict[str, object] | None = None,
 ) -> dict[str, object]:
     document = {
         "type": "object",
@@ -35,7 +38,7 @@ def model(
         "properties": PROPERTIES if properties is None else properties,
         "required": REQUIRED if required is None else required,
     }
-    return {"$defs": {"Model": document}, "$ref": "#/$defs/Model"}
+    return {"$defs": {"Model": document, **(defs or {})}, "$ref": "#/$defs/Model"}
 
 
 def classify(
@@ -96,6 +99,32 @@ def test_born_optional_and_relaxed_changes_are_minor() -> None:
     base = Surface(schemas={"model.json": nested})
     head = Surface(schemas={"model.json": widened})
     assert change_class(findings(base, head), src_changed=True) is ChangeClass.MINOR
+    # A union whose members moved into a referenced union keeps every member.
+    flat = {"anyOf": [{"type": "string"}, {"type": "integer"}, {"type": "null"}]}
+    value = {"anyOf": [{"type": "string"}, {"type": "integer"}, {"type": "number"}]}
+    moved = {"anyOf": [{"$ref": "#/$defs/Value"}, {"type": "null"}]}
+    base = Surface(schemas={"model.json": model({**PROPERTIES, "value": flat})})
+    head = Surface(
+        schemas={
+            "model.json": model({**PROPERTIES, "value": moved}, defs={"Value": value})
+        }
+    )
+    assert change_class(findings(base, head), src_changed=True) is ChangeClass.MINOR
+    # An alternative that was relaxed while another was added is kept, not removed.
+    short = {"anyOf": [{"type": "string", "maxLength": 5}]}
+    longer = {"anyOf": [{"type": "string", "maxLength": 9}, {"type": "null"}]}
+    base = Surface(schemas={"model.json": model({**PROPERTIES, "note": short})})
+    head = Surface(schemas={"model.json": model({**PROPERTIES, "note": longer})})
+    assert change_class(findings(base, head), src_changed=True) is ChangeClass.MINOR
+    # A const is a one-member enum, so growing it into an enum widens it.
+    single = {"const": "chat", "type": "string"}
+    base = Surface(schemas={"model.json": model({**PROPERTIES, "kind": single})})
+    assert (
+        change_class(
+            findings(base, Surface(schemas={"model.json": model()})), src_changed=True
+        )
+        is ChangeClass.MINOR
+    )
     assert next_version("5.8.0", 5, ChangeClass.MINOR) == "5.9.0"
 
 
@@ -137,3 +166,22 @@ def test_a_pull_request_never_sets_the_minor_or_patch() -> None:
         with pytest.raises(ContractVersionError):
             committed_major(text, "5.8.0")
     assert committed_major('CONTRACT_MAJOR = 6\n__version__ = "6.0.0"\n', "5.8.0") == 6
+
+
+def test_shared_functions_may_only_grow() -> None:
+    def surface(*names: str) -> Surface:
+        listed = "".join(f'    "{name}",\n' for name in names)
+        return Surface(
+            shared_functions=shared_functions(
+                f"SHARED_FUNCTIONS: Final = (\n{listed})\n"
+            )
+        )
+
+    base = surface("read_model", "wav_facts")
+    removed = findings(base, surface("read_model"))
+    assert change_class(removed, src_changed=True) is ChangeClass.BREAKING
+    added = findings(base, surface("read_model", "wav_facts", "build_key"))
+    assert change_class(added, src_changed=True) is ChangeClass.MINOR
+    # A tree without the list (released before it existed) is not compared.
+    assert shared_functions("CONTRACT_VERSION = __version__\n") is None
+    assert not findings(Surface(), surface("read_model"))

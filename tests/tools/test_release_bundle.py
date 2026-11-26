@@ -201,7 +201,7 @@ class SyncReleaseAssetsTests(unittest.TestCase):
         self.bundle = self.tmp / "bundle" / "recipe-library.tar"
         self.bundle.parent.mkdir()
         bundle_tool.build(self.release, self.bundle)
-        self.wheel = self.tmp / sync_tool.wheel_name("v1.0.0")
+        self.wheel = self.tmp / "contracts-1.0.0-py3-none-any.whl"
         self.wheel.write_bytes(b"wheel built by this run")
         self.sources = {self.bundle.name: self.bundle, self.wheel.name: self.wheel}
         self.expected = sync_tool.expected_from_bundle(self.bundle)

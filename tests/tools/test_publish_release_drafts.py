@@ -201,7 +201,7 @@ def test_a_stranded_draft_is_replaced_by_a_published_release(
 
 @pytest.mark.skipif(shutil.which("jq") is None, reason="gh's --jq is emulated with jq")
 def test_a_new_version_is_undrafted_only_with_its_wheel(tmp_path: Path) -> None:
-    wheel = tmp_path / "vonk_forge_public_contracts-3.0.0-py3-none-any.whl"
+    wheel = tmp_path / "contracts-3.0.0-py3-none-any.whl"
     wheel.write_bytes(b"wheel")
     state = publish(tmp_path, [], wheel=str(wheel))
     (release,) = state["releases"]

@@ -375,8 +375,12 @@ jobs:
           python3 tools/contract-version stamp \
             "$tree/contracts/src/vonk_forge_contracts/_version.py" --version "$CONTRACT_VERSION"
           uv build --wheel --out-dir "$RUNNER_TEMP/wheel" "$tree/contracts"
-          wheel="$RUNNER_TEMP/wheel/vonk_forge_public_contracts-$CONTRACT_VERSION-py3-none-any.whl"
-          test -f "$wheel"
+          wheels=("$RUNNER_TEMP/wheel"/*-"$CONTRACT_VERSION"-py3-none-any.whl)
+          if [ "${#wheels[@]}" -ne 1 ] || [ ! -f "${wheels[0]}" ]; then
+            echo "::error::expected one contracts wheel of $CONTRACT_VERSION, found ${wheels[*]}" >&2
+            exit 1
+          fi
+          wheel=${wheels[0]}
           echo "Contracts wheel of $RELEASE_TAG built from $source" >> "$GITHUB_STEP_SUMMARY"
           echo "path=$wheel" >> "$GITHUB_OUTPUT"
 
