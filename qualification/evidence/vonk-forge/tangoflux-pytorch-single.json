@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/tangoflux-pytorch-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "2cad4025b10bf68430cedf39ff93b9778e042d9128d04775ba2472ded288a26f",
+        "source_bundle_sha256": "7ecc931a9b8cf90c6f4d4f420c5ddebce00ca1578416b8df9dbceae29cefcf83",
+        "runtime_image": {
+          "build_key": "e6f8709ba0d18035a837d3b28339180c5948667259024a54f4cf0f0ecd49fe12",
+          "image_digest": "sha256:687fbac8581e0eedd6c9b095537a4064d37aa26d11905775ca8806d7051cd8aa"
+        },
+        "model_digests": [
+          "2688573745027a7e1d85d94cdb1f49572d53d1c61fdbdbea666b14fd0f0fc610",
+          "438be8368cc21efd5b0cc73d67c5d3e0f3dd8d4fd3b76bbaa43d41f4dd26c04e"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "58de18a1e9b2f1bdd61ba32c014a82280977d4c00cf082dd954cba5a05684049"
+      ],
+      "tested_at": "2026-11-26T15:34:59.602026Z",
+      "platform": {
+        "controller_source_sha": "090996346f05bd21b329ca6532e111eac5a556e1",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}

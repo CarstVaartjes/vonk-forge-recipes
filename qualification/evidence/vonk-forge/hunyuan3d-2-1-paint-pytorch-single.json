@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/hunyuan3d-2-1-paint-pytorch-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "0567ddbccf09ce60dbd126f5b5ea6f0cdc5dbe05d59d31959ee9e446c96d1b6b",
+        "source_bundle_sha256": "1add1cccc82b3aef8426021577c259323d941d40b25a13b54575955488c41256",
+        "runtime_image": {
+          "build_key": "9979e94399b65b289097a4fde1e6a1aa2f6f69aad36eb3f0d02cee6fd070ac1e",
+          "image_digest": "sha256:ba771e651d51dbe1c3c10fad5b81a9e0f48df84dc64ae1a9e91532a71df34fc4"
+        },
+        "model_digests": [
+          "aa25624cf2ac64dcbe1bf4b8912f2e85a5b29ddc0df2c6da11242dfbf8f03ac3",
+          "d3d393d40a6efd9e02e3fe1a70ee44ef10bb40702e803a797e33d6a17769a288",
+          "d5d26fe085cefbdf38ff6fcb88e8a42c67c639efba2bd5ec0d259f024301316f"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "33987988c256507775a96b450c1a1b2f807a9aea6ad701da1890f115285a376e"
+      ],
+      "tested_at": "2026-11-26T15:39:18.706423Z",
+      "platform": {
+        "controller_source_sha": "090996346f05bd21b329ca6532e111eac5a556e1",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}
