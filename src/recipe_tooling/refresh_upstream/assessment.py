@@ -14,6 +14,7 @@ from urllib.parse import quote
 from recipe_tooling import base_image_holds as base_holds
 from recipe_tooling import catalog_hf_model as catalog
 from recipe_tooling import model_revision_holds as model_holds
+from recipe_tooling import protocol_wheel
 from recipe_tooling import vendored_upstream as vendored
 from recipe_tooling.kit_pins import consumers as kit_consumers
 from recipe_tooling.kit_pins import lock as kit_lock
@@ -184,6 +185,7 @@ class Assessor:
                 edits[f"recipes/{recipe_id}.json"] = refresh_pinning.canonical(
                     new_recipe
                 )
+            edits.update(protocol_wheel.template_edits(self.catalog.root, edits))
             result.edits = edits
         return result
 
@@ -287,7 +289,10 @@ class Assessor:
             patched = refresh_classification.patch_targets(pin.directory)
             tree = vendored.fetch_tree(item.repo, item.target.sha)
             report = vendored.check_adapter(
-                pin.directory, self.catalog.root, lambda _repo, _commit: tree
+                pin.directory,
+                self.catalog.root,
+                lambda _repo, _commit: tree,
+                at=item.target.sha,
             )
             stale = {problem: (local, up) for problem, local, up in report.stale}
             for p in report.problems:
@@ -463,6 +468,8 @@ class Assessor:
             try:
                 old = vendored.fetch_tree(item.repo, item.current)
                 new = vendored.fetch_tree(item.repo, item.target.sha)
+            except UpstreamBusy:
+                raise
             except RuntimeError:
                 return None
             if not (old.complete and new.complete):
@@ -542,6 +549,8 @@ class Assessor:
                     text, relabelled = refresh_classification.retarget_archive_labels(
                         text, item
                     )
+                except UpstreamBusy:
+                    raise
                 except (RuntimeError, OSError) as error:
                     result.reasons.append(
                         f"{item.label}: could not refresh the archive digest label: "

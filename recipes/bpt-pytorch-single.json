@@ -1,0 +1,236 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
+        "repository": "nvcr.io/nvidia/cuda"
+      },
+      "context": {
+        "path": "adapters/three-d/bpt"
+      },
+      "dockerfile": "adapters/three-d/bpt/Dockerfile",
+      "network": {
+        "hosts": [
+          "codeload.github.com",
+          "download.pytorch.org",
+          "download-r2.pytorch.org",
+          "pypi.org",
+          "pypi.nvidia.com",
+          "files.pythonhosted.org",
+          "archive.ubuntu.com",
+          "security.ubuntu.com",
+          "ports.ubuntu.com"
+        ]
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "bpt-pytorch-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "mesh-job",
+      "input": {
+        "max_bytes": 268435456,
+        "media_types": [
+          "model/gltf-binary",
+          "model/obj",
+          "model/ply"
+        ],
+        "required": true,
+        "slots": [
+          {
+            "description": "One triangle mesh to rebuild; it is sampled as a 4,096-point cloud with normals, so its own topology does not matter.",
+            "extensions": [
+              ".glb",
+              ".obj",
+              ".ply"
+            ],
+            "id": "mesh",
+            "label": "Source mesh",
+            "max_file_bytes": 268435456,
+            "max_files": 1,
+            "max_total_bytes": 268435456,
+            "media_types": [
+              "model/gltf-binary",
+              "model/obj",
+              "model/ply"
+            ],
+            "min_files": 1
+          }
+        ]
+      },
+      "output": {
+        "max_total_bytes": 268435456,
+        "slots": [
+          {
+            "description": "Artist-style triangle mesh, scaled back to the source mesh's bounding box; typically 1,000-5,000 faces, at most about 8,000.",
+            "extensions": [
+              ".glb"
+            ],
+            "id": "mesh",
+            "label": "Rebuilt mesh",
+            "max_file_bytes": 268435456,
+            "max_files": 1,
+            "max_total_bytes": 268435456,
+            "media_types": [
+              "model/gltf-binary"
+            ],
+            "min_files": 1
+          }
+        ]
+      }
+    }
+  ],
+  "kind": "recipe",
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "bpt-8-16-500m-94b587484efd-ef7474f7a3",
+          "id": "primary-001",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "1404e3479d844d6c620cc72853ddbc8e7ac9dce7ada6c9523913a8969f652aff",
+        "kind": "model",
+        "publisher": "whaohan",
+        "slug": "bpt-8-16-500m-4a7c93a2"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "Tencent-Hunyuan",
+      "whaohan"
+    ],
+    "source_reference": "https://huggingface.co/whaohan/bpt/tree/4a7c93a2691b38682fc33ba8a414f2bf849700e3"
+  },
+  "release": {
+    "released_at": "2026-11-26",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "entrypoint",
+        "setting": null,
+        "value": "/opt/vonk/source/run.py"
+      },
+      {
+        "name": "output-mime",
+        "setting": null,
+        "value": "model/gltf-binary"
+      },
+      {
+        "name": "temperature",
+        "setting": "temperature",
+        "value": null
+      },
+      {
+        "name": "seed",
+        "setting": "seed",
+        "value": null
+      }
+    ],
+    "engine": "pytorch-pipeline",
+    "entrypoint": [
+      "/opt/vonk/bin/pytorch-pipeline"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 60
+    }
+  },
+  "settings": {
+    "concurrency": null,
+    "kind": "job",
+    "knobs": {
+      "seed": {
+        "change_effect": "none",
+        "maximum": 2147483647,
+        "minimum": 0,
+        "value": 0
+      },
+      "temperature": {
+        "change_effect": "none",
+        "maximum": 1.0,
+        "minimum": 0.1,
+        "value": 0.5
+      }
+    }
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 1636512878,
+            "image_bytes": 10000000000,
+            "safety_margin_bytes": 12000000000,
+            "working_bytes": 2000000000
+          },
+          "memory": {
+            "peak_bytes": 16000000000,
+            "reserve_bytes": 4000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "inference.completed",
+            "artifact.output"
+          ],
+          "kind": "mesh-job.output",
+          "name": "job-output",
+          "request": {
+            "fixture": "qualification/fixtures/tiny.glb",
+            "input_slots": {
+              "mesh": "qualification/fixtures/tiny.glb"
+            },
+            "output_slot": "mesh",
+            "transport": "job"
+          }
+        }
+      ],
+      "interface": "mesh-job"
+    }
+  }
+}

@@ -1,0 +1,11 @@
+#!/bin/sh
+# kit-config NAME: the one value MiaAI-Lab's scripts/config.sh declares for NAME, read as data (never sourced).
+# A line is NAME="${NAME:-VALUE}" or NAME=VALUE; the build fails unless exactly one such line exists.
+set -eu
+name=$1
+values=$(sed -n -e "s/^$name=\"\${$name:-\\([^}\"]*\\)}\".*/\\1/p" -e "s/^$name=\\([^\"\$ #]*\\)\$/\\1/p" /opt/vonk-build/config.sh)
+if [ -z "$values" ] || [ "$(printf '%s\n' "$values" | wc -l)" -ne 1 ]; then
+  echo "kit-config: scripts/config.sh does not declare $name exactly once" >&2
+  exit 1
+fi
+printf '%s\n' "$values"

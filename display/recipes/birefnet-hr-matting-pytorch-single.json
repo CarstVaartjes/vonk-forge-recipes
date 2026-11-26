@@ -1,0 +1,18 @@
+{
+  "alignment": "unspecified",
+  "description": "Background removal on one Spark: BiRefNet_HR-matting, the creator's matting variant of the HR model, which keeps soft edges such as fur, needles and fences. One PNG or JPEG up to 4096x4096 in; cutout.png (the input RGB with the predicted mask as alpha) and mask.png (8-bit grayscale) out at the input size. It runs the creator's model-card inference in fp16: a 2048x2048 resize, ImageNet normalisation, the last prediction through a sigmoid and the mask resized back to the input; there are no per-request knobs. Larger images are refused, never resized silently. The weights are MIT licensed. Memory is an estimate from the 0.44 GB of weights and the 2048x2048 activations; the hardware try decides.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "birefnet-hr-matting-pytorch-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "executable",
+    "image",
+    "background-removal",
+    "pytorch",
+    "single",
+    "spark"
+  ],
+  "title": "BiRefNet HR matting cutout PyTorch single Spark"
+}

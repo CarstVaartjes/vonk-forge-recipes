@@ -1,0 +1,159 @@
+#!/usr/bin/env python3
+"""Reject new qualification identity comparisons outside the identity module (D3).
+
+A recipe image is identified by its manifest digest; ``build_key`` is only the
+recipes CI's handle for finding a build. ``recipe_tooling.qualification.identity``
+is the one owner of comparing qualification identities (``same_execution``,
+``execution_key``, ``image_digest``), so a status, retention or publication check
+never treats a new key of the same image as a change.
+
+Only lines added by the diff given with ``--diff FILE|-`` are checked, in the
+Python of ``src/``, ``tools/`` and ``spark_sweep/``. A hit is an added line that
+  (a) compares (``==``/``!=``) an operand ending in ``.identity``, ``.runtime_image``
+      or ``.build_key``, a read of one of those keys (``row["build_key"]``,
+      ``pin.get("build_key")``), or a call of an ``*_identity(...)`` function such
+      as the sweep's ``current_identity`` and ``content_identity``;
+  (b) serialises an identity (``record.identity.model_dump_json(``), the key of a
+      grouping by whole identity; or
+  (c) uses ``.identity`` as a dict key (``{r.identity: ...}``, ``d[r.identity]``,
+      ``d.setdefault(r.identity, ...)``).
+The identity module itself is the one owner, out of scope by path. There is no
+count and no allowlist.
+"""
+
+from __future__ import annotations
+
+import argparse
+import ast
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+from recipe_tooling.added_lines import parse_added, read_diff
+
+ROOT = Path(__file__).resolve().parents[1]
+OWNER = "src/recipe_tooling/qualification/identity.py"
+COMPARED = frozenset({"identity", "runtime_image", "build_key"})
+ADVICE = (
+    "compare qualification identities through recipe_tooling.qualification.identity "
+    "(same_execution, execution_key, image_digest): an image is its digest"
+)
+
+
+def _callee(call: ast.Call) -> str:
+    func = call.func
+    return func.id if isinstance(func, ast.Name) else getattr(func, "attr", "")
+
+
+def _is_identity(node: ast.AST) -> bool:
+    return isinstance(node, ast.Attribute) and node.attr == "identity"
+
+
+def names_compared(operand: ast.expr) -> bool:
+    if isinstance(operand, ast.Attribute):
+        return operand.attr in COMPARED
+    if isinstance(operand, ast.Call) and _callee(operand).endswith("_identity"):
+        return True
+    if isinstance(operand, ast.Subscript):
+        key = operand.slice
+    elif (
+        isinstance(operand, ast.Call)
+        and isinstance(operand.func, ast.Attribute)
+        and operand.func.attr == "get"
+        and operand.args
+    ):
+        key = operand.args[0]
+    else:
+        return False
+    return isinstance(key, ast.Constant) and key.value in COMPARED
+
+
+def keys_by_identity(node: ast.AST) -> bool:
+    """(b) and (c): an identity serialised or used as a key."""
+    if isinstance(node, ast.Call):
+        func = node.func
+        if (
+            isinstance(func, ast.Attribute)
+            and func.attr == "model_dump_json"
+            and _is_identity(func.value)
+        ):
+            return True
+        return (
+            _callee(node) == "setdefault"
+            and bool(node.args)
+            and _is_identity(node.args[0])
+        )
+    if isinstance(node, ast.Subscript):
+        return _is_identity(node.slice)
+    if isinstance(node, ast.Dict):
+        return any(key is not None and _is_identity(key) for key in node.keys)
+    if isinstance(node, ast.DictComp):
+        return _is_identity(node.key)
+    return False
+
+
+def scan(source: str, added: set[int] | None) -> list[int]:
+    """Lines of the identity comparisons that are added (all lines when None)."""
+    hits: set[int] = set()
+    for node in ast.walk(ast.parse(source)):
+        if keys_by_identity(node):
+            if added is None or getattr(node, "lineno", 0) in added:
+                hits.add(getattr(node, "lineno", 0))
+            continue
+        if not isinstance(node, ast.Compare):
+            continue
+        if not any(isinstance(op, ast.Eq | ast.NotEq) for op in node.ops):
+            continue
+        operands = [node.left, *node.comparators]
+        if any(names_compared(operand) for operand in operands) and (
+            added is None or node.lineno in added
+        ):
+            hits.add(node.lineno)
+    return sorted(hits)
+
+
+def judged(name: str) -> bool:
+    if name == OWNER:
+        return False
+    if name.startswith(("src/", "spark_sweep/")) and name.endswith(".py"):
+        return True
+    return name.startswith("tools/") and "." not in Path(name).name
+
+
+def names_python(root: Path, name: str) -> bool:
+    if name.endswith(".py"):
+        return True
+    path = root / name
+    if not path.is_file():
+        return False
+    with path.open("rb") as stream:
+        first = stream.readline()
+    return first.startswith(b"#!") and b"python" in first
+
+
+def check(root: Path, diff: str) -> list[str]:
+    problems: list[str] = []
+    for name, lines in sorted(parse_added(diff, judged).items()):
+        if not judged(name) or not names_python(root, name):
+            continue
+        source = (root / name).read_text(encoding="utf-8")
+        problems.extend(f"{name}:{line}: {ADVICE}" for line in scan(source, lines))
+    return problems
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=(__doc__ or "").splitlines()[0])
+    parser.add_argument(
+        "--diff",
+        required=True,
+        help="unified -U0 diff to judge: a file, or - for stdin",
+    )
+    parser.add_argument("--root", type=Path, default=ROOT)
+    arguments = parser.parse_args()
+    problems = check(arguments.root, read_diff(arguments.diff))
+    print("\n".join(problems))
+    return 1 if problems else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

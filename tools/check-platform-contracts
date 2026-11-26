@@ -1,128 +1,172 @@
 #!/usr/bin/env -S uv run --no-project --python 3.14 --with-editable contracts python
-"""Refuse a recipe the pinned platform's contracts version cannot read.
+"""Refuse a recipe the platform of a channel cannot execute.
 
-The deployed vonk-forge Controller reads recipes with the contracts version its
-``control/packaging/public-contracts.lock`` pins (``package =
-"vonk-forge-public-contracts==X.Y.Z"``). A serving kind, Model capability or
-API reasoning effort kind newer than that version is a read failure there.
-``src/recipe_tooling/qualification/introduced.py`` owns the version each value arrived in; this
-tool compares every recipe in the library (with the Model displays it selects
-and its API facts) against the lock of the platform commit the workflows pin, so
-a recipe cannot land ahead of the Controller that reads it. A contracts major newer than the platform's is refused
-too: a major is deployed consumer-first (see AGENTS.md).
+Each channel's recipe-tools bundle carries ``platform-features.json``: the
+discriminators that platform executes (serving check kinds, reasoning-effort
+kinds, gateway API modes, interface adapters, Model source providers), read by
+forge from the tables its Controller runs, plus its contracts major. This tool
+checks every recipe in the library, with its API facts and the Models it
+selects, against that one statement; there is no version table here.
 
-The lock text is an argument: CI fetches it from ``platform_ref`` and this tool
-runs no git and no network.
+With ``--report-words`` (the stable channel) a word the platform does not
+execute is a warning, not a failure: recipes ship continuously, and a stable
+Controller withholds a recipe whose executed word it lacks until it upgrades.
+
+Shown words (a Model's capabilities, labels) are not gated: the platform's
+readers keep a word they do not know. A contracts major newer than the
+platform's is refused too: a major is deployed consumer-first (see AGENTS.md).
+
+The features file is an argument (CI extracts it from the verified bundle);
+this tool runs no git and no network.
 """
 
 from __future__ import annotations
 
 import argparse
+import json
 import os
-import re
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from recipe_tooling.added_lines import read_diff
 from recipe_tooling.qualification.documents import (
     has_recipe_api,
-    model_display,
+    model,
     recipe,
     recipe_api,
 )
-from recipe_tooling.qualification.introduced import (
-    parse_version,
-    unreadable_capabilities,
-    unreadable_features,
-)
-from vonk_forge_contracts import CONTRACT_MAJOR
+from vonk_forge_contracts import CONTRACT_MAJOR, ChatApi, RecipeApi, RecipeDefinition
+from vonk_forge_contracts.api import ApiReasoningNone
+from vonk_forge_contracts.model import GitHubLfsSource, GitHubReleaseSource
 
 ROOT = Path(__file__).resolve().parents[1]
 
-LOCK_PACKAGE = re.compile(
-    r'^package\s*=\s*"vonk-forge-public-contracts==([0-9]+\.[0-9]+\.[0-9]+)"\s*$',
-    re.MULTILINE,
-)
+# The features-file key of each discriminator, and how a message names it.
+SETS = {
+    "serving_kinds": "serving kind",
+    "effort_kinds": "reasoning effort",
+    "api_modes": "API mode",
+    "adapters": "adapter",
+    "source_providers": "source provider",
+}
 
 
-def platform_contracts_version(lock_text: str) -> str:
-    """The contracts version a ``public-contracts.lock`` pins (pure)."""
-
-    found = LOCK_PACKAGE.findall(lock_text)
-    if len(found) != 1:
-        raise ValueError("lock must pin vonk-forge-public-contracts exactly once")
-    parse_version(found[0])
-    return found[0]
+@dataclass(frozen=True)
+class PlatformFeatures:
+    contract_major: int
+    executed: dict[str, frozenset[str]]
 
 
-def major_problem(contract_major: int, platform_version: str) -> str | None:
-    """The error for a recipes contracts major the pinned platform has not adopted.
+def read_features(text: str) -> PlatformFeatures:
+    """The platform's statement; a missing set or major fails, unknown keys are ignored."""
 
-    One-directional: a platform major ahead of this repo is the planned
-    consumer-first window and must not block a ``platform_ref`` move.
-    """
-
-    platform_major = parse_version(platform_version)[0]
-    if contract_major <= platform_major:
-        return None
-    return (
-        f"contracts major {contract_major} is newer than the pinned platform's "
-        f"{platform_major}: pin this recipes commit in vonk-forge, deploy it, "
-        "then move platform_ref"
-    )
+    document = json.loads(text)
+    major = document["contract_major"]
+    if not isinstance(major, int):
+        raise TypeError("contract_major must be an integer")
+    executed = {key: frozenset(document[key]) for key in SETS}
+    return PlatformFeatures(contract_major=major, executed=executed)
 
 
-def problems(root: Path, slugs: list[str], platform_version: str) -> list[str]:
-    """One message per recipe using a feature the platform cannot read yet."""
+def words_used(
+    document: RecipeDefinition, providers: list[str], api: RecipeApi | None
+) -> set[tuple[str, str]]:
+    """Each executed discriminator the documents use, as ``(features key, word)``."""
+
+    used = {
+        ("serving_kinds", check.kind) for check in document.validation.serving.checks
+    }
+    used |= {("adapters", interface.adapter) for interface in document.interfaces}
+    used |= {("source_providers", provider) for provider in providers}
+    if api is not None:
+        for block in [api.api, *(choice.api for choice in api.option_choices)]:
+            used.add(("api_modes", block.mode))
+            if isinstance(block, ChatApi) and not isinstance(
+                block.reasoning, ApiReasoningNone
+            ):
+                effort = block.reasoning.effort
+                if effort is not None:
+                    used.add(("effort_kinds", effort.kind))
+    return used
+
+
+def source_provider(slug: str, root: Path) -> str:
+    """The Model's source provider as the platform names it (no word: Hugging Face)."""
+
+    source = model(slug, root).source
+    if isinstance(source, GitHubReleaseSource | GitHubLfsSource):
+        return source.provider
+    return "huggingface"
+
+
+def problems(root: Path, slugs: list[str], features: PlatformFeatures) -> list[str]:
+    """One message per word a recipe uses that the platform does not execute."""
 
     found: list[str] = []
     for slug in slugs:
         document = recipe(slug, root)
-        models = [model_display(m.model.slug, root) for m in document.models]
+        providers = [source_provider(m.model.slug, root) for m in document.models]
         api = recipe_api(slug, root) if has_recipe_api(slug, root) else None
         found += [
-            f"{slug}: {feature}, the pinned platform reads {platform_version}"
-            for feature in unreadable_features(document, models, api, platform_version)
+            f"{slug}: the platform does not execute {SETS[key]} {word}"
+            for key, word in sorted(words_used(document, providers, api))
+            if word not in features.executed[key]
         ]
     return found
 
 
-def model_problems(root: Path, platform_version: str) -> list[str]:
-    """Every Model display in the library, selected by a recipe or not (once each)."""
+def major_problem(contract_major: int, platform_major: int) -> str | None:
+    """The error for a recipes contracts major the platform has not adopted.
 
-    found: list[str] = []
-    for path in sorted((root / "display" / "models").glob("*.json")):
-        found += [
-            f"model {path.stem}: {feature}, the pinned platform reads {platform_version}"
-            for feature in unreadable_capabilities(
-                model_display(path.stem, root), platform_version
-            )
-        ]
-    return found
+    One-directional: a platform major ahead of this repo is the planned
+    consumer-first window and never blocks.
+    """
+
+    if contract_major <= platform_major:
+        return None
+    return (
+        f"contracts major {contract_major} is newer than the platform's "
+        f"{platform_major}: pin this recipes commit in vonk-forge and release it first"
+    )
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--platform-lock",
-        type=str,
+        "--platform-features",
+        type=Path,
         required=True,
-        help="the platform's control/packaging/public-contracts.lock (- for stdin)",
+        help="platform-features.json from the channel's recipe-tools bundle",
     )
-    args = parser.parse_args()
-    version = platform_contracts_version(read_diff(args.platform_lock))
-    slugs = sorted(p.stem for p in (ROOT / "recipes").glob("*.json"))
-    found = problems(ROOT, slugs, version) + model_problems(ROOT, version)
-    found += [m for m in [major_problem(CONTRACT_MAJOR, version)] if m]
-    for item in found:
-        print(f"::error::{item}" if "GITHUB_ACTIONS" in os.environ else item)
+    parser.add_argument("--library-root", type=Path, default=ROOT)
+    parser.add_argument(
+        "--report-words",
+        action="store_true",
+        help="report unexecuted words as warnings; only the major fails",
+    )
+    args = parser.parse_args(argv)
+    features = read_features(args.platform_features.read_text(encoding="utf-8"))
+    root = args.library_root
+    slugs = sorted(p.stem for p in (root / "recipes").glob("*.json"))
+    words = problems(root, slugs, features)
+    found = [m for m in [major_problem(CONTRACT_MAJOR, features.contract_major)] if m]
+    if args.report_words:
+        _annotate("warning", words)
+    else:
+        found += words
+    _annotate("error", found)
     print(
-        f"Checked {len(slugs)} recipe(s) against platform contracts {version}; "
-        f"{len(found)} too new."
+        f"Checked {len(slugs)} recipe(s) against the platform's executed features; "
+        f"{len(words)} word(s) not executed."
     )
     return 1 if found else 0
+
+
+def _annotate(level: str, items: list[str]) -> None:
+    for item in items:
+        print(f"::{level}::{item}" if "GITHUB_ACTIONS" in os.environ else item)
 
 
 if __name__ == "__main__":

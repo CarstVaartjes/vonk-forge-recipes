@@ -13,7 +13,7 @@ from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
-from refresh_helpers import NEW, OLD, PATCH_HOME
+from refresh_helpers import NEW, OLD, OWN, PATCH_HOME
 from repo_root import ROOT
 
 from recipe_tooling.refresh_upstream import apply as refresh_apply
@@ -27,6 +27,7 @@ from recipe_tooling.refresh_upstream import publish as refresh_publish
 from recipe_tooling.upstream_drift import embedded as drift_embedded
 from recipe_tooling.upstream_drift import heads as drift_heads
 from recipe_tooling.upstream_drift import inventory as drift_inventory
+from recipe_tooling.upstream_http import UpstreamBusy
 
 
 class AppCommandBoundaryTests(unittest.TestCase):
@@ -73,7 +74,14 @@ class PerRecipeFaultTests(unittest.TestCase):
         )
         return refresh_model.Assessment(recipe_id, items=[item], **kwargs)
 
-    def run_refresh(self, assessments, *, assess_fault=None, **patches):
+    def run_refresh(
+        self,
+        assessments,
+        *,
+        assess_fault=None,
+        fault=None,
+        **patches,
+    ):
         """Run command_run over the assessments; return (exit code, summary).
 
         GitHub is never reached: ``gh`` and ``sync_issue`` are patched unless a test
@@ -95,7 +103,9 @@ class PerRecipeFaultTests(unittest.TestCase):
 
             def assess(self, recipe_id: str):
                 if recipe_id == assess_fault:
-                    raise ValueError("Expecting value: line 1 column 1 (char 0)")
+                    raise fault or ValueError(
+                        "Expecting value: line 1 column 1 (char 0)"
+                    )
                 return assessments[recipe_id]
 
         def read_optional(source, action, *_arguments, **_keywords):
@@ -156,6 +166,30 @@ class PerRecipeFaultTests(unittest.TestCase):
         assert len(summary.failures) == 1
         assert summary.failures[0].startswith("a: ValueError: Expecting value")
 
+    def test_an_over_limit_recipe_keeps_its_open_refresh_pr(self) -> None:
+        synced: list[tuple[str, bool, list[str]]] = []
+        calls: list[tuple[str, ...]] = []
+
+        def sync(assessment, _summary, *, create=True):
+            synced.append((assessment.recipe_id, create, list(assessment.reasons)))
+
+        assessments = {"a": self.drifted("a")}
+        with patch.object(refresh_model, "MAX_MECHANICAL_PER_RUN", 0):
+            _, summary = self.run_refresh(assessments, sync_issue=sync)
+
+        assert [(r, c) for r, c, _ in synced] == [("a", False)]
+        assert "over this run's limit" in synced[0][2][0]
+        assert assessments["a"].prepared  # the result itself is untouched
+        pulls = [{"number": 5, "headRefName": "refresh/a", "body": "", **OWN}]
+        with (
+            patch.object(refresh_github, "gh_json", side_effect=[pulls, [], []]),
+            patch.object(
+                refresh_github, "gh", side_effect=lambda *a, **k: calls.append(a)
+            ),
+        ):
+            refresh_publish.close_stale_refresh_prs(assessments, summary)
+        assert not [c for c in calls if c[:2] == ("pr", "close")]
+
     def test_an_error_syncing_an_unreachable_recipe_does_not_starve_the_next(
         self,
     ) -> None:
@@ -197,6 +231,19 @@ class PerRecipeFaultTests(unittest.TestCase):
         assert self.synced == []  # the failed recipe's issue is untouched
         assert summary.unreachable == []
         assert summary.failures[0].startswith("a: ValueError: Expecting value")
+
+    def test_a_busy_provider_escaping_an_assessment_is_unreachable_not_a_failure(
+        self,
+    ) -> None:
+        code, summary = self.run_refresh(
+            {"a": self.drifted("a"), "b": self.drifted("b")},
+            assess_fault="a",
+            fault=UpstreamBusy("provider returned HTTP 429"),
+            publish_mechanical=lambda *_: 7,
+        )
+        assert code == 0
+        assert summary.failures == []
+        assert summary.unreachable[0].startswith("a: provider returned HTTP 429")
 
 
 class AppKeyLifetimeTests(unittest.TestCase):

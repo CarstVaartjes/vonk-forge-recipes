@@ -1,14 +1,18 @@
 name: Recipe runtime images
 
 # Builds each distinct recipe runtime image on a GitHub-hosted ARM64 runner and
-# pushes it to GHCR as ghcr.io/<owner>/vonk-forge-recipe-<slug>:build-<key>
-# (plus :<version>). The key is Vonk Forge's executable build key; Controllers
-# derive the same key and pull the pinned digest instead of building on a Spark.
+# pushes it to GHCR as ghcr.io/<owner>/vonk-forge-recipe-<slug>:build-v2-<key>
+# (plus :<version>). The key is this repository's own (tools/build-plan: recipe
+# inputs and policy/build-policy.json only); the signed index pins the digest and
+# Controllers run that digest instead of building on a Spark. The image is the
+# recipe's own build: no platform layer is added.
 #
-# validate.yml builds changed keys at the PR head and writes candidate-<key>
+# validate.yml builds changed keys at the PR head and writes candidate-v2-<key>
 # only after build-time native checks and the remote-code smoke succeed.
-# publish.yml uses the same planner to promote those digests to build-<key>;
-# keys without a candidate use the same build path during publication.
+# publish.yml uses the same planner to promote those digests to build-v2-<key>;
+# keys without a candidate use the same build path during publication. A recipe
+# whose published pin is a legacy image of the same input is adopted (its digest
+# copied to the new tag), never rebuilt: its evidence is judged by that digest.
 on:
   # Independent recovery owner; publication tags do not retire missing keys.
   schedule:
@@ -23,6 +27,10 @@ on:
         description: "Dispatch publish.yml afterwards"
         type: boolean
         default: false
+      rebuild_adopted:
+        description: "Rebuild the named slugs whose tag holds an adopted image"
+        type: boolean
+        default: false
   workflow_dispatch:
     inputs:
       slugs:
@@ -33,14 +41,17 @@ on:
         description: "Dispatch publish.yml afterwards so the index pins the new digests"
         type: boolean
         default: true
+      rebuild_adopted:
+        description: "Rebuild the named slugs (never 'all') whose tag holds an adopted image; a v2-built image is kept"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
-# The Vonk Forge commit whose planner derives the build keys, the exact Spark
-# build flags and the platform adaptation stage is the `platform_ref` that
-# publish.yml validates the library with: one pin, read from there. Controllers
-# compare the same key. PRs compare base/head keys; publication promotes by key.
+# This checkout's tools/build-plan plans both the head and, on a pull request,
+# the base library, so a key changes only where recipe inputs or the build policy
+# changed. No Vonk Forge checkout is involved. Publication promotes by key.
 
 jobs:
   plan:
@@ -57,22 +68,15 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
-          fetch-depth: 0
           persist-credentials: false
 
-      - name: Read the platform ref
-        id: platform
-        shell: bash
-        run: |
-          set -euo pipefail
-          echo "ref=$(python3 tools/prebuilt-images platform-ref)" >> "$GITHUB_OUTPUT"
-
-      - name: Check out the Vonk Forge planner
+      - name: Check out the pull request base
+        if: github.event_name == 'pull_request'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          repository: CarstVaartjes/vonk-forge
-          ref: ${{ steps.platform.outputs.ref }}
-          path: .vonk-forge
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: .image-base
+          persist-credentials: false
 
       - name: Set up uv
         uses: ./.github/actions/setup-tooling
@@ -86,43 +90,30 @@ jobs:
           key: adapter-sources-${{ hashFiles('adapter-sources.json') }}
           restore-keys: adapter-sources-
 
-      - name: Build the Controller protocol wheel
-        uses: ./.vonk-forge/.github/actions/prepare-control-wheel
-        with:
-          repository-root: .vonk-forge
-
       - name: Plan one image per distinct build key
         env:
           EVENT_NAME: ${{ github.event_name }}
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
         shell: bash
         run: |
           set -euo pipefail
-          # build-recipe-library runs the checkout's own tools/build-catalog-index,
-          # which places its declared adapter sources first; image-base included.
+          # Each checkout builds its own index and packages with its own
+          # tools/build-catalog-index (which places its declared adapter sources
+          # first); this checkout's tools/build-plan and build policy plan both.
+          # A build-policy change therefore plans no PR build: publication builds
+          # its keys (every image), listed in the run summary.
           plan_library() {
-            local platform=${4:-$GITHUB_WORKSPACE/.vonk-forge}
-            "$platform/scripts/build-recipe-library" "$1"
-            uv run --project "$platform/control" --frozen \
-              --with-requirements "$GITHUB_WORKSPACE/.github/requirements-platform-tooling.txt" \
-              --with-editable "$1/contracts" \
-              "$platform/scripts/recipe-image-plan" \
-              --library-root "$1" --output-dir "$2" > "$3"
+            local root=$1 commit epoch
+            commit=$(git -C "$root" rev-parse HEAD)
+            epoch=$(git -C "$root" show -s --format=%ct "$commit")
+            uv run --python 3.15 --no-project --with-editable "$root/contracts" \
+              python "$root/tools/build-catalog-index" \
+              --source-commit "$commit" --source-date-epoch "$epoch"
+            uv run --python 3.14 --no-project --with-editable contracts \
+              python tools/build-plan --library-root "$root" --output-dir "$2" > "$3"
           }
           plan_library "$GITHUB_WORKSPACE" "$RUNNER_TEMP/images" "$RUNNER_TEMP/plan.json"
           if [ "$EVENT_NAME" = pull_request ]; then
-            git clone --shared --no-checkout . "$RUNNER_TEMP/image-base"
-            git -C "$RUNNER_TEMP/image-base" checkout --detach "$BASE_SHA"
-            base_ref=$(python3 tools/prebuilt-images platform-ref \
-              --workflow "$RUNNER_TEMP/image-base/.github/workflows/publish.yml")
-            base_platform="$GITHUB_WORKSPACE/.vonk-forge"
-            if [ "$base_ref" != "${{ steps.platform.outputs.ref }}" ]; then
-              git -C .vonk-forge fetch --depth=1 origin "$base_ref"
-              base_platform="$RUNNER_TEMP/base-platform"
-              git -C .vonk-forge worktree add --detach "$base_platform" "$base_ref"
-              "$base_platform/scripts/build-control-wheel"
-            fi
-            plan_library "$RUNNER_TEMP/image-base" "$RUNNER_TEMP/base-images" "$RUNNER_TEMP/base-plan.json" "$base_platform"
+            plan_library "$GITHUB_WORKSPACE/.image-base" "$RUNNER_TEMP/base-images" "$RUNNER_TEMP/base-plan.json"
           fi
           uv run --python 3.14 --no-project --with-editable contracts \
             python tools/prepare-remote-code-smoke \
@@ -134,12 +125,20 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           SAME_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
           SLUGS: ${{ github.event_name == 'schedule' && 'all' || inputs.slugs }}
+          REBUILD_ADOPTED: ${{ inputs.rebuild_adopted == true }}
+          GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
           select_args=()
           if [ "$EVENT_NAME" = pull_request ]; then
             select_args+=(--base-plan "$RUNNER_TEMP/base-plan.json")
+          else
+            # The published pins, so a legacy image of unchanged input is adopted.
+            select_args+=(--repository "$GITHUB_REPOSITORY")
+          fi
+          if [ "$REBUILD_ADOPTED" = true ]; then
+            select_args+=(--rebuild-adopted)
           fi
           python3 tools/prebuilt-images select "${select_args[@]}" --plan "$RUNNER_TEMP/plan.json" \
             --owner "${{ github.repository_owner }}" \
@@ -164,16 +163,18 @@ jobs:
           } >> "$GITHUB_OUTPUT"
           {
             echo "### Recipe images"
-            echo "Requested: \`${SLUGS:-all}\`; platform: \`${{ steps.platform.outputs.ref }}\`"
+            echo "Requested: \`${SLUGS:-all}\`; rebuild adopted: \`$REBUILD_ADOPTED\`"
             echo
             jq -r '.builds[] | "- build `\(.build_key[0:12])` for \([.recipes[].slug] | join(", "))"' "$RUNNER_TEMP/selection.json"
             jq -r '.copies[] | "- copy to `\(.to)`"' "$RUNNER_TEMP/selection.json"
+            jq -r '.adopted[] | "- adopted (no build, digest kept): \(.)"' "$RUNNER_TEMP/selection.json"
+            jq -r '.kept[] | "- not rebuilt (a v2-built image): \(.)"' "$RUNNER_TEMP/selection.json"
             jq -r '.deferred[] | "- deferred to a later run: `\(.[0:12])`"' "$RUNNER_TEMP/selection.json"
             jq -r '.skipped[]? | "- not planned: \(.slug): \(.reason)"' "$RUNNER_TEMP/plan.json"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload the image plan
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: recipe-image-plan
           path: ${{ runner.temp }}/upload
@@ -188,13 +189,13 @@ jobs:
     needs: plan
     if: github.event_name != 'pull_request' && needs.plan.outputs.copy_count != '0'
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
+    timeout-minutes: 180
     permissions:
       contents: read
       packages: write
     steps:
       - name: Download the image plan
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: recipe-image-plan
           path: ${{ runner.temp }}/plan
@@ -212,12 +213,14 @@ jobs:
         run: |
           set -euo pipefail
           echo "$GH_TOKEN" | skopeo login ghcr.io --username "${{ github.actor }}" --password-stdin
-          jq -c '.copies[]' "$RUNNER_TEMP/plan/selection.json" | while read -r copy; do
-            from=$(jq -r .from <<<"$copy")
-            for target in $(jq -r '.to, .version_tag' <<<"$copy"); do
-              skopeo copy --retry-times 3 --preserve-digests "docker://$from" "docker://$target"
-            done
-          done
+          # One failed copy leaves only its tag absent: resolve carries that
+          # recipe's published pin by content and the next run copies again.
+          # The first run after the key v2 adopts every recipe: copies fan out.
+          # shellcheck disable=SC2016 # $0/$1 expand in the copy's own shell
+          jq -r '.copies[] | .from as $from | (.to, (.version_tag // empty)) | "\($from) \(.)"' \
+            "$RUNNER_TEMP/plan/selection.json" \
+            | xargs -P 8 -L 1 sh -c 'timeout 900 skopeo copy --retry-times 3 --preserve-digests "docker://$0" "docker://$1" \
+                || echo "::warning::copy to $1 failed; the next run copies again"'
 
   build:
     name: Build ${{ matrix.build_key }}
@@ -240,7 +243,7 @@ jobs:
       KEY: ${{ matrix.build_key }}
     steps:
       - name: Download the image plan
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: recipe-image-plan
           path: ${{ runner.temp }}/plan
@@ -290,9 +293,9 @@ jobs:
           mapfile -t recipe_args < <(jq -r '.recipe_build_arguments[]' <<<"$image")
           start=$(date +%s)
           # Retries absorb transient fetch failures. One starts only if a repeat
-          # of the failed attempt still ends 20 minutes (adapter layer, smoke and
-          # push) before the job's 360-minute timeout; otherwise the job fails at
-          # once with the attempt's log rather than being killed mid-retry.
+          # of the failed attempt still ends 20 minutes (smoke and push) before
+          # the job's 360-minute timeout; otherwise the job fails at once with the
+          # attempt's log rather than being killed mid-retry.
           deadline=$((JOB_START + (360 - 20) * 60))
           build_with_retry() {
             for attempt in 1 2 3; do
@@ -307,8 +310,13 @@ jobs:
               sleep "$((attempt * 15))"
             done
           }
+          # The recipe image is the runtime image: the run-time user, workdir and
+          # mounts come from the platform when the container starts.
           build_with_retry sudo TMPDIR="$WORK/tmp" podman --runtime=/usr/bin/crun build --network=host \
-            "${recipe_args[@]}" --tag localhost/vonk/recipe-build context
+            "${recipe_args[@]}" \
+            --label "org.opencontainers.image.source=https://github.com/${{ github.repository }}" \
+            --label "ai.vonkforge.build-key=$KEY" \
+            --tag localhost/vonk/recipe-build context
           # Deterministic dependency errors fail here, outside the build retry.
           # Use the recipe interpreter/venv and no GPU or model weights.
           if [ -f remote-code-smoke.py ]; then
@@ -319,15 +327,6 @@ jobs:
               --volume "$PWD/remote-code-smoke.py:/tmp/remote-code-smoke.py:ro" \
               --entrypoint python3 localhost/vonk/recipe-build /tmp/remote-code-smoke.py
           fi
-          mkdir -p adapter
-          jq -r '.adapter_containerfile' <<<"$image" > adapter/Containerfile
-          mapfile -t adapter_args < <(jq -r '.adapter_build_arguments[]' <<<"$image")
-          build_with_retry sudo TMPDIR="$WORK/tmp" podman --runtime=/usr/bin/crun build \
-            "${adapter_args[@]}" \
-            --build-arg "$(jq -r '.adapter_build_argument' <<<"$image")=localhost/vonk/recipe-build" \
-            --label "org.opencontainers.image.source=https://github.com/${{ github.repository }}" \
-            --label "ai.vonkforge.build-key=$KEY" \
-            --tag localhost/vonk/runtime-image adapter
           echo "build_seconds=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
 
       - name: Push to every recipe that uses this image
@@ -343,10 +342,10 @@ jobs:
           mapfile -t versions < <(jq -r --arg key "$KEY" \
             '.builds[] | select(.build_key == $key) | .recipes[] | (.version // "latest")' "$selection")
           first=${repositories[0]}
-          prefix=build
-          if [ "$EVENT_NAME" = pull_request ]; then prefix=candidate; fi
+          prefix=build-v2
+          if [ "$EVENT_NAME" = pull_request ]; then prefix=candidate-v2; fi
           sudo TMPDIR="$WORK/tmp" podman push --digestfile "$RUNNER_TEMP/digest" \
-            localhost/vonk/runtime-image "docker://$first:$prefix-$KEY"
+            localhost/vonk/recipe-build "docker://$first:$prefix-$KEY"
           digest=$(cat "$RUNNER_TEMP/digest")
           # Same (root) credentials as the podman login above.
           for index in "${!repositories[@]}"; do
@@ -363,7 +362,7 @@ jobs:
           if [ "$WORKFLOW_NAME" = "Publish recipe library release" ]; then
             echo "- \`$KEY\`: built at publish: no PR candidate" >> "$GITHUB_STEP_SUMMARY"
           fi
-          size=$(sudo podman image inspect --format '{{.Size}}' localhost/vonk/runtime-image)
+          size=$(sudo podman image inspect --format '{{.Size}}' localhost/vonk/recipe-build)
           echo "- \`${KEY:0:12}\` → \`$first@$digest\` (${size} bytes, built in ${build_seconds}s) for ${#repositories[@]} recipe(s)" >> "$GITHUB_STEP_SUMMARY"
 
   resolve:
@@ -380,7 +379,7 @@ jobs:
         uses: ./.github/actions/setup-tooling
 
       - name: Download the image plan
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: recipe-image-plan
           path: ${{ runner.temp }}/plan
@@ -403,7 +402,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload the pinned images
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: prebuilt-images
           path: ${{ runner.temp }}/resolved/prebuilt-images.json

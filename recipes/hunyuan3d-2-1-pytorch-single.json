@@ -1,0 +1,505 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "d44d6dc249c2c8330d0b380c595a514f0e86137fcc717fe7a4389a25720ade37",
+        "repository": "nvcr.io/nvidia/cuda"
+      },
+      "context": {
+        "path": "adapters/three-d/hunyuan3d-2-1"
+      },
+      "dockerfile": "adapters/three-d/hunyuan3d-2-1/Dockerfile",
+      "network": {
+        "hosts": [
+          "github.com",
+          "codeload.github.com",
+          "download.pytorch.org",
+          "download-r2.pytorch.org",
+          "pypi.org",
+          "pypi.nvidia.com",
+          "files.pythonhosted.org",
+          "archive.ubuntu.com",
+          "security.ubuntu.com",
+          "ports.ubuntu.com"
+        ]
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "hunyuan3d-2-1-pytorch-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "mesh-job",
+      "input": {
+        "max_bytes": 16777216,
+        "media_types": [
+          "image/jpeg",
+          "image/png",
+          "image/webp"
+        ],
+        "required": true,
+        "slots": [
+          {
+            "description": "One object image. Use an RGBA cutout (for example from the BiRefNet cutout recipe): its alpha defines the object. An image without alpha is used whole, as the creator's demo does no background removal.",
+            "extensions": [
+              ".jpeg",
+              ".jpg",
+              ".png",
+              ".webp"
+            ],
+            "id": "image",
+            "label": "Object image",
+            "max_file_bytes": 16777216,
+            "max_files": 1,
+            "max_total_bytes": 16777216,
+            "media_types": [
+              "image/jpeg",
+              "image/png",
+              "image/webp"
+            ],
+            "min_files": 1
+          }
+        ]
+      },
+      "output": {
+        "max_total_bytes": 536870912,
+        "slots": [
+          {
+            "description": "One GLB with the creator's PBR textures: base color plus metallic-roughness (no normal map).",
+            "extensions": [
+              ".glb"
+            ],
+            "id": "mesh",
+            "label": "PBR mesh",
+            "max_file_bytes": 536870912,
+            "max_files": 1,
+            "max_total_bytes": 536870912,
+            "media_types": [
+              "model/gltf-binary"
+            ],
+            "min_files": 1
+          }
+        ]
+      }
+    }
+  ],
+  "kind": "recipe",
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "license-5bd08f93b2d2-c693279643",
+          "id": "primary-license-5bd08f93b2d2-c693279643",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "notice-ffccf6b539a8-ca940bab71",
+          "id": "primary-notice-ffccf6b539a8-ca940bab71",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-a9e9b66f0163-62094faab2",
+          "id": "primary-config-a9e9b66f0163-62094faab2",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-fp16-6b519fc7242f-2c59838652",
+          "id": "primary-model-fp16-6b519fc7242f-2c59838652",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "preprocessor-config-2a1da83b5e10-713b008290",
+          "id": "primary-preprocessor-config-2a1da83b5e10-713b008290",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-18ea44b2d65e-32c2e15ce0",
+          "id": "primary-config-18ea44b2d65e-32c2e15ce0",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-ae616c24393d-ce9d4a6fcd",
+          "id": "primary-model-ae616c24393d-ce9d4a6fcd",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-index-5b4d5d7cf321-e822b52d8e",
+          "id": "primary-model-index-5b4d5d7cf321-e822b52d8e",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "scheduler-config-9a6a7268e4d7-7f3451503f",
+          "id": "primary-scheduler-config-9a6a7268e4d7-7f3451503f",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-7e33bfc475f6-c671ddd48d",
+          "id": "primary-config-7e33bfc475f6-c671ddd48d",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "pytorch-model-c3e254d7b613-9df4e1e340",
+          "id": "primary-pytorch-model-c3e254d7b613-9df4e1e340",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "merges-9fd691f7c803-9862ef1320",
+          "id": "primary-merges-9fd691f7c803-9862ef1320",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "special-tokens-map-f118ab3a9832-52f84bb9ac",
+          "id": "primary-special-tokens-map-f118ab3a9832-52f84bb9ac",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-d562b18a0c6d-f3fbe3c9ae",
+          "id": "primary-tokenizer-config-d562b18a0c6d-f3fbe3c9ae",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vocab-e089ad92ba36-c7bbedaa73",
+          "id": "primary-vocab-e089ad92ba36-c7bbedaa73",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "attn-processor-a41bf0f79864-269561cec5",
+          "id": "primary-attn-processor-a41bf0f79864-269561cec5",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-ce0c6d379e3b-134aba2eec",
+          "id": "primary-config-ce0c6d379e3b-134aba2eec",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-675a1b5cd009-b944bd4b8c",
+          "id": "primary-diffusion-pytorch-model-675a1b5cd009-b944bd4b8c",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-5d135a73c12f-4bd1885d20",
+          "id": "primary-model-5d135a73c12f-4bd1885d20",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "modules-664983290a63-2b8a4e93c0",
+          "id": "primary-modules-664983290a63-2b8a4e93c0",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-424117cb534c-ca055d7f07",
+          "id": "primary-config-424117cb534c-ca055d7f07",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-1b4889b6b1d4-7c27296d5e",
+          "id": "primary-diffusion-pytorch-model-1b4889b6b1d4-7c27296d5e",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "d5d26fe085cefbdf38ff6fcb88e8a42c67c639efba2bd5ec0d259f024301316f",
+        "kind": "model",
+        "publisher": "tencent",
+        "slug": "hunyuan3d-2-1-0b946776"
+      }
+    },
+    {
+      "files": [
+        {
+          "file_id": "config-15d2e68b7096-587cb980af",
+          "id": "dinov2-giant-config-15d2e68b7096-587cb980af",
+          "mount": {
+            "target": "/models/dinov2-giant"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-917d3c470db9-9d75c1098f",
+          "id": "dinov2-giant-model-917d3c470db9-9d75c1098f",
+          "mount": {
+            "target": "/models/dinov2-giant"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "preprocessor-config-14e780d86fa1-36afccab5d",
+          "id": "dinov2-giant-preprocessor-config-14e780d86fa1-36afccab5d",
+          "mount": {
+            "target": "/models/dinov2-giant"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "dinov2-giant",
+      "model": {
+        "content_sha256": "d3d393d40a6efd9e02e3fe1a70ee44ef10bb40702e803a797e33d6a17769a288",
+        "kind": "model",
+        "publisher": "facebook",
+        "slug": "dinov2-giant-611a9d42"
+      }
+    },
+    {
+      "files": [
+        {
+          "file_id": "realesrgan-x4plus-weights",
+          "id": "realesrgan-realesrgan-x4plus-weights",
+          "mount": {
+            "target": "/models/realesrgan"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "realesrgan",
+      "model": {
+        "content_sha256": "aa25624cf2ac64dcbe1bf4b8912f2e85a5b29ddc0df2c6da11242dfbf8f03ac3",
+        "kind": "model",
+        "publisher": "xinntao",
+        "slug": "realesrgan-x4plus-0-1-0"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "tencent",
+      "Meta DINOv2 contributors",
+      "Xintao Wang (Real-ESRGAN)"
+    ],
+    "source_reference": "https://huggingface.co/tencent/Hunyuan3D-2.1/tree/0b94677654c57bb9a6b6845cd7b704ccf551d327"
+  },
+  "release": {
+    "released_at": "2026-11-26",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "entrypoint",
+        "setting": null,
+        "value": "/opt/vonk/source/run.py"
+      },
+      {
+        "name": "output-mime",
+        "setting": null,
+        "value": "model/gltf-binary"
+      },
+      {
+        "name": "mode",
+        "setting": null,
+        "value": "full"
+      },
+      {
+        "name": "seed",
+        "setting": "seed",
+        "value": null
+      }
+    ],
+    "engine": "pytorch-pipeline",
+    "entrypoint": [
+      "/opt/vonk/bin/pytorch-pipeline"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 120
+    }
+  },
+  "settings": {
+    "concurrency": null,
+    "kind": "job",
+    "knobs": {
+      "seed": {
+        "change_effect": "none",
+        "maximum": 10000000,
+        "minimum": 0,
+        "value": 1234
+      }
+    }
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 18867059649,
+            "image_bytes": 20000000000,
+            "safety_margin_bytes": 12000000000,
+            "working_bytes": 16000000000
+          },
+          "memory": {
+            "peak_bytes": 40000000000,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "inference.completed",
+            "artifact.output"
+          ],
+          "kind": "mesh-job.output",
+          "name": "job-output",
+          "request": {
+            "fixture": "qualification/fixtures/hunyuan3d-2-1-demo.png",
+            "input_slots": {
+              "image": "qualification/fixtures/hunyuan3d-2-1-demo.png"
+            },
+            "output_slot": "mesh",
+            "transport": "job"
+          }
+        }
+      ],
+      "interface": "mesh-job"
+    }
+  }
+}

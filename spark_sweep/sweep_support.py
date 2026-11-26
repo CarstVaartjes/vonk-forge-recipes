@@ -13,6 +13,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Protocol
 
+from recipe_tooling.qualification.identity import execution_key
 from recipe_tooling.qualification.memory_need.constants import SPARK_MEMORY_BYTES
 from recipe_tooling.qualification.sweep_settings import SETTINGS
 from vonk_forge_contracts import (
@@ -77,7 +78,7 @@ def retest_reason(
     if (
         view.status == QualificationStatus.BLOCKED_PLATFORM
         and view.last_failure is not None
-        and view.last_failure.identity != current()
+        and execution_key(view.last_failure.identity) != execution_key(current())
     ):
         return RetestReason.DEFERRED_OLDER_REVISION
     why = {

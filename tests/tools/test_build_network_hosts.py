@@ -44,6 +44,9 @@ DOCKERFILE_KEYWORDS = (
 OFFLINE_ENV = re.compile(
     r"\b(?:PIP_NO_INDEX|UV_OFFLINE)[= ]\s*(?:1|true|yes)\b", re.IGNORECASE
 )
+PREBUILT_UI_OFF = re.compile(
+    r"-DLLAMA_USE_PREBUILT_UI=(?:OFF|0|FALSE|NO)\b", re.IGNORECASE
+)
 LOCAL_URL = re.compile(r"://(?:localhost|127\.0\.0\.1|\[::1\])(?:[:/]|$)")
 PROBE = re.compile(
     r"^(?:python3?\b(?:.*\bimport\b|\s+-\s*(?:<<|$))|command\s+-v\b|which\b"
@@ -181,6 +184,12 @@ def other_fetch(command: str) -> Fetch | None:
     if not words or LOCAL_URL.search(command):
         return None
     tool, rest = words[0], words[1:]
+    if tool == "cmake" and any(w.startswith(("-DGGML_", "-DLLAMA_")) for w in rest):
+        # A llama.cpp configure downloads the web UI from a Hugging Face bucket at build time
+        # unless the prebuilt UI is off.
+        if PREBUILT_UI_OFF.search(command):
+            return None
+        return Fetch(" ".join(words[:4]), frozenset({"huggingface.co"}))
     if tool in {"curl", "wget"}:
         fetching = True
     elif tool == "git":
@@ -392,6 +401,13 @@ class BuildNetworkHostMetadataTests(unittest.TestCase):
             "apt-get update",
         ):
             assert fetches(f"RUN {other}"), other
+        assert hosts("RUN cmake -B build -DGGML_CUDA=ON") == [
+            frozenset({"huggingface.co"})
+        ]
+        assert not fetches(
+            "RUN cmake -B build -DGGML_CUDA=ON -DLLAMA_USE_PREBUILT_UI=OFF"
+        )
+        assert not fetches("RUN cmake --build build --target llama-server")
 
     def test_comments_and_printed_text_are_not_fetches(self) -> None:
         assert not fetches("RUN echo 'pip install foo' && true")

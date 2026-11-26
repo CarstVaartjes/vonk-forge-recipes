@@ -18,14 +18,15 @@ from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "contracts" / "src"))
+from recipe_tooling.library_checks import validate_library
 from vonk_forge_contracts import (
     ModelDefinition,
     ModelDisplay,
     RecipeDefinition,
     RecipeDisplay,
 )
-from vonk_forge_contracts.resolver import validate_library
 
 ROOT = Path(__file__).resolve().parents[1]
 

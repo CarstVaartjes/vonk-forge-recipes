@@ -89,8 +89,6 @@ def allocator_walk(
     # An omitted flag may enable caching (nightly 3f1bcfd8 default): count it.
     if argument_value(recipe, "enable-prefix-caching") is False:
         mode = "none"
-    elif argument_value(recipe, "mamba-cache-mode") == "all":
-        mode = "all" if state.mamba_prefix_caching else "align"
     else:
         mode = "align"
     layers = {
@@ -103,17 +101,7 @@ def allocator_walk(
         kernel_alignment = max(
             kernel_alignment, positive_argument(recipe, "block-size")
         )
-    if mode == "all":
-        assert state.chunk_tokens is not None
-        chunk = kernel_alignment
-        while chunk % state.chunk_tokens:
-            chunk += kernel_alignment
-        tokens_per_state = -(-mamba_page // attention_1_token)
-        block = chunk * -(-tokens_per_state // chunk)
-    else:
-        block = kernel_alignment * -(
-            -mamba_page // (kernel_alignment * attention_1_token)
-        )
+    block = kernel_alignment * -(-mamba_page // (kernel_alignment * attention_1_token))
     page = block * attention_1_token
     assert page >= mamba_page
     group_size = min(len(names) for names in layers.values())
@@ -129,7 +117,6 @@ def allocator_walk(
     per_mamba_group = {
         "none": 1 + spec,
         "align": 2 + spec,
-        "all": -(-context // block) + spec,
     }[mode]
     needed = sum(
         -(-context // block) if kind == "attention" else per_mamba_group
@@ -143,7 +130,7 @@ def allocator_walk(
 def other_modes(recipe: RecipeDefinition) -> list[RecipeDefinition]:
     """The launch under each prefix-caching mode."""
     found = []
-    for caching, mode in ((None, None), (False, None), (True, "align"), (True, "all")):
+    for caching, mode in ((None, None), (False, None), (True, "align")):
         copy = recipe.model_copy(deep=True)
         copy.runtime.arguments = [
             item
@@ -248,11 +235,6 @@ ADAY777 = "qwen3-8-27b-ara-abliterated-nvfp4-mtp-df03f976"
         ),
         ({"replicated_token_bytes": 768}, "needs plain attention layers"),
         ({"state_padding": 1}, "needs plain attention layers"),
-        (
-            {"recurrent": {"mamba_prefix_caching": True, "chunk_tokens": 128}},
-            "mamba_prefix_caching must match",
-        ),
-        ({"recurrent": {"chunk_tokens": 128}}, "needs the Mamba chunk size"),
         ({"recurrent": {"attention_layers": 17}}, "attention_layers cannot exceed"),
         (
             {

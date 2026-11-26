@@ -1,0 +1,40 @@
+{
+  "capabilities": [
+    "chat",
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
+  "description": "Tencent's own FP8 checkpoint of Hy4 flash (revision bd0e136e): 148 weight shards, 287 GB, of which four shards are the BF16 Engram tables. Text and image input. Base model tencent/Hy4-flash.",
+  "family_title": "Hy4 flash",
+  "identity": {
+    "publisher": "tencent",
+    "slug": "hy4-flash-fp8-8ae0de27"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Tencent"
+    ],
+    "spdx": "LicenseRef-tencent-hy-license",
+    "url": "https://huggingface.co/tencent/Hy4-flash-FP8/blob/bd0e136e89a9ecd5ea17668cd89cf54fa127e795/LICENSE"
+  },
+  "lineage": {
+    "base_model": "tencent/Hy4-flash",
+    "family": "hy",
+    "generation": "Hy4",
+    "line": "hy4-flash",
+    "model": "hy4-flash",
+    "variant_kind": "quantization"
+  },
+  "modalities": [
+    "text",
+    "image"
+  ],
+  "model_title": "Hy4 flash FP8",
+  "tags": [
+    "tencent",
+    "hy4-flash"
+  ]
+}

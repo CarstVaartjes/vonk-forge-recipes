@@ -1,0 +1,477 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
+        "repository": "nvcr.io/nvidia/cuda"
+      },
+      "context": {
+        "path": "adapters/image/marigold-diffusers"
+      },
+      "dockerfile": "adapters/image/marigold-diffusers/Dockerfile",
+      "network": {
+        "hosts": [
+          "download.pytorch.org",
+          "download-r2.pytorch.org",
+          "pypi.org",
+          "pypi.nvidia.com",
+          "files.pythonhosted.org",
+          "archive.ubuntu.com",
+          "security.ubuntu.com",
+          "ports.ubuntu.com"
+        ]
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "marigold-normals-depth-pytorch-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "image-job",
+      "input": {
+        "max_bytes": 33554432,
+        "media_types": [
+          "image/jpeg",
+          "image/png"
+        ],
+        "required": true,
+        "slots": [
+          {
+            "description": "One PNG or JPEG photo or render; at most 4096x4096 pixels, never resized. If the input has transparency, the model sees its RGB pixels; transparency is not carried to the maps.",
+            "extensions": [
+              ".jpeg",
+              ".jpg",
+              ".png"
+            ],
+            "id": "image",
+            "label": "Image",
+            "max_file_bytes": 33554432,
+            "max_files": 1,
+            "max_total_bytes": 33554432,
+            "media_types": [
+              "image/jpeg",
+              "image/png"
+            ],
+            "min_files": 1
+          }
+        ]
+      },
+      "output": {
+        "max_total_bytes": 536870912,
+        "slots": [
+          {
+            "description": "Two PNGs at the input size: normal.png (8-bit RGB camera-space normals, X right, Y up, Z toward the viewer: an OpenGL tangent-space map for a fronto-parallel texture) and depth.png (16-bit grayscale affine-invariant depth, 0 near, 65535 far).",
+            "extensions": [
+              ".png"
+            ],
+            "id": "maps",
+            "label": "Maps",
+            "max_file_bytes": 268435456,
+            "max_files": 2,
+            "max_total_bytes": 536870912,
+            "media_types": [
+              "image/png"
+            ],
+            "min_files": 2
+          }
+        ]
+      }
+    }
+  ],
+  "kind": "recipe",
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "model-index-2a9df1f02d91-ee03ace9a3",
+          "id": "primary-model-index-2a9df1f02d91-ee03ace9a3",
+          "mount": {
+            "target": "/models/normals"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "scheduler-config-506414f187b3-67ecb3dc37",
+          "id": "primary-scheduler-config-506414f187b3-67ecb3dc37",
+          "mount": {
+            "target": "/models/normals"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-6b34b0bf6cff-bcfd37e83e",
+          "id": "primary-config-6b34b0bf6cff-bcfd37e83e",
+          "mount": {
+            "target": "/models/normals"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-fp16-bc1827c46545-d8e2633343",
+          "id": "primary-model-fp16-bc1827c46545-d8e2633343",
+          "mount": {
+            "target": "/models/normals"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "merges-9fd691f7c803-ebbb0f71ea",
+          "id": "primary-merges-9fd691f7c803-ebbb0f71ea",
+          "mount": {
+            "target": "/models/normals"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "special-tokens-map-f118ab3a9832-9a6c011314",
+          "id": "primary-special-tokens-map-f118ab3a9832-9a6c011314",
+          "mount": {
+            "target": "/models/normals"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-516314ccab66-47a6faaf45",
+          "id": "primary-tokenizer-config-516314ccab66-47a6faaf45",
+          "mount": {
+            "target": "/models/normals"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vocab-e089ad92ba36-8c35116cc3",
+          "id": "primary-vocab-e089ad92ba36-8c35116cc3",
+          "mount": {
+            "target": "/models/normals"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-33797898bbc3-479c438b53",
+          "id": "primary-config-33797898bbc3-479c438b53",
+          "mount": {
+            "target": "/models/normals"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-fp16-e90ff52ea6b5-aed435306f",
+          "id": "primary-diffusion-pytorch-model-fp16-e90ff52ea6b5-aed435306f",
+          "mount": {
+            "target": "/models/normals"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-52dbd493c4a9-101abd63da",
+          "id": "primary-config-52dbd493c4a9-101abd63da",
+          "mount": {
+            "target": "/models/normals"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-fp16-3e4c08995484-5ac80493ed",
+          "id": "primary-diffusion-pytorch-model-fp16-3e4c08995484-5ac80493ed",
+          "mount": {
+            "target": "/models/normals"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "ab478e953be0a98c1e5c39551470659d5307debd31cfb657f97827c823ecf6d7",
+        "kind": "model",
+        "publisher": "prs-eth",
+        "slug": "marigold-normals-v1-1-09cfdd25"
+      }
+    },
+    {
+      "files": [
+        {
+          "file_id": "model-index-01615d7294b1-ee03ace9a3",
+          "id": "depth-model-index-01615d7294b1-ee03ace9a3",
+          "mount": {
+            "target": "/models/depth"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "scheduler-config-cfc0025ded5b-67ecb3dc37",
+          "id": "depth-scheduler-config-cfc0025ded5b-67ecb3dc37",
+          "mount": {
+            "target": "/models/depth"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-6b34b0bf6cff-bcfd37e83e",
+          "id": "depth-config-6b34b0bf6cff-bcfd37e83e",
+          "mount": {
+            "target": "/models/depth"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-fp16-681c55537665-d8e2633343",
+          "id": "depth-model-fp16-681c55537665-d8e2633343",
+          "mount": {
+            "target": "/models/depth"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "merges-9fd691f7c803-ebbb0f71ea",
+          "id": "depth-merges-9fd691f7c803-ebbb0f71ea",
+          "mount": {
+            "target": "/models/depth"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "special-tokens-map-f118ab3a9832-9a6c011314",
+          "id": "depth-special-tokens-map-f118ab3a9832-9a6c011314",
+          "mount": {
+            "target": "/models/depth"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-87a3154f0990-47a6faaf45",
+          "id": "depth-tokenizer-config-87a3154f0990-47a6faaf45",
+          "mount": {
+            "target": "/models/depth"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vocab-e089ad92ba36-8c35116cc3",
+          "id": "depth-vocab-e089ad92ba36-8c35116cc3",
+          "mount": {
+            "target": "/models/depth"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-4f736bc367b0-479c438b53",
+          "id": "depth-config-4f736bc367b0-479c438b53",
+          "mount": {
+            "target": "/models/depth"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-fp16-890a2a9efc29-aed435306f",
+          "id": "depth-diffusion-pytorch-model-fp16-890a2a9efc29-aed435306f",
+          "mount": {
+            "target": "/models/depth"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-d69281aa3f6a-101abd63da",
+          "id": "depth-config-d69281aa3f6a-101abd63da",
+          "mount": {
+            "target": "/models/depth"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-fp16-3e4c08995484-5ac80493ed",
+          "id": "depth-diffusion-pytorch-model-fp16-3e4c08995484-5ac80493ed",
+          "mount": {
+            "target": "/models/depth"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "depth",
+      "model": {
+        "content_sha256": "95152243abad81bb9496ba08d4753686d700f9d64572d1ed5bb5fe865deca548",
+        "kind": "model",
+        "publisher": "prs-eth",
+        "slug": "marigold-depth-v1-1-9571e712"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "Photogrammetry and Remote Sensing, ETH Zurich (prs-eth)"
+    ],
+    "source_reference": "https://github.com/prs-eth/Marigold/tree/2bfbdeae5d10a50b71f1ba20c865d46e480f6010"
+  },
+  "release": {
+    "released_at": "2026-11-26",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "entrypoint",
+        "setting": null,
+        "value": "/opt/vonk/source/run.py"
+      },
+      {
+        "name": "output-mime",
+        "setting": null,
+        "value": "image/png"
+      },
+      {
+        "name": "task",
+        "setting": null,
+        "value": "normals-depth"
+      },
+      {
+        "name": "primary-model",
+        "setting": null,
+        "value": "/models/normals"
+      },
+      {
+        "name": "depth-model",
+        "setting": null,
+        "value": "/models/depth"
+      },
+      {
+        "name": "seed",
+        "setting": "seed",
+        "value": null
+      }
+    ],
+    "engine": "pytorch-pipeline",
+    "entrypoint": [
+      "/opt/vonk/bin/pytorch-pipeline"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 120
+    }
+  },
+  "settings": {
+    "concurrency": null,
+    "kind": "job",
+    "knobs": {
+      "seed": {
+        "change_effect": "none",
+        "maximum": 2147483647,
+        "minimum": 0,
+        "value": 0
+      }
+    }
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 5163347811,
+            "image_bytes": 10000000000,
+            "safety_margin_bytes": 12000000000,
+            "working_bytes": 2000000000
+          },
+          "memory": {
+            "peak_bytes": 12000000000,
+            "reserve_bytes": 4000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "inference.completed",
+            "artifact.output"
+          ],
+          "kind": "image-job.output",
+          "name": "job-output",
+          "request": {
+            "fixture": "qualification/fixtures/tiny.png",
+            "input_slots": {
+              "image": "qualification/fixtures/tiny.png"
+            },
+            "output_slot": "maps",
+            "transport": "job"
+          }
+        }
+      ],
+      "interface": "image-job"
+    }
+  }
+}

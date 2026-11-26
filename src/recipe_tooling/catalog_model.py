@@ -117,7 +117,6 @@ def write_model(
     *,
     source: dict[str, str],
     files: list[dict[str, Any]],
-    requires_token: bool,
 ) -> str:
     """Validate and write the Model; return its ``document_sha256``."""
 
@@ -142,7 +141,6 @@ def write_model(
             "version": args.version,
             "variant": args.version,
         },
-        "requires_token": requires_token,
         "dependencies": [],
         "source": source,
         "format": {

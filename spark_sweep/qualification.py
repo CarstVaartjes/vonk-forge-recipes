@@ -18,6 +18,13 @@ from recipe_tooling.qualification.evidence_store import (
     read_evidence,
     write_evidence,
 )
+from recipe_tooling.qualification.identity import execution_key
+from recipe_tooling.qualification.status import (
+    QualificationEvidenceStep,
+    QualificationSourceFailureClass,
+    derive_status,
+    published_status,
+)
 from vonk_forge_contracts import (
     QualificationBlame,
     QualificationCauseCode,
@@ -34,13 +41,9 @@ from vonk_forge_contracts import (
     QualificationSummary,
     QualificationTopology,
     RecipeQualificationEvidence,
-    derive_status,
 )
 from vonk_forge_contracts.qualification_status import (
     QUALIFICATION_SUMMARIES,
-    QualificationEvidenceStep,
-    QualificationSourceFailureClass,
-    published_status,
 )
 
 from .catalog import Recipe, never_measured
@@ -309,12 +312,12 @@ def resolved_missing(
     local: RecipeQualificationEvidence, repo: RecipeQualificationEvidence
 ) -> tuple[QualificationEvidenceRecord, ...]:
     """The one rule: resolved local records (same identity and outcome) the repo lacks."""
-    known = {(r.identity.model_dump_json(), r.outcome) for r in repo.records}
+    known = {(execution_key(r.identity), r.outcome) for r in repo.records}
     return tuple(
         r
         for r in local.records
         if r.identity.models_resolved
-        and (r.identity.model_dump_json(), r.outcome) not in known
+        and (execution_key(r.identity), r.outcome) not in known
     )
 
 

@@ -72,7 +72,7 @@ try:
     if _on("INKLING_PADX"):  # after noexp: CUDA-graph padding rows route to the phantom expert (exact for live rows)
         import inkling_padx
         inkling_padx.install()
-    if _on("INKLING_DFLASH_BYTES"):  # DFlash2 drafter byte cuts (draft-only; needs SPEC=dflash2, exclusive with DRAFT_BYTES)
+    if _on("INKLING_DFLASH_BYTES") or _on("INKLING_DFLASH_CTX8"):  # DFlash2 drafter byte cuts / MXFP8 context projections (draft-only; SPEC=dflash2)
         import inkling_dfbytes
         inkling_dfbytes.install()
     if _on("INKLING_DFLASH_FUSED_ACCEPT"):  # DFLASH sampled accept from the logits with sparse q (same law)

@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/mmaudio-large-44k-v2-pytorch-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "6ba6af758693ca2b7031d18c7b658b264a9691ba0f4e7ec897bed6253d51bd60",
+        "source_bundle_sha256": "dda0455f151c75482064d6388f53e636a5c11f285535c5e433d6311c792d4d2c",
+        "runtime_image": {
+          "build_key": "ea7d4664e5e02063267c5ddb8c4161e8ba7e3975f47ce819cebec7fddbeed1d7",
+          "image_digest": "sha256:3e665fdc96590401f03727de111c83189f9c8a3616d8cfb766bbd75b0d7b8924"
+        },
+        "model_digests": [
+          "13b9bc27eecede516579688613fa6e7dcf48459234103802287c6859f5799958",
+          "5fd931eda491d2a03ef6a6637aca68f0cc857cd2868013928be1dc6c2df21184",
+          "dcdca39b3eae50d0296dda53bcc16645d76fc34630d42b089f24abe4b79ff733"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "61024139c5e9ca7111c45617cb6babc417c3b2b83734d6dbd2d3a54910e8d77b"
+      ],
+      "tested_at": "2026-11-26T14:47:13.752102Z",
+      "platform": {
+        "controller_source_sha": "090996346f05bd21b329ca6532e111eac5a556e1",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}

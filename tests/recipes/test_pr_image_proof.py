@@ -55,71 +55,50 @@ def test_pr_and_publish_share_planner_build_and_smokes():
     ) < workflow.index("Push to every recipe that uses this image")
     build = _step("Build the recipe image with the Spark build flags")
     # The recipe Dockerfile executes its native build/import checks before the
-    # separate remote-module smoke and the final platform adapter build.
+    # separate remote-module smoke; the recipe image is the pushed image.
     assert build.index('"${recipe_args[@]}"') < build.index("remote-code-smoke.py")
-    assert build.index("remote-code-smoke.py") < build.index('"${adapter_args[@]}"')
+    assert "adapter_args" not in build
 
 
 @pytest.mark.parametrize("event", ["pull_request", "push"])
 def test_workflow_plan_files_exclude_catalog_progress(tmp_path: Path, event: str):
     workspace = tmp_path / "workspace"
-    subprocess.run(
-        ["git", "clone", "--shared", "--no-checkout", str(ROOT), str(workspace)],
-        check=True,
-        capture_output=True,
-        timeout=15,
-    )
-    scripts = workspace / ".vonk-forge/scripts"
-    scripts.mkdir(parents=True)
-    builder = scripts / "build-recipe-library"
-    builder.write_text('#!/bin/sh\necho "wrote catalog-index.json for $1"\n')
-    builder.chmod(0o755)
-    tools = workspace / "tools"
-    tools.mkdir()
-    shutil.copyfile(ROOT / "tools" / "prebuilt-images", tools / "prebuilt-images")
-    shutil.copytree(
-        ROOT / "src", workspace / "src", ignore=shutil.ignore_patterns("__pycache__")
-    )
+    (workspace / "tools").mkdir(parents=True)
+    for tool in ("build-plan", "prepare-remote-code-smoke"):
+        shutil.copyfile(ROOT / "tools" / tool, workspace / "tools" / tool)
+    for tree in ("src", "policy"):
+        shutil.copytree(
+            ROOT / tree, workspace / tree, ignore=shutil.ignore_patterns("__pycache__")
+        )
     binary = tmp_path / "bin"
     binary.mkdir()
+    # Replace the CI edge (the commit and its time) and environment setup only.
+    # Keep noisy catalog stdout and run the real planner and plan consumer.
+    commit = binary / "git"
+    commit.write_text("#!/bin/sh\necho 0\n")
+    commit.chmod(0o755)
     uv = binary / "uv"
-    # Replace environment setup and the external platform planner only. Keep
-    # noisy catalog stdout and run the real downstream plan consumer.
     uv.write_text(
         f"#!{sys.executable}\n"
         + """
 import json, os, subprocess, sys
 from pathlib import Path
 args = sys.argv[1:]
-if any(arg.endswith('/scripts/recipe-image-plan') for arg in args):
-    library = args[args.index('--library-root') + 1]
-    key = ('a' if library == os.environ['GITHUB_WORKSPACE'] else 'b') * 64
-    Path(args[args.index('--output-dir') + 1]).mkdir(parents=True)
-    print('planner diagnostic', file=sys.stderr)
-    print(json.dumps({'images': [{'build_key': key, 'recipes': []}]}))
+script = args.index('python') + 1
+if args[script].endswith('/tools/build-catalog-index'):
+    root = Path(args[script]).parents[1]
+    root.mkdir(parents=True, exist_ok=True)
+    (root / 'catalog-index.json').write_text(json.dumps({'source_commit': 'c', 'recipes': []}))
+    print('wrote catalog-index.json for', root)
 else:
-    script = args.index('python') + 1
     raise SystemExit(subprocess.run(
-        [sys.executable, os.environ['SMOKE_TOOL'], *args[script + 1:]],
-        check=False, timeout=10,
+        [sys.executable, *args[script:]], check=False, timeout=10
     ).returncode)
 """
     )
     uv.chmod(0o755)
-    head = subprocess.check_output(
-        ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True, timeout=5
-    ).strip()
-    platform_ref = subprocess.check_output(
-        [sys.executable, str(tools / "prebuilt-images"), "platform-ref"],
-        cwd=ROOT,
-        text=True,
-        timeout=5,
-    ).strip()
-    script = _step("Plan one image per distinct build key").replace(
-        "${{ steps.platform.outputs.ref }}", platform_ref
-    )
     result = subprocess.run(
-        ["bash", "-c", script],
+        ["bash", "-c", _step("Plan one image per distinct build key")],
         cwd=workspace,
         env={
             **os.environ,
@@ -127,8 +106,6 @@ else:
             "GITHUB_WORKSPACE": str(workspace),
             "RUNNER_TEMP": str(tmp_path),
             "EVENT_NAME": event,
-            "BASE_SHA": head,
-            "SMOKE_TOOL": str(ROOT / "tools/prepare-remote-code-smoke"),
         },
         check=False,
         capture_output=True,
@@ -136,12 +113,13 @@ else:
         timeout=30,
     )
     assert result.returncode == 0, result.stderr
-    plans = [("plan.json", KEY)]
-    if event == "pull_request":
-        plans.append(("base-plan.json", "b" * 64))
-    for filename, key in plans:
+    plans = ["plan.json"] + (["base-plan.json"] if event == "pull_request" else [])
+    for filename in plans:
         assert json.loads((tmp_path / filename).read_text()) == {
-            "images": [{"build_key": key, "recipes": []}]
+            "schema_version": 2,
+            "source_commit": "c",
+            "images": [],
+            "skipped": [],
         }
     assert result.stdout.count("wrote catalog-index.json") == len(plans)
 
@@ -166,7 +144,7 @@ def test_required_check_rejects_every_non_success_image_or_catalog_result(
 
 
 @pytest.mark.parametrize("event", ["pull_request", "push"])
-@pytest.mark.parametrize("fault", ["", "native", "remote", "adapter"])
+@pytest.mark.parametrize("fault", ["", "native", "remote"])
 def test_build_or_smoke_failure_cannot_publish_an_image(
     tmp_path: Path, fault: str, event: str
 ):
@@ -181,9 +159,6 @@ def test_build_or_smoke_failure_cannot_publish_an_image(
                         "build_key": KEY,
                         "base_images": [],
                         "recipe_build_arguments": [],
-                        "adapter_containerfile": "FROM scratch",
-                        "adapter_build_arguments": [],
-                        "adapter_build_argument": "VONK_RECIPE_IMAGE",
                     }
                 ]
             }
@@ -213,7 +188,7 @@ args = sys.argv[1:]
 with open(os.environ['COMMAND_LOG'], 'a') as log:
     log.write(' '.join(args) + '\\n')
 fault = os.environ['FAULT']
-stage = 'remote' if 'run' in args else ('native' if args[-1:] == ['context'] else 'adapter')
+stage = 'remote' if 'run' in args else 'native'
 if fault and stage == fault and ('build' in args or 'run' in args):
     raise SystemExit(17)
 if 'push' in args:
@@ -271,7 +246,7 @@ if 'inspect' in args:
     commands = log.read_text()
     assert ("push --digestfile" in commands) == (not fault)
     if not fault:
-        prefix = "candidate" if event == "pull_request" else "build"
+        prefix = "candidate-v2" if event == "pull_request" else "build-v2"
         assert f"docker://ghcr.io/o/recipe:{prefix}-{KEY}" in commands
         summary = (tmp_path / "summary").read_text()
         assert ("built at publish: no PR candidate" in summary) == (event == "push")

@@ -1,20 +1,28 @@
 #!/usr/bin/env python3
-"""Publish the release's one asset, ``recipe-library.tar``, and prove GitHub holds exactly it.
+"""Publish the release's assets and prove GitHub holds exactly them.
 
-The release carries a single asset: the signed bundle (SHA256SUMS, its Sigstore
-bundle and every listed file, as members). ``gh release upload --clobber``
-replaces an asset non-atomically, so this tool makes publication converge: it
-compares the release's assets (REST ``digest`` and ``size``) with the bundle,
-uploads it when missing or different, then deletes every other asset (the
-per-file assets earlier releases carried), and repeats until the release
-matches. If it cannot converge it exits non-zero and says what differs.
-Uploading first means a consumer reading the bundle never waits on the cleanup.
+A release carries two assets: the signed bundle ``recipe-library.tar``
+(SHA256SUMS, its Sigstore bundle and every listed file, as members) and the
+contracts wheel of its version, the one asset named ``*-<v>-py3-none-any.whl`` (the
+distribution name is the wheel build's, from ``contracts/pyproject.toml``).
+``gh release upload --clobber`` replaces an asset non-atomically, so this tool
+makes publication converge: it compares the release's assets (REST ``digest`` and
+``size``) with the bundle, uploads it when missing or different, then deletes
+every other asset (the per-file assets earlier releases carried), and repeats
+until the release matches. If it cannot converge it exits non-zero and says what
+differs. Uploading first means a consumer reading the bundle never waits on the
+cleanup.
 
-``publish`` expects the bundle file. ``check`` answers whether the published
-release already carries exactly the bundle for a given SHA256SUMS (the bundle is
-the only asset and its ``SHA256SUMS`` member equals the local one, and every
-member matches it), and is how the workflow decides that an identical release
-needs no republication.
+The wheel is immutable per version: it is uploaded only when the release lacks
+it (a new version, or a run killed between tagging and uploading it) and is never
+replaced or deleted, so a rerun on the same commit uploads nothing.
+
+``publish`` expects the bundle file, and the wheel when the release lacks it.
+``check`` answers whether the published release already carries exactly the
+bundle for a given SHA256SUMS plus its wheel (the bundle's ``SHA256SUMS`` member
+equals the local one, and every member matches it), and is how the workflow
+decides that an identical release needs no republication. ``has-wheel`` exits 0
+when the release already holds its wheel, which decides whether to build one.
 """
 
 from __future__ import annotations
@@ -87,10 +95,48 @@ def file_digest(path: Path) -> str:
         return hashlib.file_digest(handle, "sha256").hexdigest()
 
 
+def wheel_suffix(tag: str) -> str:
+    """How the contracts wheel asset of release ``v<version>`` ends."""
+
+    return f"-{tag.removeprefix('v')}-py3-none-any.whl"
+
+
+def held_wheel(assets: Mapping[str, Mapping[str, object]], tag: str) -> str | None:
+    """The name of the version's wheel the release holds, if any."""
+
+    suffix = wheel_suffix(tag)
+    return next(
+        (
+            name
+            for name in sorted(assets)
+            if name.endswith(suffix) and held(assets[name])
+        ),
+        None,
+    )
+
+
 def expected_from_bundle(bundle: Path) -> dict[str, Expected]:
-    """The only asset to publish, with its exact digest and size."""
+    """The bundle asset, with its exact digest and size."""
 
     return {bundle.name: Expected(file_digest(bundle), bundle.stat().st_size)}
+
+
+def held(asset: Mapping[str, object] | None) -> bool:
+    return asset is not None and asset.get("state") == "uploaded"
+
+
+def expected_wheel(
+    assets: Mapping[str, Mapping[str, object]], tag: str, wheel: Path | None
+) -> dict[str, Expected]:
+    """The version's wheel: one the release holds stays as it is, whatever its bytes;
+    a missing one must land with this run's exact bytes."""
+
+    name = held_wheel(assets, tag)
+    if name is not None:
+        return {name: Expected()}
+    if wheel is None:
+        return {f"*{wheel_suffix(tag)}": Expected()}  # missing, and nothing to upload
+    return {wheel.name: Expected(file_digest(wheel), wheel.stat().st_size)}
 
 
 def bundle_matches_manifest(bundle: Path, manifest: Path) -> bool:
@@ -178,10 +224,11 @@ def repair(
     sources: Mapping[str, Path],
     difference: Difference,
 ) -> None:
-    """One round: upload the bundle if wrong, then drop every other asset."""
+    """One round: upload what is missing or wrong, then drop every other asset."""
 
     wrong = sorted({*difference.missing, *difference.mismatched})
-    if wrong:
+    uploads = [name for name in wrong if name in sources]
+    if uploads:
         gh(
             [
                 "release",
@@ -190,11 +237,13 @@ def repair(
                 "--repo",
                 repository,
                 "--clobber",
-                *(str(sources[name]) for name in wrong),
+                *(str(sources[name]) for name in uploads),
             ]
         )
     for name in difference.extra:
         gh(["release", "delete-asset", tag, name, "--repo", repository, "--yes"])
+    if unavailable := sorted(set(wrong) - set(uploads)):
+        raise RuntimeError(f"no local file to upload for {unavailable}")
 
 
 def converge(
@@ -252,14 +301,24 @@ def main() -> int:
     commands = parser.add_subparsers(dest="command", required=True)
     publish = commands.add_parser("publish", help="make the release match")
     publish.add_argument("--bundle", type=Path, required=True)
+    publish.add_argument(
+        "--wheel", type=Path, help="the version's wheel, when the release lacks it"
+    )
     check = commands.add_parser("check", help="exit 0 if the release is complete")
     check.add_argument("--sums", type=Path, required=True, help="new SHA256SUMS")
+    commands.add_parser("has-wheel", help="exit 0 if the release holds its wheel")
     arguments = parser.parse_args()
+    if arguments.command == "has-wheel":
+        try:
+            assets = published_assets(run_gh, arguments.repo, arguments.tag)
+        except RuntimeError:
+            return 1  # no release yet
+        return 0 if held_wheel(assets, arguments.tag) is not None else 1
 
     if arguments.command == "check":
+        assets = published_assets(run_gh, arguments.repo, arguments.tag)
         difference = compare(
-            {BUNDLE: Expected()},
-            published_assets(run_gh, arguments.repo, arguments.tag),
+            {BUNDLE: Expected()} | expected_wheel(assets, arguments.tag, None), assets
         )
         if not difference.clean:
             print(f"release {arguments.tag} is incomplete: {difference.describe()}")
@@ -285,8 +344,20 @@ def main() -> int:
 
     if arguments.bundle.name != BUNDLE:
         raise SystemExit(f"the bundle asset must be named {BUNDLE}")
-    expected = expected_from_bundle(arguments.bundle)
+    if arguments.wheel is not None and not arguments.wheel.name.endswith(
+        wheel_suffix(arguments.tag)
+    ):
+        raise SystemExit(
+            f"the wheel of {arguments.tag} must end {wheel_suffix(arguments.tag)}"
+        )
+    expected = expected_from_bundle(arguments.bundle) | expected_wheel(
+        published_assets(run_gh, arguments.repo, arguments.tag),
+        arguments.tag,
+        arguments.wheel,
+    )
     sources = {arguments.bundle.name: arguments.bundle}
+    if arguments.wheel is not None:
+        sources[arguments.wheel.name] = arguments.wheel
     converged = converge(run_gh, arguments.repo, arguments.tag, expected, sources)
     return 0 if converged else 1
 

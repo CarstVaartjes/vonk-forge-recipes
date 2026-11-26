@@ -1,0 +1,59 @@
+{
+  "id": "vonk-forge/partcrafter-pytorch-single",
+  "recipes": {
+    "interface": "mesh-job",
+    "parameters": {
+      "num-parts": 2,
+      "seed": 0
+    },
+    "inputs": [
+      {
+        "slot": "image",
+        "fixture": "partcrafter-np2-png"
+      }
+    ],
+    "output_limits": {
+      "max_files": 3,
+      "max_file_bytes": 268435456,
+      "max_total_bytes": 1073741824,
+      "allowed_media_types": [
+        "model/gltf-binary"
+      ]
+    },
+    "timeout_seconds": 3600,
+    "assertions": [
+      {
+        "kind": "file-count",
+        "exact": 3
+      },
+      {
+        "kind": "file-names",
+        "exact": [
+          "object.glb",
+          "part_00.glb",
+          "part_01.glb"
+        ]
+      },
+      {
+        "kind": "media-type",
+        "allowed": [
+          "model/gltf-binary"
+        ]
+      },
+      {
+        "kind": "minimum-bytes",
+        "value": 20
+      },
+      {
+        "kind": "format",
+        "format": "glb"
+      },
+      {
+        "kind": "glb-structure",
+        "profile": "triangle-mesh",
+        "minimum_meshes": 1,
+        "minimum_primitives": 1
+      }
+    ]
+  }
+}

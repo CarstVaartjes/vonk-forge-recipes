@@ -1,0 +1,17 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "partcrafter",
+          "title": "PartCrafter"
+        }
+      ],
+      "slug": "partcrafter",
+      "title": "PartCrafter"
+    }
+  ],
+  "slug": "partcrafter",
+  "title": "PartCrafter"
+}

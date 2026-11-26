@@ -18,85 +18,123 @@ removing its hold in the same change. ``tools/refresh-upstream`` never moves a h
 from __future__ import annotations
 
 import argparse
-import json
 import re
 import sys
 from pathlib import Path
-from typing import Any
+
+from pydantic import BaseModel, ConfigDict, Field, RootModel, ValidationError
 
 from recipe_tooling.paths import REPO_ROOT
+from recipe_tooling.qualification import documents
+from recipe_tooling.refresh_upstream import catalog_view
+from vonk_forge_contracts import RecipeDefinition
 
 ROOT = REPO_ROOT
 HOLDS = "policy/base-image-holds.json"
-DIGEST = re.compile(r"^[0-9a-f]{64}$")
-SOURCE = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 FROM = re.compile(
     r"^[ \t]*FROM[ \t]+(?:--\S+[ \t]+)*(?P<image>\S+)", re.MULTILINE | re.IGNORECASE
 )
 
 
-def holds(root: Path) -> dict[str, dict[str, Any]]:
+class HeldBaseImage(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    repository: str = Field(min_length=1)
+    digest: str = Field(pattern=r"^[0-9a-f]{64}$")
+
+
+class BaseImageHold(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    base_image: HeldBaseImage
+    version: str | None = None
+    reason: str = Field(min_length=1)
+    upstream: str = Field(pattern=r"^https://\S+$")
+    source: str | None = Field(
+        default=None, pattern=r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"
+    )
+
+
+class BaseImageHolds(RootModel[dict[str, BaseImageHold]]):
+    pass
+
+
+def holds(root: Path) -> dict[str, BaseImageHold]:
     """The declared holds by recipe id; none when the file is absent."""
     path = root / HOLDS
     if not path.is_file():
         return {}
-    return json.loads(path.read_text(encoding="utf-8"))
+    return BaseImageHolds.model_validate_json(path.read_bytes()).root
 
 
-def moves_held_image(hold: dict[str, Any] | None, repository: str) -> bool:
+def moves_held_image(hold: BaseImageHold | None, repository: str) -> bool:
     """Whether moving ``repository`` would move this hold's base image."""
+    return hold is not None and hold.base_image.repository.lower() == repository.lower()
+
+
+def follows_held_source(hold: BaseImageHold | None, repo: str) -> bool:
+    """Whether ``repo`` is the GitHub repository whose newer releases this hold declines."""
     return (
         hold is not None
-        and str(hold["base_image"]["repository"]).lower() == repository.lower()
+        and hold.source is not None
+        and hold.source.lower() == repo.lower()
     )
 
 
-def follows_held_source(hold: dict[str, Any] | None, repo: str) -> bool:
-    """Whether ``repo`` is the GitHub repository whose newer releases this hold declines."""
-    source = hold.get("source") if hold else None
-    return bool(source) and str(source).lower() == repo.lower()
-
-
-def describe(hold: dict[str, Any]) -> str:
-    base = hold["base_image"]
+def describe(hold: BaseImageHold) -> str:
+    base = hold.base_image
     return (
-        f"{base['repository']}@sha256:{base['digest']} ({hold.get('version', '?')}) "
-        f"is held: {hold.get('reason', '')} ({hold.get('upstream', '')})"
+        f"{base.repository}@sha256:{base.digest} ({hold.version or '?'}) "
+        f"is held: {hold.reason} ({hold.upstream})"
     )
+
+
+def followed_repositories(root: Path, recipe: RecipeDefinition) -> set[str]:
+    """The GitHub repositories (lower case) the recipe follows: its source and its adapter's."""
+    followed: set[str] = set()
+    document = recipe.model_dump(mode="json")
+    source = catalog_view.source_pin(document)
+    if source is not None and source[0] == "github":
+        followed.add(source[1].lower())
+    pin = catalog_view.adapter_pin(root, document)
+    if pin is not None:
+        followed.add(pin.repo.lower())
+    return followed
 
 
 def problems(root: Path) -> list[str]:
+    try:
+        declared = holds(root)
+    except ValidationError as error:
+        return [f"{HOLDS}: {error}"]
     found: list[str] = []
-    for recipe_id, hold in holds(root).items():
+    for recipe_id, hold in declared.items():
         where = f"{HOLDS} {recipe_id}"
-        base = hold.get("base_image") or {}
-        repository, digest = base.get("repository"), base.get("digest")
-        if not repository or not isinstance(digest, str) or not DIGEST.match(digest):
-            found.append(f"{where}: base_image needs a repository and a sha256 digest")
-            continue
-        if not hold.get("reason") or not str(hold.get("upstream", "")).startswith(
-            "https://"
-        ):
-            found.append(f"{where}: a hold needs a reason and an https upstream link")
-        source = hold.get("source")
-        if source is not None and not SOURCE.match(str(source)):
-            found.append(f"{where}: source must be a GitHub <owner>/<repo>")
+        repository, digest = hold.base_image.repository, hold.base_image.digest
         path = root / "recipes" / f"{recipe_id}.json"
         if not path.is_file():
             found.append(f"{where}: no recipe {path.name}; remove the hold")
             continue
-        build = json.loads(path.read_text(encoding="utf-8"))["execution"]["build"]
-        recorded = build.get("base_image") or {}
-        if (
-            str(recorded.get("repository", "")).lower() != repository.lower()
-            or recorded.get("digest") != digest
+        recipe = documents.recipe(recipe_id, root)
+        if hold.source is not None and hold.source.lower() not in followed_repositories(
+            root, recipe
         ):
             found.append(
-                f"{where}: the recipe's base_image is {recorded.get('repository')}"
-                f"@sha256:{recorded.get('digest')}, but {describe(hold)}. Keep the held "
+                f"{where}: the recipe follows no GitHub repository {hold.source}, so "
+                "the hold's source declines nothing; fix or remove it"
+            )
+        build = recipe.execution.build
+        recorded = build.base_image
+        if (
+            recorded.repository.lower() != repository.lower()
+            or recorded.digest != digest
+        ):
+            found.append(
+                f"{where}: the recipe's base_image is {recorded.repository}"
+                f"@sha256:{recorded.digest}, but {describe(hold)}. Keep the held "
                 "digest, or update/remove the hold in the same change."
             )
-        dockerfile = root / build.get("dockerfile", "")
+        dockerfile = root / build.dockerfile
         if dockerfile.is_file():
             for match in FROM.finditer(dockerfile.read_text(encoding="utf-8")):
                 name, _, pinned = match["image"].partition("@")

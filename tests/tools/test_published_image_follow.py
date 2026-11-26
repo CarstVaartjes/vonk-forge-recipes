@@ -39,6 +39,7 @@ from recipe_tooling.refresh_upstream import items as refresh_items
 from recipe_tooling.refresh_upstream import model as refresh_model
 from recipe_tooling.refresh_upstream import publish as refresh_publish
 from recipe_tooling.refresh_upstream import render as refresh_render
+from recipe_tooling.upstream_http import UpstreamBusy
 
 
 def load(name: str, module: str) -> Any:
@@ -273,6 +274,20 @@ class RefreshTests(unittest.TestCase):
         with patch.object(refresh_items, "commit_on_github", lambda *_: None):
             result = self.assess(eugr_registry(), self.missing)
         assert not result.mechanical
+        assert not result.reasons
+        assert result.unreachable
+        assert result.edits == {}
+
+    def test_a_busy_github_for_an_image_commit_is_unreachable_not_a_decision(
+        self,
+    ) -> None:
+        def busy(*_: Any) -> Any:
+            raise UpstreamBusy("api.github.com is rate limited; not checked this run")
+
+        with patch.object(refresh_items, "commit_on_github", busy):
+            result = self.assess(eugr_registry(), self.missing)
+        assert not result.mechanical
+        assert not result.for_review
         assert not result.reasons
         assert result.unreachable
         assert result.edits == {}

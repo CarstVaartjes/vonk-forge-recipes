@@ -1,8 +1,11 @@
-"""One version owner reaches source-tree and installed consumers alike."""
+"""One version owner reaches source-tree and installed consumers alike.
+
+The committed ``_version.py`` holds the major and its placeholder; publication
+stamps the computed version, and the stamped version reaches the built wheel.
+"""
 
 from __future__ import annotations
 
-import ast
 import os
 import shutil
 import subprocess
@@ -13,21 +16,14 @@ from zipfile import ZipFile
 
 from repo_root import ROOT
 
+from recipe_tooling.contract_version import stamp
 from vonk_forge_contracts import CONTRACT_MAJOR, CONTRACT_VERSION, __version__
 
 OWNER = "src/vonk_forge_contracts/_version.py"
 
 
-def owned_version(contracts: Path) -> str:
-    (assignment,) = ast.parse((contracts / OWNER).read_text()).body[1:]
-    assert isinstance(assignment, ast.Assign)
-    return ast.literal_eval(assignment.value)
-
-
 def test_contract_exports_the_owned_version() -> None:
-    expected = owned_version(ROOT / "contracts")
-    assert CONTRACT_VERSION == __version__ == expected
-    assert int(expected.split(".", 1)[0]) == CONTRACT_MAJOR
+    assert CONTRACT_VERSION == __version__ == f"{CONTRACT_MAJOR}.0.0"
     project = tomllib.loads((ROOT / "contracts/pyproject.toml").read_text())
     assert "version" not in project["project"]
     assert project["tool"]["hatch"]["version"]["path"] == OWNER
@@ -49,15 +45,14 @@ def test_source_tree_sweep_starts_without_installed_contracts(tmp_path: Path) ->
     assert result.returncode == 0, result.stderr[-2000:]
 
 
-def test_owner_bump_reaches_built_wheel_and_external_consumer(
+def test_stamped_version_reaches_built_wheel_and_external_consumer(
     tmp_path: Path,
 ) -> None:
     source = tmp_path / "contracts"
     shutil.copytree(ROOT / "contracts", source)
     owner = source / OWNER
-    current = owned_version(source)
-    bumped = "73.2.1"
-    owner.write_text(owner.read_text().replace(f'"{current}"', f'"{bumped}"'))
+    bumped = f"{CONTRACT_MAJOR}.73.1"
+    owner.write_text(stamp(owner.read_text(), bumped))
     subprocess.run(
         [
             "uv",
@@ -95,4 +90,4 @@ def test_owner_bump_reaches_built_wheel_and_external_consumer(
         text=True,
         timeout=30,
     )
-    assert consumer.stdout.strip() == f"{bumped} 73 {bumped}"
+    assert consumer.stdout.strip() == f"{bumped} {CONTRACT_MAJOR} {bumped}"

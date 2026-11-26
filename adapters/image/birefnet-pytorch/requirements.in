@@ -1,0 +1,29 @@
+# The creator's HF requirements.txt pins torch 2.5.1; the torch stack is the GB10-proven
+# Foley/CHORD one (adapters/audio/hunyuan-video-foley-native/requirements.lock).
+torch==2.14.0
+torchvision==0.29.0
+# CUDA closure of that torch, held at the versions the Foley lock resolved (the others match).
+cuda-bindings==13.3.1
+cuda-pathfinder==1.7.0
+nvidia-nvjitlink==13.3.33
+
+# Exactly what the model's remote code imports (birefnet.py at the pinned revision):
+# timm (the Swin-L backbone layers), kornia (the gradient loss helper), einops, torchvision
+# and transformers. The creator's opencv, scipy, scikit-image, prettytable and tqdm are
+# training and evaluation tools the model file never imports. transformers and
+# huggingface-hub are the versions the GB10-proven CHORD image locks.
+timm==1.0.31
+kornia==0.9.2
+einops==0.8.2
+transformers==4.57.1
+tokenizers==0.22.1
+huggingface-hub==0.36.0
+safetensors==0.8.0
+Pillow==12.3.0
+# The creator wants numpy below 2 (its torch 2.5.1 era); 1.26.4 is the newest of that line.
+numpy==1.26.4
+
+# vonk-agent-protocol 4.1.0 requirements (jsonschema>=4.26.0, pydantic>=2.13.5): the wheel is
+# installed with --no-deps, so the hash lock carries them (as in adapters/three-d/kimodo).
+pydantic==2.13.5
+jsonschema==4.26.0

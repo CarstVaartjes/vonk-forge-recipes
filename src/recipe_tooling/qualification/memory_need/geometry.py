@@ -17,7 +17,6 @@ class MambaCacheMode(StrEnum):
 
     NONE = "none"
     ALIGN = "align"
-    ALL = "all"
 
 
 # vLLM --mamba-cache-dtype / --mamba-ssm-cache-dtype element sizes.
@@ -58,13 +57,6 @@ ATTENTION_ARCHITECTURES = frozenset(
         "params.json",
     }
 )
-# Classes vLLM loads that implement SupportsMambaPrefixCaching, so prefix
-# caching defaults to mode "all": NemotronHForCausalLM in vLLM v0.20.0
-# (nemotron_h.py:765-773), v0.27.0 and v0.30.0 (nemotron_h.py:711-721). The
-# Omni/VL architectures load NemotronH_Nano_VL_V2 (registry.py, v0.20.0 to
-# nightly 3f1bcfd8), which does not, so they run "align"; nightly 3f1bcfd8
-# defaults every hybrid to "align" (models/config.py:711-713).
-MAMBA_PREFIX_CACHING_ARCHITECTURES = frozenset({"NemotronHForCausalLM"})
 # vLLM-pinned hybrid geometries whose layout vllm_hybrid_need cannot express,
 # judged by their existing attention and hand bounds instead.
 VLLM_UNMODELED_HYBRID = {
@@ -99,16 +91,6 @@ class RecurrentCache(BaseModel):
     state_dtype_bytes: int = Field(gt=0)
     # Smallest attention kernel block of the pinned image's backend.
     kernel_block_tokens: int = Field(default=16, gt=0)
-    # Whether the loaded vLLM class supports prefix-caching mode "all"
-    # (MAMBA_PREFIX_CACHING_ARCHITECTURES), and its Mamba chunk size.
-    mamba_prefix_caching: bool
-    chunk_tokens: int | None = Field(default=None, gt=0)
-
-    @model_validator(mode="after")
-    def chunk_for_all_mode(self) -> Self:
-        if self.mamba_prefix_caching != (self.chunk_tokens is not None):
-            raise ValueError('mode "all" needs the Mamba chunk size, and only it')
-        return self
 
 
 class CacheGeometry(BaseModel):
@@ -164,7 +146,7 @@ class CacheGeometry(BaseModel):
     @model_validator(mode="after")
     def classified_recurrent_bound(self) -> Self:
         """A classified architecture; typed recurrent state only on a hybrid
-        one, with plain attention and the loaded class's prefix caching. A hand
+        one, with plain attention. A hand
         per-token bound is allowed only when spread over the layers vLLM groups."""
         if self.architecture not in HYBRID_ARCHITECTURES | ATTENTION_ARCHITECTURES:
             raise ValueError(
@@ -175,13 +157,6 @@ class CacheGeometry(BaseModel):
             return self
         if self.architecture not in HYBRID_ARCHITECTURES:
             raise ValueError("typed recurrent state needs a hybrid architecture")
-        if recurrent.mamba_prefix_caching != (
-            self.architecture in MAMBA_PREFIX_CACHING_ARCHITECTURES
-        ):
-            raise ValueError(
-                "recurrent.mamba_prefix_caching must match the architecture's "
-                "prefix-caching support"
-            )
         if recurrent.attention_layers > self.layers:
             raise ValueError("recurrent.attention_layers cannot exceed layers")
         if (

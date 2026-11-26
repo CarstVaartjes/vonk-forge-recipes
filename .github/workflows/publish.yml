@@ -1,15 +1,18 @@
 name: Publish recipe library release
 
-# The library release version is the contract version (v<CONTRACT_VERSION>).
-# Recipe changes update that release in place; an additive contract change
-# (minor) or a breaking one (major) creates a new release. Its tag stays on the
+# The library release version is the contract version (v<CONTRACT_VERSION>),
+# computed by the contract-version job from the change class since the last v*
+# tag (tools/contract-version); Git holds only CONTRACT_MAJOR and a placeholder.
+# Recipe changes update that release in place; a contract change creates a new
+# release (patch, minor, or major with the CONTRACT_MAJOR bump), which also
+# carries that version's contracts wheel, immutable once uploaded. Its tag stays on the
 # commit that first published the contract version: consumers address the
 # release by tag name and take the commit from the signed bundle, and
 # GITHUB_TOKEN may not point a ref at a commit whose workflow files differ from
 # main's, which is every publish that lags a newer workflow change.
 #
 # This is the only workflow that runs on a push to main: it orchestrates the
-# validation jobs (the platform validator, the producer checks reused from
+# validation jobs (each channel's platform validator, the producer checks reused from
 # validate.yml, including the twice-built byte-equal catalog) and the
 # recipe runtime images (recipe-images.yml), and the publish job fans in on
 # all of them. Pull requests run validate.yml directly.
@@ -32,17 +35,46 @@ permissions:
   contents: read
 
 jobs:
+  # The same channel validation as pull requests: each channel's signed
+  # recipe-tools bundle (platform-validate.yml).
   validate:
     permissions:
       contents: read
-    uses: CarstVaartjes/vonk-forge/.github/workflows/validate-recipe-library.yml@3dacd2e652984d7cccb95c3688dde98ff40f4d7b
-    with:
-      # Use the same reviewed Forge contract/runtime-policy validator as PR
-      # validation; publication remains independent of Forge release CI.
-      platform_ref: 3dacd2e652984d7cccb95c3688dde98ff40f4d7b
+    uses: ./.github/workflows/platform-validate.yml
+
+  # Computed once; every job that builds a published file (the catalog build that
+  # coverage reads, the release assets and the wheel) stamps it into its own
+  # workspace's _version.py. A breaking change without the major bump fails here.
+  contract-version:
+    name: Compute the contract version
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Check out recipes
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Compute the version from the change class
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          .github/scripts/contract-version "$RUNNER_TEMP/released" > "$RUNNER_TEMP/version.txt"
+          read -r released next < "$RUNNER_TEMP/version.txt"
+          # No contract change: recipe changes update the released version in place.
+          version=$released
+          if [ "$next" != none ]; then version=$next; fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Contract version $version (last released $released)" >> "$GITHUB_STEP_SUMMARY"
 
   producer-contracts:
     name: Validate producer contracts and packages
+    needs: [contract-version]
     permissions:
       contents: read
       packages: write
@@ -50,6 +82,7 @@ jobs:
     uses: ./.github/workflows/validate.yml
     with:
       producer_only: true
+      contract_version: ${{ needs.contract-version.outputs.version }}
 
   # The recipes are estimates until the hardware try measures them: a PR token
   # cannot edit issues, so the main run keeps one issue current. Nothing waits
@@ -166,10 +199,11 @@ jobs:
 
   publish:
     name: Create signed library release
-    needs: [validate, producer-contracts, images, head-of-main]
+    needs: [contract-version, validate, producer-contracts, images, head-of-main]
     # Image promotion or fallback builds must complete before signing.
     if: >-
       ${{ !cancelled() && github.ref == 'refs/heads/main'
+      && needs.contract-version.result == 'success'
       && needs.validate.result == 'success'
       && needs.producer-contracts.result == 'success'
       && needs.images.result == 'success'
@@ -194,6 +228,16 @@ jobs:
       - name: Set up uv and Python
         uses: ./.github/actions/setup-tooling
 
+      # In this workspace only: the index, coverage and bundle name this version.
+      - name: Stamp the computed contract version
+        shell: bash
+        env:
+          CONTRACT_VERSION: ${{ needs.contract-version.outputs.version }}
+        run: |
+          set -euo pipefail
+          python3 tools/contract-version stamp \
+            contracts/src/vonk_forge_contracts/_version.py --version "$CONTRACT_VERSION"
+
       - name: Install producer contract dependencies
         shell: bash
         run: |
@@ -206,32 +250,34 @@ jobs:
       - name: Resolve the release version and update time
         id: release
         shell: bash
+        env:
+          CONTRACT_VERSION: ${{ needs.contract-version.outputs.version }}
         run: |
           set -euo pipefail
           version=$("$RELEASE_TEST_PYTHON" -c 'from vonk_forge_contracts import CONTRACT_VERSION; print(CONTRACT_VERSION)')
-          case "$version" in
-            [0-9]*.[0-9]*.[0-9]*) ;;
-            *) echo "contract version is not MAJOR.MINOR.PATCH: $version" >&2; exit 1 ;;
-          esac
+          if [ "$version" != "$CONTRACT_VERSION" ]; then
+            echo "::error::the installed contracts report $version, not the computed $CONTRACT_VERSION" >&2
+            exit 1
+          fi
           updated_at=$(TZ=UTC git show -s --date=format-local:%Y-%m-%dT%H:%M:%SZ --format=%cd "$GITHUB_SHA")
           echo "tag=v$version" >> "$GITHUB_OUTPUT"
           echo "updated_at=$updated_at" >> "$GITHUB_OUTPUT"
 
       - name: Download the byte-verified catalog build
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: catalog-build
           path: ${{ runner.temp }}/catalog-build
 
       - name: Download the pinned prebuilt images
         id: prebuilt
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: prebuilt-images
           path: ${{ runner.temp }}/prebuilt
 
       - name: Download the image plan for release verification
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: recipe-image-plan
           path: ${{ runner.temp }}/plan
@@ -281,16 +327,70 @@ jobs:
           # replaced by the publish step instead of blocking every later run.
           if ! gh api "repos/$GITHUB_REPOSITORY/releases/tags/$RELEASE_TAG" >/dev/null 2>&1; then
             echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "wheel=missing" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           echo "exists=true" >> "$GITHUB_OUTPUT"
-          # Skip only when the release holds exactly recipe-library.tar and that
-          # bundle carries this SHA256SUMS with every member matching it.
+          wheel=missing
+          if "$RELEASE_TEST_PYTHON" tools/sync-release-assets --tag "$RELEASE_TAG" has-wheel; then
+            wheel=present
+          fi
+          echo "wheel=$wheel" >> "$GITHUB_OUTPUT"
+          # Skip only when the release holds exactly recipe-library.tar and its
+          # wheel, and that bundle carries this SHA256SUMS with every member matching it.
           if "$RELEASE_TEST_PYTHON" tools/sync-release-assets --tag "$RELEASE_TAG" \
             check --sums "$RUNNER_TEMP/release/SHA256SUMS"; then
             echo "release $RELEASE_TAG already publishes this complete asset set"
             echo "skip=true" >> "$GITHUB_OUTPUT"
           fi
+
+      # Only when the release lacks its version's wheel: a new version, or a run
+      # killed between tagging and uploading. A wheel never changes once uploaded.
+      # It is built from the commit that cut the version (the tag; a new version is
+      # tagged at this commit), with the version stamped into that exported tree.
+      - name: Build the contracts wheel of a version that lacks one
+        if: steps.current.outputs.skip != 'true' && steps.current.outputs.wheel == 'missing'
+        id: wheel
+        env:
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
+          RELEASE_EXISTS: ${{ steps.current.outputs.exists }}
+          CONTRACT_VERSION: ${{ needs.contract-version.outputs.version }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --quiet --no-tags --force origin "+refs/tags/$RELEASE_TAG:refs/tags/$RELEASE_TAG" || true
+          if source=$(git rev-parse --verify --quiet "refs/tags/$RELEASE_TAG^{commit}"); then
+            :
+          elif [ "$RELEASE_EXISTS" = true ]; then
+            echo "::error::release $RELEASE_TAG exists but its tag cannot be read" >&2
+            exit 1
+          else
+            source=$GITHUB_SHA
+          fi
+          tree="$RUNNER_TEMP/wheel-source"
+          mkdir -p "$tree"
+          git archive "$source" contracts | tar -x -C "$tree"
+          python3 tools/contract-version stamp \
+            "$tree/contracts/src/vonk_forge_contracts/_version.py" --version "$CONTRACT_VERSION"
+          uv build --wheel --out-dir "$RUNNER_TEMP/wheel" "$tree/contracts"
+          wheels=("$RUNNER_TEMP/wheel"/*-"$CONTRACT_VERSION"-py3-none-any.whl)
+          if [ "${#wheels[@]}" -ne 1 ] || [ ! -f "${wheels[0]}" ]; then
+            echo "::error::expected one contracts wheel of $CONTRACT_VERSION, found ${wheels[*]}" >&2
+            exit 1
+          fi
+          wheel=${wheels[0]}
+          echo "Contracts wheel of $RELEASE_TAG built from $source" >> "$GITHUB_STEP_SUMMARY"
+          echo "path=$wheel" >> "$GITHUB_OUTPUT"
+
+      # Consumers verify the wheel with `gh attestation verify <wheel> --repo
+      # CarstVaartjes/vonk-forge-recipes --signer-workflow
+      # CarstVaartjes/vonk-forge-recipes/.github/workflows/publish.yml`. It stays out
+      # of SHA256SUMS, which every in-place update rewrites.
+      - name: Attest the contracts wheel
+        if: steps.wheel.outputs.path != ''
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: ${{ steps.wheel.outputs.path }}
 
       - name: Attest the release checksum manifest
         if: steps.current.outputs.skip != 'true'
@@ -307,6 +407,7 @@ jobs:
           UPDATED_AT: ${{ steps.release.outputs.updated_at }}
           RELEASE_EXISTS: ${{ steps.current.outputs.exists }}
           ATTESTATION_BUNDLE: ${{ steps.attest.outputs.bundle-path }}
+          WHEEL: ${{ steps.wheel.outputs.path }}
         shell: bash
         run: |
           set -euo pipefail
@@ -315,29 +416,30 @@ jobs:
           title="Vonk Forge recipes $RELEASE_TAG (updated $UPDATED_AT)"
           notes="Recipe library for contract ${RELEASE_TAG#v}, updated $UPDATED_AT from $GITHUB_SHA."
           # One asset holds the whole signed library: SHA256SUMS, its Sigstore
-          # bundle and every listed file, deterministically. It is the release's
-          # only asset.
+          # bundle and every listed file, deterministically. The version's wheel is
+          # the release's only other asset.
           bundle="$RUNNER_TEMP/bundle/recipe-library.tar"
           mkdir -p "$(dirname "$bundle")"
           "$RELEASE_TEST_PYTHON" tools/build-release-bundle "$release" "$bundle"
           if [ "$RELEASE_EXISTS" != "true" ]; then
-            # Delete leftover drafts of this tag, then upload the bundle to a
-            # fresh draft first: "latest" must never name a release without its
-            # bundle. Undrafting creates the tag at --target when it is missing.
+            # Delete leftover drafts of this tag, then upload the bundle and the
+            # wheel to a fresh draft first: "latest" must never name a release
+            # without them. Undrafting creates the tag at --target when it is missing.
             drafts=$(gh api --paginate "repos/$GITHUB_REPOSITORY/releases" \
               --jq ".[] | select(.draft and .tag_name == \"$RELEASE_TAG\") | .id")
             for id in $drafts; do
               gh api --method DELETE "repos/$GITHUB_REPOSITORY/releases/$id"
             done
             gh release create "$RELEASE_TAG" --draft --target "$GITHUB_SHA" \
-              --title "$title" --notes "$notes" "$bundle"
+              --title "$title" --notes "$notes" "$bundle" ${WHEEL:+"$WHEEL"}
             gh release edit "$RELEASE_TAG" --draft=false --latest
           fi
-          # Upload the bundle when missing or different, delete every other
-          # asset, and verify the release's digest and size. The run fails
-          # unless the release converges to exactly the one bundle asset.
+          # Upload the bundle when missing or different and the wheel when
+          # missing, delete every other asset, and verify the release's digests
+          # and sizes. The run fails unless the release converges to exactly the
+          # bundle and its wheel.
           "$RELEASE_TEST_PYTHON" tools/sync-release-assets --tag "$RELEASE_TAG" \
-            publish --bundle "$bundle"
+            publish --bundle "$bundle" ${WHEEL:+--wheel "$WHEEL"}
           gh release edit "$RELEASE_TAG" --title "$title" --notes "$notes" --latest
 
   # The site follows the newest release; its own schedule is only the backstop.

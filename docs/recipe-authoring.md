@@ -23,7 +23,7 @@ matching recipe, resolved Models and recorded topology retain local proof unless
 image-bound evidence establishes a different runtime. Restoring that proof must
 retain its measured identity, never fill missing pins from the current library.
 
-`RecipeQualificationEvidence` and `derive_status` are the authority. Evidence lives
+`RecipeQualificationEvidence` and `derive_status` (`recipe_tooling.qualification.status`) are the authority. Evidence lives
 separately in `qualification/evidence/<publisher>/<recipe-slug>.json`; recording
 it never changes the recipe's content digest. Each record binds recipe
 `content_sha256`, resolved runtime image digest/build key, Model digests, test
@@ -124,7 +124,7 @@ published-document readers to bypass producer validation (`tests/tools/test_cont
 
 | Document | Required structure (read the definitions for typed variants); every document also writes its defaulted `kind` (`model`, `recipe`, `recipe-display`, `model-display`, `recipe-api`) |
 | --- | --- |
-| Model | `identity`, `requires_token`, `dependencies`, `source`, `format`, `files`. |
+| Model | `identity`, `dependencies`, `source`, `format`, `files`. |
 | Recipe | `identity`, `models`, `execution`, `runtime`, `topology`, `interfaces`, `validation`, `provenance`, `settings`, `release`; `options` is optional. |
 | Recipe display | `identity` (the Recipe's), `title`, `description`, `tags`; `alignment`, `knobs` and `component_bindings` are optional. |
 | Model display | `identity` (the Model's own `publisher`/`slug`), `family_title`, `model_title`, `description`, `tags`, and the Model's declared facts: `modalities`, `capabilities`, `license`; `lineage` (its place in the catalog hierarchy) is required for a Model a recipe serves first and absent for a helper. |
@@ -135,7 +135,7 @@ A document holds execution data only. What a person or a filter reads about it
 (titles, description, tags, and a Model's `modalities`, `capabilities` and
 `license`) lives in its display file, `display/recipes/<slug>.json`
 or `display/models/<slug>.json`, one per document and no orphan (`RecipeDisplay`,
-`ModelDisplay`, checked by `validate_library`). A display edit never changes a
+`ModelDisplay`, checked by `recipe_tooling.library_checks.validate_library`). A display edit never changes a
 document, its `content_sha256`, its evidence or its proven status; a change that
 alters what runs edits the document. Read display through `src/recipe_tooling/qualification/documents.py`
 (`recipe_display`, `model_display`), never off a document.
@@ -145,7 +145,7 @@ head, an engram source, an encoder or VAE taken from another Model, a weight
 part. Absent, every binding is an endpoint. List every binding whose Model is a
 component in this recipe, whatever its display capabilities are today;
 co-served Models (a TTS voice-design and base pair) and a base the recipe's
-LoRA or distilled weights run on stay endpoints. `validate_library` refuses an id
+LoRA or distilled weights run on stay endpoints. `library_checks.validate_library` refuses an id
 the recipe does not bind and a display that lists every binding. The served
 capabilities, the qualification vision check (`multimodal`) and `tools/check-recipe-api`
 read endpoint Models only, through `RecipeDisplay.is_endpoint`.
@@ -157,8 +157,8 @@ physical acceptance or qualification, and no recipe carries the `candidate` or
 ### Recipe API facts
 
 Each catalog entry carries `served_capabilities`, the capabilities its launch
-serves (names from the capability vocabulary), derived by the contract's
-`served_capabilities` and never authored: the endpoint Models' display
+serves (names from the capability vocabulary), derived by
+`recipe_tooling.qualification.api_checks.served_capabilities` and never authored: the endpoint Models' display
 capabilities (`endpoint_capabilities`; a `component_bindings` entry's Model never
 counts), with the input understanding ones taken from what the API accepts (any option
 choice counts), and `tool-use` / `reasoning` dropped when every chat block says
@@ -192,7 +192,8 @@ by `mode`, and every field is written down, "not applicable" included (`false`,
   template takes any string (`default` `null`: with none set, the template writes
   no effort). List only the names a client picks; an engine's numeric scale
   behind them, or a boolean prompt flag, is not an effort. A `text` effort needs
-  a platform on contracts 4.7.0 (`tools/check-platform-contracts`). State what
+  a platform that executes it (`effort_kinds` in its `platform-features.json`,
+  checked by `tools/check-platform-contracts`). State what
   this route's engine and template do, not what the model family does.
 - `tools` is `{"kind": "none"}` or `{"kind": "supported", "tool_choice": [...],
   "parallel_calls": bool}`; an empty `tool_choice` means the field is only a
@@ -225,7 +226,7 @@ block in `option_choices` (`{option, value, api}`); it replaces the base block a
 a whole, applied by `RecipeApi.for_choices` the way `with_option_choices`
 applies arguments. Only one option of a recipe may carry blocks.
 
-`check_recipe_api(recipe, api)` is the structural check, run for the base route
+`check_recipe_api(recipe, api)` (`recipe_tooling.qualification.api_checks`, a producer-side check, not in the wheel) is the structural check, run for the base route
 and for every option choice against the runtime that choice compiles to: image,
 video or audio input conflicts with `--language-model-only` or a
 `--limit-mm-per-prompt` of 0 on vLLM; the engine's context argument
@@ -274,44 +275,53 @@ so a recipe uses a new kind only after the Controller reads this contract
 version. Examples: `recipe-audio-serving.json` (`tests/recipes/test_audio_serving_contract.py`).
 
 Contract compatibility: the library's release version is the contract's
-semantic version (`CONTRACT_VERSION`, release `v5.5.0`). New or changed models
-and recipes never change it: publication updates that release in place and
-records when it was last updated, and vonk-forge follows the newest release
-within its contract major version, so recipe changes never need a vonk-forge
-release. A change to the contract itself bumps `CONTRACT_VERSION`: once
-`v<CONTRACT_VERSION>` is released, validate.yml refuses any change under
-`contracts/src` until `_version.py` names a new version.
+semantic version (`CONTRACT_VERSION`). New or changed models and recipes never
+change it: publication updates that release in place and records when it was
+last updated, and vonk-forge follows the newest release within its contract
+major version, so recipe changes never need a vonk-forge release. Nobody sets
+the version by hand: publication computes it from the change class of the
+schemas and examples since the last release (`tools/contract-version`, see
+AGENTS.md), and `_version.py` keeps only `CONTRACT_MAJOR` and its placeholder.
+A contract change never names the version it will ship in; the
+"Contract change class" check on the PR shows the class it computes. A new field
+is born optional and absent when unset: a new required field on an existing
+model is breaking.
 
-- **Patch:** a fix that keeps every published field, meaning and public API,
-  such as a stricter check of a value producers already write.
+- **Patch:** a change under `contracts/src` that keeps every schema and example
+  byte, such as a fix, a new function or a stricter check in code of a value
+  producers already write.
 
-- **Additive (minor):** add an optional field or a new public API without
-  changing existing wire requirements (`4.9.0` added the `read_catalog` reader). The Controller reads published documents with `read_model` and
+- **Additive (minor):** add an optional field, a model, an enum member or an
+  example, or relax a requirement, without changing existing wire requirements. The Controller reads published documents with `read_model` and
   `read_recipe`, which ignore fields they do not know, and identifies each
   document by the `document_sha256` of its published JSON, so an older
   Controller keeps working and picks the field up when vonk-forge upgrades.
 - **Closed vocabulary (minor):** a Model display's `capabilities` are the closed
-  `CapabilityName` set (`vonk_forge_contracts/capability.py`), each with one
+  `CapabilityName` set (`vonk_forge_contracts/shown.py`), each with one
   `CapabilityRole` (understanding, generator or other) that guards read instead
   of parsing names. A new capability is a contract minor release: add the name
-  and its role there, and its label, description and category to `CAPABILITY_TEXT`
-  in `vocabulary.py` (import fails without it), release it, and let the Controller adopt it before a
-  catalog declares the name. Authoring refuses a name it does not list. A consumer
+  and its role in `shown.py` (a `CapabilityName` member and its entry in one of the
+  `_UNDERSTANDING`, `_GENERATORS` or `_OTHER` tuples), and its label, description and category as a
+  `CAPABILITY_TEXT` row in `vocabulary.py` (the catalog build fails without it), and use it in
+  the same PR: publication computes the minor, the platform's readers keep a capability word
+  they do not know, and forge's lock follows at its next routine refresh. Nothing waits, and
+  `tools/check-platform-contracts` does not gate capabilities. Authoring refuses a name
+  it does not list. A consumer
   reading the index with `read_catalog` (4.9.0 and later) keeps the entry and the
   word as an `UnrecognisedWord`, and so it does with a modality, an alignment, an
   API endpoint, format, tool choice, request placement or reasoning default, or a
   qualification word. An unknown discriminator (`kind`, `mode`) or API token
   `setting` drops the API block instead (the recipe stays); an unknown word in the
   execution document skips the entry. Closed-word lists carry no length cap, so a
-  new word never overflows one. A Controller pinned before 4.9.0 loses what it
-  cannot read, so the adoption order still applies.
+  new word never overflows one.
 - **Breaking (major, for example `3.0.0`, which moved display text out of the documents, `4.0.0`, which moved a Model's modalities, capabilities and licence into its display, and `5.0.0`, which removed `identity.family` from the Model in favour of the display `lineage`):** remove or rename a field, make one required,
-  or change a field's meaning. Making a required field optional also needs
+  or change a field's meaning. Raise `CONTRACT_MAJOR` in `_version.py` by one in the
+  same PR; the change class check fails a breaking change without it. Making a required field optional also needs
   consumer compatibility evidence if producers will stop emitting it: ignoring
   unknown fields does not let an old reader accept a missing required field.
-  Deploy it consumer-first: pin this recipes commit in vonk-forge, deploy it,
-  then move `platform_ref` here (`tools/check-platform-contracts` refuses a
-  major newer than the platform's). Controllers on the previous major keep
+  Deploy it consumer-first: pin this recipes commit in vonk-forge and release
+  it, then merge here (`tools/check-platform-contracts` refuses a major newer
+  than the channel's `contract_major`). Controllers on the previous major keep
   following the previous major's release until then.
 
 ### Model: the exact files and their capabilities
@@ -368,7 +378,7 @@ LFS SHA-256 and size (downloading and hashing small non-LFS files, and refusing
 non-LFS files over 16 MiB), and writes a validated
 `models/<--version-slug>.json`. It prints the pinned revision, the Model's
 `document_sha256` to use in recipe model references, and the total bytes. You
-still supply identity, license, `--requires-token` for a gated repository and
+still supply identity, license and
 `--capability` names through its flags (these are written to the Model's display file, not the Model). Review the file list and roles, drop
 files the model does not need, and list only capabilities the model supports
 before you use the Model in a recipe.
@@ -393,12 +403,15 @@ a gap, or whose joined name is also published whole, is refused. The platform
 downloads and verifies the parts, assembles the file and installs it as one
 ordinary file, so recipes select `<name>` like any other file.
 
-Provider-gated checkpoints may be included. Set `requires_token: true` and
-preserve the provider's license and access requirements. The Controller keeps
+Provider-gated checkpoints may be included. `requires_token` is a retired, optional,
+ignored Model field (no writer writes it; a refresh or kit-lock rewrite sheds it, and other documents keep it until rewritten for another reason): preserve the provider's license and access requirements. The Controller keeps
 the token in its existing secret store; never embed it in a Model, Recipe,
 build context or publication. A configured token does not prove that the account
 has accepted terms or received model-specific approval. Verify access separately
 and report pending approval accurately; publication is not download readiness.
+A pinned Model revision that the provider no longer serves anonymously (404/401/403, or an
+unknown access status) is evidence only in the upstream refresh, never a review: the pin is
+digest-verified and the Controller's configured token covers gated downloads.
 
 `capabilities` (in the Model's display, with `modalities` and `license`) is the list
 of capability names the model supports. Leave out what is unknown. Correcting one
@@ -435,7 +448,11 @@ including `cd` and `WORKDIR` and `mods/*/run.sh` loops) and fails when a build
 fetches (pip/uv, curl, wget, git clone, apt, npm) with an empty host list, or
 when the declared hosts lack what the fetch needs: the PyPI pair by default, the
 `--index-url` host, `--extra-index-url` plus the PyPI pair, or a URL target's
-own host. An install that only runs after a failed probe (`python3 -c "import
+own host. A llama.cpp CMake configure (`-DGGML_*`/`-DLLAMA_*`) fetches its web UI
+from `huggingface.co` at build time; a shallow clone or archive has no build number, so it
+falls back to the bucket's moving `latest`, which a pinned commit may reject. Pass
+`-DLLAMA_BUILD_UI=OFF -DLLAMA_USE_PREBUILT_UI=OFF` (the API and `/health` serve
+headless). An install that only runs after a failed probe (`python3 -c "import
 x" || pip install x`) is not a fetch. Comments, echo/print text, localhost URLs,
 `--no-index`/`--offline` and local `.deb`/`.whl` paths are exempt. It is a line
 and token reading, not a shell parser: exec-form `RUN`, `bash -c` and computed
@@ -454,8 +471,8 @@ wrappers, and test fixtures. Model weights and container image bytes stay
 outside the recipe package.
 
 The image must be buildable by the Controller; publication builds the planned
-image on a hosted runner and pins it in the signed index. The PR
-`validate-recipe-library` checks the Controller's static source policy over the
+image on a hosted runner and pins it in the signed index. Each channel's
+`validate-recipe-library` (from its recipe-tools bundle) checks the Controller's static source policy over the
 build context (no Dockerfile heredocs or `ADD`, digest-pinned
 bases, a numeric non-root final user, every URL host in
 `execution.build.network.hosts`, no Compose device, host-namespace or bind
@@ -741,7 +758,7 @@ swap rules) produce **WARNING** lines in `tools/build-catalog-index` and
 “Memory estimate mismatches” issue lists only estimates that cannot be computed
 (missing sourced inputs), never disagreements. They never fail a build or a PR, rewrite a recipe
 or assign a “does not fit” verdict. Qualification status comes only
-from `qualification/evidence/` and the shared `derive_status` reducer. There is
+from `qualification/evidence/` and the shared `derive_status` reducer (`recipe_tooling.qualification.status`). There is
 no second pass/failure list in memory inputs; that file contains numerical
 geometry, source references and the immutable content baseline only. Preserve all
 unrelated recipe bytes.
@@ -1128,12 +1145,13 @@ non-default branches and declared release lines. Never downgrade an ahead pin.
 Both scanners read providers through `src/recipe_tooling/upstream_http.py`: a 429 or 5xx is retried with
 backoff and jitter, honouring `Retry-After` (seconds or date); a 429/503 that persists marks
 the host busy and the item "not checked this run" (`unchecked` in the drift report,
-unreachable in refresh), never a review issue or a failed run. Outages and network errors
+unreachable in refresh), never a review issue or a failed run (a busy provider while reading a kit dependency's newest-release information only turns that information line into "unavailable"). Outages and network errors
 are our own faults and stay errors.
 A mechanical move requires compatible vendored/used bytes, retained referenced
 launch names, complete selected Model files and passing producer checks. Changes
 to patched runtime files or missing selected files need review; metadata-only
-changes do not independently justify rebuilding identical content. Shared build
+changes do not independently justify rebuilding identical content. A file counts as metadata only when both its stored roles and `roles_for` say so
+(`classification.is_metadata`, the one rule for payload comparison and sibling weights). Shared build
 contexts refresh together. Human repairs may intentionally diverge with evidence.
 An adapter that installs a creator's GitHub release asset pins it by version and
 sha256. A refresh moves the `releases/download/<tag>/<asset>` URL and re-pins the
@@ -1156,9 +1174,20 @@ A proven recipe moves too: the refresh rewrites its entry in
 branch only moves forward (never force-pushed); a PR whose checks failed on an
 unchanged refresh is reported in the recipe's review issue and moves forward again
 only when upstream or main's checks (`src/`, `tools/`, `tests/`, `.github/`,
-`api/recipes/`) change. A PR whose checks failed or were cancelled holds no lane: it
+`api/recipes/`) change. A run whose main moved `src/`, `tools/`, `contracts/` or `policy/` (the
+holds and the upstream watch) since it started defers the recipe to the next run. The open pull requests are listed once per run for arming (listed again
+only for a PR prepared after that listing). A PR whose checks failed or were cancelled holds no lane: it
 does not defer other refresh PRs that share its files; if it merges anyway (a rerun,
 or a non-required check failed), a conflicting sibling is regenerated on main.
+A mechanical result over the per-run limit refreshes its existing review issue (never opens one)
+with that reason, so the issue does not keep an old one.
+The vendored-file check the refresher runs at the new commit names that commit in its
+messages (`check_adapter(..., at=)`), not the manifest's old pin.
+A changed `pyproject.toml` whose diff is only `version = ...` lines is no launch or
+configuration change. An adapter whose Dockerfile or manifest is generated from
+`tools/protocol-wheel/<name>.<file>.in` has the refresher's edit written to that source too
+(`protocol_wheel.template_edits`), so `tools/materialize-protocol-wheel --check` still
+passes; never run it without `--check`.
 Every refresh PR body carries a `## Principles` section that states only what the
 move did: pins moved (and any held), proven bytes followed when the fixture changed,
 peaks raised when they were, and the sweep re-check only when a recipe document changed.
@@ -1166,7 +1195,9 @@ peaks raised when they were, and the sweep re-check only when a recipe document 
 Respect `policy/base-image-holds.json`: a held base and Dockerfile must agree until the
 hold is updated/removed with working evidence; an optional `source` (`<owner>/<repo>`) also
 declines that GitHub repository's newer releases (`tools/check-base-image-holds`,
-`tests/tools/test_base_image_holds.py`). `policy/model-revision-holds.json` declines one Model
+`tests/tools/test_base_image_holds.py`); each hold is a typed contract (`BaseImageHold`), and its
+`source` must be a GitHub repository the held recipe follows (its source reference or adapter pin).
+`policy/model-revision-holds.json` declines one Model
 revision that cannot run on the recipe's Sparks, with its reason; a newer
 upstream revision is assessed again (`tools/check-model-revision-holds`,
 `tests/tools/test_model_revision_holds.py`). A recipe that mounts every file of its Model follows added
@@ -1208,7 +1239,9 @@ repository's newest revision or an image repository's newest tag.
 - **Lock.** `tools/kit-pins lock <recipe>` derives `kit-lock.json` from the kit commit the
   recipe pins: each declared value resolved once to an immutable one (a Git commit, a Hugging
   Face revision, an image digest), recorded with what it named (`"kind"`: `tag`, `branch`,
-  `commit` or `digest`). `kit-lock.json` is generated output and is never edited by hand.
+  `commit` or `digest`). A declared full commit id is recorded as it is, with no provider
+  read, so a repository the provider no longer serves cannot block it; tags, branches and
+  short ids are resolved. `kit-lock.json` is generated output and is never edited by hand.
   Builds read only the lock and never resolve a tag. `lock` also moves what follows it: the
   vendored base archive (mirrored and declared in `adapter-sources.json` with its codeload
   URL as `origin`, never committed; a failed mirror upload names the
@@ -1319,6 +1352,12 @@ extension, media type and decoded bytes must match the declared slot; include
 all referenced fixtures in the package. `tests/qualification/test_qualification_index.py`,
 `tests/qualification/test_qualification_case_assertions.py`, `tests/tools/test_optional_inputs.py`
 and `tests/recipes/test_media_types.py` enforce closure and slot consistency.
+A fixture whose creator data cannot be committed is generated deterministically instead:
+`tools/generate-qualification-cube-glb` writes the unit-cube GLB and
+`tools/generate-qualification-bvh-rig` the synthetic rig and clips of the AnyTop recipe
+(`tests/recipes/test_anytop_adapter.py` keeps the committed bytes equal to the generator's).
+A job input slot for a file type the Controller's extension table does not know (`.bvh`) declares
+that one extension and exactly one media type (`text/plain`); the Controller then derives it.
 
 A creator's own smoke proves only what it sends: compare its requests with the
 shared cases the recipe selects (A391 turns thinking off per request; MIS_A391
@@ -1413,21 +1452,21 @@ review policies; no static guard can prove upstream completeness or honesty.
 | `tools/check-recipe-model-references`, `tests/recipes/test_recipe_model_references.py`, `tests/tools/test_display_split.py` | Every pinned Model/file exists at the exact digest, and every Recipe and Model has exactly one display file and none is orphaned. Catalog the missing immutable Model or update all bindings together; add or remove the display with its document. |
 | `tools/check-model-families`, `tests/tools/test_check_model_families.py` | One consistent catalog hierarchy in the displays. Add the Family/Line/Model to `display/families` or correct the Model display's `lineage`; never a format in a Family or Line. |
 | `tools/check-recipe-topology --base origin/main`, `tests/recipes/test_recipe_topology_check.py` | Existing id keeps Spark count. Create a distinct topology id. |
-| validate.yml "Require a contract version bump for a changed contract" | `contracts/src` equals the released `v<__version__>` tag. Bump `__version__` in `contracts/src/vonk_forge_contracts/_version.py` (patch, minor or major as above). |
+| validate.yml "Contract change class", `tests/tools/test_contract_version.py` | `_version.py` holds `CONTRACT_MAJOR` and the placeholder `"<CONTRACT_MAJOR>.0.0"` (never a hand-set version), and a breaking change raises `CONTRACT_MAJOR` by one. Restore the placeholder, make a new field optional, or raise the major for an intended break. |
 | `tests/tools/test_catalog_reader.py` | The consumer reader keeps every readable entry: an unknown word stays as an `UnrecognisedWord`, an unreadable optional block is dropped while its entry stays, an entry with malformed execution data is skipped, and only a wrong envelope or major or a digest mismatch refuses the index. Keep producer validation strict; change the reader's rules in `catalog_reader.py` only. |
 | `tests/recipes/test_recipe_executability.py` | Unique normalized titles, executable metadata/entrypoint, actual shebang/ELF for copied executables. A multi-node recipe that sets `NCCL_NET=IB` (no socket fallback) on an `nvidia/cuda` adapter must install `ibverbs-providers` in the Dockerfile's final stage. Repair the launcher, display or image packages; do not publish placeholder tags. |
 | `tests/recipes/test_ray_poll_interpreter.py` | A launcher that starts a Ray head polls the cluster with `sys.executable`: the image's `python3`, the interpreter a build-time `import ray` check runs under. Never name an interpreter path the image may lack. |
 | `tests/recipes/test_recipe_model_mounts.py`, `tests/recipes/test_adapter_model_mounts.py` | Model mounts and adapter paths agree and all ranks receive files. Repair targets/roles and local loader paths. |
 | `tools/check-build-context-sources`, `tests/tools/test_check_build_context_sources.py` | Every COPY source is shipped. Add the actual local file or fix the context-relative reference. |
 | `tests/recipes/test_recipe_build_inputs.py`, `tests/tools/test_build_network_hosts.py` | All external build stages are immutable and declared once; URL hosts are allowed. Pin every external base and declare real egress. |
-| `tools/check-vendored-upstream`, `tests/tools/test_check_vendored_upstream.py` | Declared vendored files match immutable upstream bytes. Re-vendor them; carry intentional changes as explicit patches/overlays. An adapter that also vendors a directory of a second upstream lists it under `also` (`repo`, `commit`, `files` prefixes). |
+| `tools/check-vendored-upstream`, `tests/tools/test_check_vendored_upstream.py` | Declared vendored files match immutable upstream bytes. Re-vendor them; carry intentional changes as explicit patches/overlays. An adapter that also vendors a directory of a second upstream lists it under `also` (`repo`, `commit`, `files` prefixes). The manifest is the typed contract `recipe_tooling.vendored_manifest.VendoredManifest`: an unknown key or wrong type is a problem, not silently ignored. |
 | `tools/check-model-construction-device --base origin/main`, `tests/tools/test_check_model_construction_device.py` | New adapter runtime code (added lines, code only; vendored archives and `vendored-upstream.json` verbatim creator copies excluded) builds no full model as real CPU tensors (`init_weights_on_device(cpu)`, `low_cpu_mem_usage=False`) and puts no CUDA device in a model constructor. Build on meta, assign the checkpoint, fail on any parameter left on meta, then let the loader place the model. Upstream source a patch script rewrites is text to this guard: prove it with the adapter's patched-source behaviour test. |
 | `tools/kit-pins check`, `tests/tools/test_kit_pins.py`, `tests/tools/test_kit_prebuilt_images.py` | Kit declarations, lock, image/base/model consumers agree. Regenerate the lock; use a justified override/image exception only for an intentional deviation. |
 | `tools/check-image-provenance`, `tests/tools/test_published_image_follow.py` | Claimed build commit matches the selected source image. Fix provenance or supply the supported explicit unavailable-commit evidence. |
-| `tools/check-base-image-holds`, `tests/tools/test_base_image_holds.py` | A held digest stays consistent. Change/remove the hold only with replacement evidence. |
+| `tools/check-base-image-holds`, `tests/tools/test_base_image_holds.py` | A held digest stays consistent and a hold's `source` is followed by the recipe. Change/remove the hold only with replacement evidence. |
 | `tools/check-model-revision-holds`, `tests/tools/test_model_revision_holds.py` | No recipe uses the Model revision its hold declines. Remove the hold only with evidence that the declined revision runs. |
 | `tests/qualification/test_memory_envelope.py`, `tests/qualification/test_single_spark_memory_headroom.py` | Memory consistency, component accounting and need checks. Repair the reported launch/envelope inconsistency; follow the memory section above. |
-| `tests/qualification/test_recipe_capabilities.py`, `tests/recipes/test_chat_configuration.py`, `tests/recipes/test_served_model_name.py` | Served Model, parser flags, aliases, tags and cases agree. Enable the real launch support or stop claiming the capability; use chat-trained weights or an explicit supported template. |
+| `tests/qualification/test_recipe_capabilities.py`, `tests/recipes/test_chat_configuration.py`, `tests/recipes/test_served_model_name.py` | Served Model, parser flags, aliases, tags and cases agree. A launch that declares tool flags in its runtime arguments is judged by them alone; a vendored start script counts only when the arguments declare none. Enable the real launch support or stop claiming the capability; use chat-trained weights or an explicit supported template. |
 | `tests/recipes/test_recipe_option_controls.py`, `tests/recipes/test_qwen36_fp8_options.py` | Deployment choices and base defaults execute as declared. Bind actual runtime differences, keep request controls per request. |
 | `tests/recipes/test_recipe_releases.py`, `tests/recipes/test_recipe_refresh_repairs.py` | Current release metadata, valid dates/version shape and bounded source closure. Correct release data or repair the specific refresh regression. |
 | `tests/recipes/test_job_writable_paths.py`, `tests/recipes/test_adapter_output_staging.py`, `tests/recipes/test_local_media_path_exists.py` | Managed writable paths, atomic outputs, existing local media inputs. Fix path handling; do not add root/broad-write workarounds. |
@@ -1440,14 +1479,17 @@ review policies; no static guard can prove upstream completeness or honesty.
 | `tools/check-test-git`, `tests/tools/test_check_test_git.py` | An added test line runs git (an argv headed `git`, a `git`-named helper, `git ...` in a shell string, a `GIT_*` env key). Tests never use git: the tool under test takes its changed set, commit or epoch as an argument and the CI step or hook supplies it from git; feed it diff text (`tests/added_diff.py`). Only added lines are checked and there is no allowlist. |
 | Ruff `TID251` (`[tool.ruff.lint.flake8-tidy-imports.banned-api]` in `pyproject.toml`) | `urllib.request.urlopen`, `build_opener` or `HTTPRedirectHandler` anywhere outside `src/recipe_tooling/upstream_http.py`, in any file, not only added lines. `upstream_http` drops `Authorization` when a redirect leaves the original scheme and host (Docker Hub's presigned blob URLs answer 400 to a Bearer header), so a new redirect policy belongs there. Open provider URLs through `fetch` there (bounded retry, `Retry-After`, per-host busy memory); a persistent 429/503 is `UpstreamBusy`, "not checked this run", never an issue. A caller that must not retry goes through `open_once` in the same module: `src/recipe_tooling/refresh_auth.py` (the App credential exchange: POST, a GET of `/installation` and a DELETE; a security edge, never retried), `src/recipe_tooling/adapter_sources.py` (its own jittered retry with mirror fallback), a local fixture server in a test. `spark_sweep/smoke.py` keeps its own `urlopen` with a reasoned `noqa: TID251`: it opens the served recipe's own endpoint, not a provider, and the sweep layer may not import `recipe_tooling.upstream_http` (`tests/tools/test_package_import_direction.py`). `tools/prepare-remote-code-smoke` runs inside the image and holds the opener only as script text. |
 | `tools/check-nccl-ib-hca`, `tests/tools/test_check_nccl_ib_hca.py` | An added line under `adapters/` (scripts and extensionless launchers too, not `.md`/`.rst`/`.txt`) that assigns `NCCL_IB_HCA` to anything but the inherited platform value (`$NCCL_IB_HCA`, `environ["NCCL_IB_HCA"]`, optionally with a `${NCCL_IB_HCA:-...}` default). Each 200 Gb/s port is two RDMA devices and the helper names both; one device cuts the link to about 112 Gb/s. Read or forward the variable, never set it. Only added lines count. |
+| `tools/check-wire-only`, `tests/tools/test_check_wire_only.py` | An added line under `contracts/src/` defines a public top-level function not named in `SHARED_FUNCTIONS` (`vonk_forge_contracts/__init__.py`, the one owner list), or walks the filesystem (`glob(`, `rglob(`, `.iterdir(`, `os.walk(`, `open(`, `.read_text(`, `.read_bytes(`, a `library_root` or `root: Path` parameter). The wheel is wire only; a check over the library or a status derivation lives in `src/recipe_tooling` (`library_checks`, `qualification/status`, `qualification/api_checks`). Name a new shared function in the list, or move the code out. Only added lines count. |
+| `tools/check-closed-sets`, `tests/tools/test_check_closed_sets.py` | A closed set is defined outside `contracts/src/vonk_forge_contracts/executed.py` or `shown.py` (a `StrEnum`/`Enum`, a module alias of a multi-value `Literal`, or an inline multi-value `Literal` on a field), or a field uses a `shown.py` set without `Annotated[X \| UnrecognisedWord, KeepUnrecognised]`. Move the set into the module that matches (`executed.py` when the platform executes it, `shown.py` when a reader keeps unknown words of it); a strict producer twin of a `Published<Name>` class keeps the bare set. Single-value tags stay inline. |
 | `tools/check-final-stage-ldd`, `tests/tools/test_check_final_stage_ldd.py` | An added or final-stage-changed adapter Dockerfile on a plain CUDA runtime/base image copies a binary into `bin/` without `RUN ! ldd <binary> \| grep "not found"`. Only added lines count. |
+| `tools/check-identity-compare`, `tests/tools/test_check_identity_compare.py` | An added line in `src/`, `spark_sweep/` or a `tools/` Python script that compares (`==`/`!=`) an operand ending in `.identity`, `.runtime_image` or `.build_key`, a read of one of those keys (`row["build_key"]`, `pin.get("build_key")`) or a call of an `*_identity(...)` function (`current_identity`, `content_identity`); serialises an identity (`.identity.model_dump_json(`); or uses `.identity` as a dict key. A recipe image is its digest: compare through `recipe_tooling.qualification.identity` (`same_execution`, `execution_key`, `image_digest`), the one owner (out of scope by path). Only added lines count. |
 | `src/recipe_tooling/added_lines.py`, `tests/tools/test_added_lines.py` | The one parser of the diff the added-line guards read (the `check-*` guards above, `check-model-construction-device`, `check-writable-state-env`). A block the same diff deletes unchanged (a verbatim move or split; one uniform indentation shift allowed; Python launchers and `.py` count as one file type) is not an addition, so moving code does not re-surface old findings. Each guard passes its own `judged` predicate, and a deletion pays only when it judges both the file the block left and the file it entered: a block leaving an exempt owner or an out-of-scope file is still new work where it lands. A deleted block pays for one copy only; an edited or copied line stays added. A guard whose verdict depends on context (`check-serial-reads` reads the loop line, `check-estimate-gates` the test function) judges again when that context gained a line. |
 | `tests/tools/test_guard_paths_exist.py` | Every repository path a guard names matches at least one path in the tree: slash literals, `ROOT / "a" / "b"` chains and bare top-level names (`RECIPES = "recipes"`) in the `tools/check-*` scripts and `src/recipe_tooling/added_lines.py`; the same kinds of scope in four test-side scans (`test_admissible_memory_declarations`, `test_admission_maximum_cap`, `test_own_pulls`, `test_qualification_evidence_publisher`); both `single-source-values.json` files; and each `LAYERS` directory must also own a file the import-direction walker reads (`.py` or a shebang launcher). It catches a scope whose directory disappeared. It does NOT protect a prefix scope on a directory that survives the move (`tools/` after code leaves it still exists): a review of a move must re-point those by hand. The first segment is a listed name or a current top-level directory, so a new directory such as `src/` is covered. Write scopes as plain literals or `/` chains. No allowlist. |
 | `tools/check-document-reads`, `src/recipe_tooling/added_lines.py`, `tests/tools/test_check_document_reads.py` | An added line reads a Recipe, Model or display JSON by hand (`json.loads` then `doc["runtime"]`). Read it through `vonk_forge_contracts` (`read_recipe`, `read_model`, `read_recipe_display`, `read_model_display`, `read_recipe_api`) or `src/recipe_tooling/qualification/documents.py`; only added lines are checked. |
 | `tools/check-recipe-api`, `tests/recipes/test_api_contract.py` | A touched OpenAI-interface recipe has no `api/recipes/<slug>.json`, or its facts contradict the runtime (parser, vision, context binding) or the Models. Fix the document, or the recipe if the runtime is what is wrong; a choice that changes a fact carries its own block. |
 | `tools/check-model-modalities`, `tests/recipes/test_model_modalities.py` | A touched Model's display (or the Model a touched recipe serves) disagrees with its modalities (`image` ⇔ `image-understanding`, likewise audio and video) or with a serving recipe's API document: a chat route needs `chat` and `text-generation`, reasoning other than `none` needs `reasoning`, tools other than `none` need `tool-use`. Correct `display/models/<slug>.json`, or the API document if it claims what the launch does not serve. |
-| `tools/check-platform-contracts`, `src/recipe_tooling/qualification/introduced.py`, `tests/qualification/test_introduced_versions.py` | A recipe uses a serving kind, or selects a Model with a capability, newer than the contracts version the pinned platform (`platform_ref` lock) reads. Hold the recipe until the platform pin moves to a vonk-forge commit that pins a newer contracts version; a new kind or capability gets its minimum in `introduced.py`. The row also fires on a contracts major newer than the platform's: pin this commit in vonk-forge, deploy, then move `platform_ref`. |
-| `validate-recipe-library` in `.github/workflows/validate.yml` | Platform source/security/launcher/option compilation. Repair the concrete refusal; producer-only success is insufficient. |
+| `tools/check-platform-contracts`, `tests/qualification/test_platform_contracts.py` | A recipe uses a serving kind, interface adapter, API mode, reasoning-effort kind or Model source provider that a channel's `platform-features.json` (in its recipe-tools bundle) does not list, so that platform cannot execute it. On dev this fails: land the platform support in forge and let its release publish the bundle; there is no version table here. On stable it is a warning only (`--report-words`): a stable Controller withholds the recipe until it upgrades. Capabilities are never gated. The row also fires on a contracts major newer than the channel's `contract_major`: pin this commit in vonk-forge and release it first. |
+| `validate-recipe-library` in `.github/workflows/platform-validate.yml` (one leg per channel) | Platform source/security/launcher/option compilation by the channel's own bundle. Repair the concrete refusal; producer-only success is insufficient. A leg that cannot fetch or verify its bundle (`tools/recipe-tools`, `tests/tools/test_recipe_tools.py`) fails that run only; rerun it once the channel answers. Never pin a forge commit or workflow instead. |
 
 Recipe-specific regressions under `tests/test_<family or adapter>*.py` additionally
 pin supported launch, model, cache, protocol and media behaviour. Find them with
@@ -1624,7 +1666,12 @@ Commit authored sources only. `catalog-index.json`,
 `qualification/coverage/` are build outputs: Git ignores them, CI builds and
 validates them for every pull request, and publication builds them from the
 release commit. The release also ships `catalog-index-v2.schema.json`, the generated schema of the
-`CatalogIndex` contract that `catalog-index.json` is built through. Build them locally with one command when a tool or test outside
+`CatalogIndex` contract that `catalog-index.json` is built through, and
+`future-canary-index.json`, the future vector (`tools/build-future-vector`): the index with an
+unknown word at every closed-word site outside an execution document (the build fails if the contract reader does not keep it), an unknown field on every closed object and
+one recipe entry with an unknown serving kind. A consumer reads it on its own release and must
+keep every entry but that one; `tests/tools/test_future_vector.py` runs the same proof against the
+contract reader, and a new tolerant site is found by the schema walk, never added by hand. Build them locally with one command when a tool or test outside
 the suite needs them:
 
 ```bash
@@ -1649,20 +1696,24 @@ until that procedure verifies the published bytes.
 Recipe runtime images are built in CI, not on a Spark.
 `.github/workflows/recipe-images.yml` runs inside every publication (and by hand
 for a backfill: `gh workflow run recipe-images.yml -f slugs=all`, or a list of
-recipe ids). Vonk Forge's `scripts/recipe-image-plan` (at the `platform_ref`
-`publish.yml` validates the library with: one pin for validation and images)
-derives each recipe's executable build key (source bundle,
-Dockerfile, pinned base images, build options and capabilities, runtime
-adapter) and the exact Spark build flags and platform adaptation stage. Recipes
-that build the same adapter directory the same way share one key and one
-build. Every publication reconciles all current keys against the registry,
+recipe ids). `tools/build-plan` derives each recipe's build key from recipe
+inputs only (source bundle, pinned base images, base image, Dockerfile) and this
+repository's `policy/build-policy.json` (validated once at load by `BuildPolicy`,
+so a typo refuses instead of changing every key: the build options, security and Spark
+build flags), and writes each build context exactly as the package carries it.
+No Vonk Forge checkout or release takes part, so a platform release never
+changes a key. Recipes that build the same context the same way share one key and
+one build. Every publication reconciles all current keys against the registry,
 including the first release of a new contract version. For each missing key,
-a hosted `ubuntu-24.04-arm` runner builds the image with those flags
-and pushes it to the public package
-`ghcr.io/<owner>/vonk-forge-recipe-<recipe-id>` as `build-<key>` and
-`<version>`; a key another recipe already has is copied, not rebuilt.
+a hosted `ubuntu-24.04-arm` runner builds the recipe image with those flags
+and pushes it, unchanged (no platform layer), to the public package
+`ghcr.io/<owner>/vonk-forge-recipe-<recipe-id>` as `build-v2-<key>` and
+`<version>`; a key another recipe already has is copied, not rebuilt. The
+platform supplies the run-time user, workdir and writable paths (`/outputs`,
+the cache environment) when the container starts, so a Dockerfile never creates
+them; the image provides its launcher under `/opt/vonk/bin`.
 
-`tools/prebuilt-images resolve` then looks up every recipe's `build-<key>`
+`tools/prebuilt-images resolve` then looks up every recipe's `build-v2-<key>`
 digest, and the release index records it beside the recipe:
 
 ```json
@@ -1673,21 +1724,26 @@ digest, and the release index records it beside the recipe:
 ```
 
 The field is optional and covered by the same signed `SHA256SUMS` as the rest
-of the index; Controllers that do not know it ignore it. A Controller whose own
-key for the revision matches pulls that digest (verified once, at ingress)
-instead of building on a Spark, so updating a running recipe needs no Spark
-build memory. A recipe whose image is unavailable publishes without this field
-and can use a Controller build. Publication reports each such recipe as image
-pending in its job summary. The signed bundle includes `plan.json`, binding the
-pending keys and recipe content identities to the release. Deferred batches and
-the daily scheduled reconciliation build missing keys and republish the pins.
+of the index; Controllers that do not know it ignore it. A Controller pulls the
+pinned digest for the recipe's content (verified once, at ingress) instead of
+building on a Spark, so updating a running recipe needs no Spark build memory;
+it never derives or compares the key. A recipe whose image is unavailable
+publishes without this field and can use a Controller build. Publication
+reports each such recipe as image pending in its job summary. The signed bundle
+includes `plan.json`, binding the pending keys and recipe content identities to
+the release. Deferred batches and the daily scheduled reconciliation build
+missing keys and republish the pins.
 A busy or failed registry lookup does not unpin a recipe: when its content digest and
-build key equal the current published release's, `resolve` carries that release's pin
-forward (counted in the summary); changed content stays pending.
+source bundle equal the current published release's, `resolve` carries that
+release's pin forward whatever its key (counted in the summary); changed input stays
+pending. A recipe whose published pin is an image built before the key v2, of the
+same content and source bundle, is adopted: `select` copies that digest to
+`build-v2-<key>` (no build), so its hardware evidence, judged by image digest,
+still applies.
 Each build has a 360-minute deadline (a retry starts only if it still fits) and
 failures remain visible in the run.
 Publication still fails for missing artifacts, mismatched source identities,
-stale build keys, invalid digests or an index that differs from a resolved pin.
+invalid digests or an index that differs from a resolved pin.
 The plan, index and publication must name the same source commit; verification
 runs before signing or changing the release. A backfill run republishes when it
 finishes so the index picks up the new digests. The recipe `content_sha256`

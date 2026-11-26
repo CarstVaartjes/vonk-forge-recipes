@@ -21,6 +21,10 @@ from recipe_tooling.qualification.evidence_store import (
     read_evidence,
     write_evidence,
 )
+from recipe_tooling.qualification.status import (
+    derive_status,
+    published_status,
+)
 from spark_sweep import evidence_publisher as publisher
 from vonk_forge_contracts import (
     QualificationBlame as Blame,
@@ -31,8 +35,6 @@ from vonk_forge_contracts import (
 from vonk_forge_contracts import (
     QualificationOutcome as Outcome,
 )
-from vonk_forge_contracts import derive_status
-from vonk_forge_contracts.qualification_status import published_status
 
 LOADER = importlib.machinery.SourceFileLoader(
     "check_evidence_retention", str(ROOT / "tools/check-evidence-retention")

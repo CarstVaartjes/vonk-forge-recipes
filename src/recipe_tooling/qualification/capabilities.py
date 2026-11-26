@@ -198,10 +198,15 @@ def serving_capabilities(
     scripts = _adapter_text(recipe, root)
     source = "runtime arguments" if _TOOL_PARSER.search(text) else "adapter scripts"
     both = text + "\n" + scripts
+    # A launch that declares its tool flags is judged by them alone: a vendored
+    # creator start script that spells --enable-auto-tool-choice must not
+    # complete a launch whose own arguments leave it out.
+    declared = bool(_TOOL_PARSER.search(text) or _AUTO_TOOL.search(text))
+    tool_text = text if declared else both
     if engine == "vllm":
-        tools = bool(_TOOL_PARSER.search(both) and _AUTO_TOOL.search(both))
+        tools = bool(_TOOL_PARSER.search(tool_text) and _AUTO_TOOL.search(tool_text))
     else:
-        tools = bool(_TOOL_PARSER.search(both) or _YAML_TOOL.search(both))
+        tools = bool(_TOOL_PARSER.search(tool_text) or _YAML_TOOL.search(tool_text))
     content_parsers = CONTENT_REASONING_PARSERS[engine]
     reasoning = any(
         match.group(1) not in content_parsers

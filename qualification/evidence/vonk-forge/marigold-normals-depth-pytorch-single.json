@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/marigold-normals-depth-pytorch-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "53018ad34dc71d1fd3eef682a3a36170fa49584556ba8c9fe6c654ac088c8030",
+        "source_bundle_sha256": "12bdec8a6c8280920815555ca81775ee945cb62f2903463541a420d7b3bb77fd",
+        "runtime_image": {
+          "build_key": "6be9d53b3bb1b4ccc69eeedc96173f57f386f870415674adc60cf2f51adcecf9",
+          "image_digest": "sha256:e458988d4eb78e27ac4800bbf2d01568652384d9a076b4a2b86ac05a02f1a2ce"
+        },
+        "model_digests": [
+          "95152243abad81bb9496ba08d4753686d700f9d64572d1ed5bb5fe865deca548",
+          "ab478e953be0a98c1e5c39551470659d5307debd31cfb657f97827c823ecf6d7"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "3472c35c80b30ab45e6885ca59c1efcdf08c3f0b9f963b507acd5d4727d89f55"
+      ],
+      "tested_at": "2026-11-26T11:17:32.738040Z",
+      "platform": {
+        "controller_source_sha": "88f8e8b5c54c4df81522fa3257e013021fa76b6a",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}

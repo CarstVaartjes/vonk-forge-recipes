@@ -24,7 +24,7 @@
     }
   },
   "kit": {
-    "commit": "d3f460745aff0dffb40f6b8341077382f3b43dfe",
+    "commit": "09febfe16b34680ddc71bdb99dab0f1f821d29c6",
     "repo": "knapcio/Inkling-2-Mini-1x-DGX-Spark"
   }
 }

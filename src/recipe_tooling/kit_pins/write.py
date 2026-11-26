@@ -189,6 +189,8 @@ def moved_model(
 
     by_path = {f["path"]: f for f in inventory}
     document = json.loads(json.dumps(old))
+    # Retired and ignored; a Model the refresh rewrites sheds it.
+    document.pop("requires_token", None)
     old_revision = old["source"]["revision"]
     document["source"]["revision"] = revision
     identity = document["identity"]

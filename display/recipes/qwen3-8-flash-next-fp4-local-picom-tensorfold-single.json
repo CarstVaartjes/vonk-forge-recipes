@@ -1,0 +1,22 @@
+{
+  "alignment": "unspecified",
+  "description": "Single-DGX-Spark Qwen3.8 Flash Next on TensorFold v1.1.4's Zig engine (tensorfold-native; exactly verified MTP speculative decoding, CUDA kernels embedded in the image) with NVIDIA's untouched quantization-aware-distilled FP4 checkpoint (nvidia/Qwen3.8-Flash-Next-FP4-Local, NVFP4 routed experts, MXFP8 elsewhere, FP8 n-gram table and MTP head) and a bf16 KV cache. Picom-code's pico-dgx-qwen38 (ba679439, Apache-2.0) builds on MiaAI-Lab's single-Spark TensorFold kit (20e15e41, MIT): the kit's 17 patches plus the creator's 29 patches (0101-0129: a certified exact output head, batched prompt passes, copy-draft windows that verify repeated text up to 127 tokens a step, a two-stage draft head, certified long-prompt attention selection, an elastic prompt cache and pass-scratch trimming), all of which the creator reports as returning the same text as the same engine with the lever off. The image is built from the pinned sources, since the creator publishes none. Serves three concurrent 262,144-token streams (the exact bf16 cache is 8.36 GiB a stream; the creator's fp8 cache and its 16-user and agent pool profiles are not offered) with optional image/video input (up to 50 images sharing 16,384 image tokens, a 16,384-token video budget). Loading takes about 81 GiB of memory; the engine sizes its KV pool from what is left beside a 9 GiB reserve and 2 GiB kept for the vision helper. The first start makes the creator's 30.7 MB two-stage draft head file from the checkpoint's own output-head rows into the cache (about a minute, drafts only: replies do not depend on it) and starts without it if that fails. Replies without max_tokens get up to 32,768 tokens. The chat request's optional prediction field (OpenAI's predicted-outputs shape) is supported. The creator's RECALL, ARENA and COPY_FIRST options and the optional abliteration overlay are not offered. Upstream performance claims have not been measured on this deployment. The weights are used under the NVIDIA Open Model Agreement, and the base model's Qwen Community License 1.0 applies as well (attribution above 100M MAU or US$20M monthly revenue; separate licence for Model-as-a-Service or AI Work Assistant businesses). Thinking is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: open a think block by default (upstream default, Qwen thinking-mode sampling).",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "qwen3-8-flash-next-fp4-local-picom-tensorfold-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "engine",
+    "fp4",
+    "image-input",
+    "mtp",
+    "multimodal",
+    "qwen3.8",
+    "reasoning",
+    "spark",
+    "tensorfold",
+    "video-input"
+  ],
+  "title": "Qwen3.8 Flash Next FP4 TensorFold single Spark (Picom, bf16 KV)"
+}
