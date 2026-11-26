@@ -1,0 +1,17 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "kokoro-82m-v1-0",
+          "title": "Kokoro 82M v1.0"
+        }
+      ],
+      "slug": "kokoro-82m",
+      "title": "Kokoro 82M"
+    }
+  ],
+  "slug": "kokoro",
+  "title": "Kokoro"
+}
