@@ -9,7 +9,8 @@ never treats a new key of the same image as a change.
 
 Only lines added by the diff given with ``--diff FILE|-`` are checked, in the
 Python of ``src/`` and ``tools/``. A hit is an added ``==`` or ``!=`` comparison
-with an operand ending in ``.identity``, ``.runtime_image`` or ``.build_key``.
+with an operand ending in ``.identity``, ``.runtime_image`` or ``.build_key``, or
+reading one of those keys (``row["build_key"]``, ``pin.get("build_key")``).
 The identity module itself and the sweep (``spark_sweep/``, whose identities are
 sweep-local scheduling state) are outside the scope by path. There is no count
 and no allowlist.
@@ -34,6 +35,23 @@ ADVICE = (
 )
 
 
+def names_compared(operand: ast.expr) -> bool:
+    if isinstance(operand, ast.Attribute):
+        return operand.attr in COMPARED
+    if isinstance(operand, ast.Subscript):
+        key = operand.slice
+    elif (
+        isinstance(operand, ast.Call)
+        and isinstance(operand.func, ast.Attribute)
+        and operand.func.attr == "get"
+        and operand.args
+    ):
+        key = operand.args[0]
+    else:
+        return False
+    return isinstance(key, ast.Constant) and key.value in COMPARED
+
+
 def scan(source: str, added: set[int] | None) -> list[int]:
     """Lines of the identity comparisons that are added (all lines when None)."""
     hits: set[int] = set()
@@ -43,10 +61,9 @@ def scan(source: str, added: set[int] | None) -> list[int]:
         if not any(isinstance(op, ast.Eq | ast.NotEq) for op in node.ops):
             continue
         operands = [node.left, *node.comparators]
-        if any(
-            isinstance(operand, ast.Attribute) and operand.attr in COMPARED
-            for operand in operands
-        ) and (added is None or node.lineno in added):
+        if any(names_compared(operand) for operand in operands) and (
+            added is None or node.lineno in added
+        ):
             hits.add(node.lineno)
     return sorted(hits)
 

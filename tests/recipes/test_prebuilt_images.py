@@ -351,18 +351,18 @@ def test_the_published_pins_are_read_from_the_release_bundle(tmp_path: Path) -> 
     assert tool.published_pins("o/r", gh=release) == {
         "e" * 64: {**pin, "source_bundle_sha256": "5" * 64}
     }
-    assert tool.published_pins("o/r", gh=unavailable) == {}
+    assert tool.published_pins("o/r", gh=unavailable) is None
 
     def not_a_tar(arguments: list[str]) -> None:
         Path(arguments[arguments.index("--output") + 1]).write_bytes(b"not a tar")
 
-    assert tool.published_pins("o/r", gh=not_a_tar) == {}
+    assert tool.published_pins("o/r", gh=not_a_tar) is None
 
     def odd_index(arguments: list[str]) -> None:
         source.write_text(json.dumps({"recipes": ["x"]}))
         release(arguments)
 
-    assert tool.published_pins("o/r", gh=odd_index) == {}
+    assert tool.published_pins("o/r", gh=odd_index) is None
 
 
 def test_a_pin_naming_a_foreign_package_is_not_carried() -> None:
@@ -837,3 +837,22 @@ def test_a_pull_request_with_unchanged_recipe_inputs_plans_no_build(tmp_path):
         policy,
     )
     assert tool.changed_candidates(changed, base) == {"one"}
+
+
+@pytest.mark.parametrize("command", ["select", "resolve"])
+def test_an_unreadable_release_plans_and_pins_nothing(tmp_path, monkeypatch, command):
+    # Legacy tags only: without the published pins every recipe would look
+    # missing and be rebuilt (select) or unpinned (resolve).
+    monkeypatch.setattr(tool, "published_pins", lambda repository: None)
+    plan = tmp_path / "plan.json"
+    plan.write_text(json.dumps(_plan()))
+    output = tmp_path / "out.json"
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        ["prebuilt-images", command, "--plan", str(plan), "--owner", OWNER,
+         "--repository", "o/r", "--output", str(output)],
+    )  # fmt: skip
+    with pytest.raises(SystemExit, match="not readable"):
+        tool.main()
+    assert not output.exists()

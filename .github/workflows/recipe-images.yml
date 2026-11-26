@@ -188,7 +188,7 @@ jobs:
     needs: plan
     if: github.event_name != 'pull_request' && needs.plan.outputs.copy_count != '0'
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
+    timeout-minutes: 180
     permissions:
       contents: read
       packages: write
@@ -214,13 +214,12 @@ jobs:
           echo "$GH_TOKEN" | skopeo login ghcr.io --username "${{ github.actor }}" --password-stdin
           # One failed copy leaves only its tag absent: resolve carries that
           # recipe's published pin by content and the next run copies again.
-          jq -c '.copies[]' "$RUNNER_TEMP/plan/selection.json" | while read -r copy; do
-            from=$(jq -r .from <<<"$copy")
-            for target in $(jq -r '.to, (.version_tag // empty)' <<<"$copy"); do
-              skopeo copy --retry-times 3 --preserve-digests "docker://$from" "docker://$target" \
-                || echo "::warning::copy to $target failed; the next run copies again"
-            done
-          done
+          # The first run after the key v2 adopts every recipe: copies fan out.
+          # shellcheck disable=SC2016 # $0/$1 expand in the copy's own shell
+          jq -r '.copies[] | .from as $from | (.to, (.version_tag // empty)) | "\($from) \(.)"' \
+            "$RUNNER_TEMP/plan/selection.json" \
+            | xargs -P 8 -L 1 sh -c 'skopeo copy --retry-times 3 --preserve-digests "docker://$0" "docker://$1" \
+                || echo "::warning::copy to $1 failed; the next run copies again"'
 
   build:
     name: Build ${{ matrix.build_key }}

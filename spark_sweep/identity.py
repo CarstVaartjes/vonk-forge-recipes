@@ -87,11 +87,17 @@ def recorded_identity(entry: Mapping[str, Any]) -> VerdictIdentity | None:
     return VerdictIdentity.model_validate(value) if value is not None else None
 
 
+def _by_digest(identity: VerdictIdentity) -> dict[str, Any]:
+    # An image is its digest: a new build key of the same image is the same verdict.
+    return identity.model_dump(exclude={"runtime_image": {"build_key"}})
+
+
 def verdict_matches(entry: Mapping[str, Any], recipe: Recipe) -> bool:
     identity = content_identity(recipe)
     recorded = recorded_identity(entry)
     return (
-        recorded == identity
+        recorded is not None
+        and _by_digest(recorded) == _by_digest(identity)
         and entry.get("content_sha256", identity.content_sha256)
         == identity.content_sha256
     )

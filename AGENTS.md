@@ -283,7 +283,9 @@ Tags are `build-v2-<key>`/`candidate-v2-<key>`; legacy `build-<key>` tags are
 never written or deleted. `tools/prebuilt-images select` adopts a recipe whose
 published pin is a legacy image of the same content and source bundle in its own
 package (copies the digest to the new tag, no build), and `resolve` carries a
-published pin by content and source bundle when a lookup finds nothing. Status and
+published pin by content and source bundle when a lookup finds nothing. Both end
+the run when the published release is unreadable (the live release stays; the next
+run reads it again): without it they cannot tell a legacy image from a missing one. Status and
 evidence judge an image by its digest: identities are compared only in
 `recipe_tooling.qualification.identity` (guard `tools/check-identity-compare`).
 To prove the bare-image path for a recipe, dispatch

@@ -32,6 +32,8 @@ def run(root: Path, files: dict[str, str]) -> subprocess.CompletedProcess[str]:
         "same = record.identity == current\n",
         "changed = previous.runtime_image != current.runtime_image\n",
         "moved = pin.build_key != plan_key\n",
+        'moved = previous.get("build_key") == key\n',
+        'moved = row["runtime_image"] != image\n',
     ],
 )
 def test_an_added_comparison_outside_the_identity_module_exits_one(

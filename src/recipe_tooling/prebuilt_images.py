@@ -341,12 +341,11 @@ def published_pins(
     gh: Callable[[list[str]], Any] = lambda arguments: subprocess.run(
         ["gh", *arguments], capture_output=True, text=True, check=True, timeout=300
     ),
-) -> dict[str, dict[str, str | None]]:
+) -> dict[str, dict[str, str | None]] | None:
     """The pins the current published release holds, by recipe content digest.
 
-    Each pin carries its row's source bundle digest. Empty when there is no
-    release or it cannot be read: the caller then behaves as if nothing was
-    published before.
+    Each pin carries its row's source bundle digest. ``None`` when the release
+    cannot be read.
     """
 
     try:
@@ -367,7 +366,7 @@ def published_pins(
             with tarfile.open(bundle) as archive:
                 member = archive.extractfile(INDEX_MEMBER)
                 if member is None:
-                    return {}
+                    return None
                 index = json.load(member)
         return {
             str(row["content_sha256"]): {
@@ -386,9 +385,25 @@ def published_pins(
         AttributeError,
         tarfile.TarError,
         subprocess.SubprocessError,
-    ) as error:  # best effort: any unreadable release means no pins
+    ) as error:
         print(f"published release not readable: {error}", file=sys.stderr)
+        return None
+
+
+def _published(repository: str | None) -> Mapping[str, Mapping[str, str | None]]:
+    """The published pins, or end the run: without them adoption and carry cannot
+    tell a legacy image from a missing one, and would rebuild or unpin proven
+    recipes. The live release stays as it is; the next run reads it again."""
+
+    if repository is None:
         return {}
+    pins = published_pins(repository)
+    if pins is None:
+        raise SystemExit(
+            "the published release is not readable: nothing planned or pinned; "
+            "the next run asks again"
+        )
+    return pins
 
 
 def resolve(
@@ -557,9 +572,7 @@ def main() -> int:
             plan,
             owner=arguments.owner,
             candidates=candidates,
-            published=(
-                published_pins(arguments.repository) if arguments.repository else {}
-            ),
+            published=_published(arguments.repository),
             rebuild=candidates if arguments.rebuild_adopted else set(),
         )
         if arguments.base_plan is not None and selection["deferred"]:
@@ -576,8 +589,9 @@ def main() -> int:
             f"{len(selection['busy'])} busy (skipped)"
         )
         return 0
-    published = published_pins(arguments.repository) if arguments.repository else {}
-    images, missing, carried = resolve(plan, owner=arguments.owner, published=published)
+    images, missing, carried = resolve(
+        plan, owner=arguments.owner, published=_published(arguments.repository)
+    )
     arguments.output.write_text(
         json.dumps(images, indent=2, sort_keys=True), encoding="utf-8"
     )
