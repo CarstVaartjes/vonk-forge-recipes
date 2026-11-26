@@ -122,14 +122,14 @@ def _escape(bits, LO: tl.constexpr):
     return tl.where(inline, exp - LO, 15), (exp != 0) & ~inline
 
 
-@triton.jit(do_not_specialize=["n_rows"])
-def _pack(Loc, K, V, SM, EX, ESC, OFF, Refs, Flags, Stage, Overflow, Locks, Fail,
-          n_rows, NPAGES: tl.constexpr, PAGE: tl.constexpr, H: tl.constexpr,
-          D: tl.constexpr, STRIDE: tl.constexpr, K0: tl.constexpr, K1: tl.constexpr,
-          V0: tl.constexpr, V1: tl.constexpr, OVERFLOW: tl.constexpr, SHIFT: tl.constexpr,
-          COUNT_MASK: tl.constexpr, CAP: tl.constexpr, CHUNK: tl.constexpr, LO: tl.constexpr,
-          PROMOTE: tl.constexpr, LIVE: tl.constexpr, FORCE: tl.constexpr):
-    i, head, kind = tl.program_id(0), tl.program_id(1), tl.program_id(2)
+@triton.jit
+def _pack_at(Loc, K, V, SM, EX, ESC, OFF, Refs, Flags, Stage, Overflow, Locks, Fail, i, head, kind,
+             n_rows, NPAGES: tl.constexpr, PAGE: tl.constexpr, H: tl.constexpr,
+             D: tl.constexpr, STRIDE: tl.constexpr, K0: tl.constexpr, K1: tl.constexpr,
+             V0: tl.constexpr, V1: tl.constexpr, OVERFLOW: tl.constexpr, SHIFT: tl.constexpr,
+             COUNT_MASK: tl.constexpr, CAP: tl.constexpr, CHUNK: tl.constexpr, LO: tl.constexpr,
+             PROMOTE: tl.constexpr, LIVE: tl.constexpr, FORCE: tl.constexpr):
+    # One (location, head, K/V) program of _pack; _pack_lanes runs the same body for every lane of a store.
     loc = tl.load(Loc + i).to(tl.int64)
     page = loc if PROMOTE else loc // PAGE
     if (page > 0) & (page < NPAGES) & (PROMOTE | (loc % PAGE == PAGE - 1)):
@@ -197,13 +197,25 @@ def _pack(Loc, K, V, SM, EX, ESC, OFF, Refs, Flags, Stage, Overflow, Locks, Fail
 
 
 @triton.jit(do_not_specialize=["n_rows"])
-def _publish(Loc, K, V, Flags, Locks, Fail, Refs, OverflowLocks, Stage, Events, n_rows,
-             NPAGES: tl.constexpr, PAGE: tl.constexpr, H: tl.constexpr, D: tl.constexpr,
-             STRIDE: tl.constexpr, K0: tl.constexpr, K1: tl.constexpr, V0: tl.constexpr, V1: tl.constexpr,
-             SHIFT: tl.constexpr, COUNT_MASK: tl.constexpr, LIVE: tl.constexpr, FALLBACK: tl.constexpr,
-             OVERFLOW: tl.constexpr, TENTATIVE: tl.constexpr, PROMOTE: tl.constexpr, BLOCK: tl.constexpr,
-             LANES: tl.constexpr):
-    i = tl.program_id(0)
+def _pack(Loc, K, V, SM, EX, ESC, OFF, Refs, Flags, Stage, Overflow, Locks, Fail,
+          n_rows, NPAGES: tl.constexpr, PAGE: tl.constexpr, H: tl.constexpr,
+          D: tl.constexpr, STRIDE: tl.constexpr, K0: tl.constexpr, K1: tl.constexpr,
+          V0: tl.constexpr, V1: tl.constexpr, OVERFLOW: tl.constexpr, SHIFT: tl.constexpr,
+          COUNT_MASK: tl.constexpr, CAP: tl.constexpr, CHUNK: tl.constexpr, LO: tl.constexpr,
+          PROMOTE: tl.constexpr, LIVE: tl.constexpr, FORCE: tl.constexpr):
+    _pack_at(Loc, K, V, SM, EX, ESC, OFF, Refs, Flags, Stage, Overflow, Locks, Fail,
+             tl.program_id(0), tl.program_id(1), tl.program_id(2), n_rows, NPAGES, PAGE, H, D, STRIDE,
+             K0, K1, V0, V1, OVERFLOW, SHIFT, COUNT_MASK, CAP, CHUNK, LO, PROMOTE, LIVE, FORCE)
+
+
+@triton.jit
+def _publish_at(Loc, K, V, Flags, Locks, Fail, Refs, OverflowLocks, Stage, Events, i, n_rows,
+                NPAGES: tl.constexpr, PAGE: tl.constexpr, H: tl.constexpr, D: tl.constexpr,
+                STRIDE: tl.constexpr, K0: tl.constexpr, K1: tl.constexpr, V0: tl.constexpr, V1: tl.constexpr,
+                SHIFT: tl.constexpr, COUNT_MASK: tl.constexpr, LIVE: tl.constexpr, FALLBACK: tl.constexpr,
+                OVERFLOW: tl.constexpr, TENTATIVE: tl.constexpr, PROMOTE: tl.constexpr, BLOCK: tl.constexpr,
+                LANES: tl.constexpr):
+    # One location's program of _publish; _publish_lanes runs the same body for every lane of a store.
     loc = tl.load(Loc + i).to(tl.int64)
     page = loc if PROMOTE else loc // PAGE
     if (page > 0) & (page < NPAGES):
@@ -292,11 +304,23 @@ def _publish(Loc, K, V, Flags, Locks, Fail, Refs, OverflowLocks, Stage, Events, 
                 tl.store(ptr, (slot << SHIFT) | (end + 1))
 
 
-@triton.jit(debug=True)
-def _trim(Loc, Commit, Flags, Locks, WIDTH: tl.constexpr,
-          NPAGES: tl.constexpr, PAGE: tl.constexpr, STRIDE: tl.constexpr, SHIFT: tl.constexpr,
-          COUNT_MASK: tl.constexpr, LIVE: tl.constexpr):
-    i = tl.program_id(0)
+@triton.jit(do_not_specialize=["n_rows"])
+def _publish(Loc, K, V, Flags, Locks, Fail, Refs, OverflowLocks, Stage, Events, n_rows,
+             NPAGES: tl.constexpr, PAGE: tl.constexpr, H: tl.constexpr, D: tl.constexpr,
+             STRIDE: tl.constexpr, K0: tl.constexpr, K1: tl.constexpr, V0: tl.constexpr, V1: tl.constexpr,
+             SHIFT: tl.constexpr, COUNT_MASK: tl.constexpr, LIVE: tl.constexpr, FALLBACK: tl.constexpr,
+             OVERFLOW: tl.constexpr, TENTATIVE: tl.constexpr, PROMOTE: tl.constexpr, BLOCK: tl.constexpr,
+             LANES: tl.constexpr):
+    _publish_at(Loc, K, V, Flags, Locks, Fail, Refs, OverflowLocks, Stage, Events, tl.program_id(0), n_rows,
+                NPAGES, PAGE, H, D, STRIDE, K0, K1, V0, V1, SHIFT, COUNT_MASK, LIVE, FALLBACK, OVERFLOW,
+                TENTATIVE, PROMOTE, BLOCK, LANES)
+
+
+@triton.jit
+def _trim_at(Loc, Commit, Flags, Locks, i, WIDTH: tl.constexpr,
+             NPAGES: tl.constexpr, PAGE: tl.constexpr, STRIDE: tl.constexpr, SHIFT: tl.constexpr,
+             COUNT_MASK: tl.constexpr, LIVE: tl.constexpr):
+    # One location's program of _trim; _trim_lanes runs the same body for every lane of a store.
     loc = tl.load(Loc + i).to(tl.int64)
     page = loc // PAGE
     col = i % WIDTH
@@ -317,6 +341,69 @@ def _trim(Loc, Commit, Flags, Locks, WIDTH: tl.constexpr,
             tl.store(ptr, tl.where(kept > 0, (slot << SHIFT) | (kept + 1), 0))
             if kept == 0:
                 tl.atomic_xchg(Locks + slot, 0, sem="release")
+
+
+@triton.jit(debug=True)
+def _trim(Loc, Commit, Flags, Locks, WIDTH: tl.constexpr,
+          NPAGES: tl.constexpr, PAGE: tl.constexpr, STRIDE: tl.constexpr, SHIFT: tl.constexpr,
+          COUNT_MASK: tl.constexpr, LIVE: tl.constexpr):
+    _trim_at(Loc, Commit, Flags, Locks, tl.program_id(0), WIDTH, NPAGES, PAGE, STRIDE, SHIFT, COUNT_MASK, LIVE)
+
+
+# LaneGroup.deltas columns: where each lane's buffer starts, in elements from lane 0's buffer of the same kind.
+L_FLAGS, L_STAGE_LOCKS, L_FAIL, L_REFS, L_OVERFLOW_LOCKS, L_STAGE, L_EVENTS, L_SM, L_EX, L_ESC, L_OFF, \
+    L_OVERFLOW = (tl.constexpr(i) for i in range(12))
+LANE_KINDS = 12
+
+
+@triton.jit
+def _at(Base, Deltas, lane, WHICH: tl.constexpr, KINDS: tl.constexpr):
+    return Base + tl.load(Deltas + lane * KINDS + WHICH)
+
+
+@triton.jit(debug=True)
+def _trim_lanes(Loc, Commit, Flags, Locks, Deltas, WIDTH: tl.constexpr,
+                NPAGES: tl.constexpr, PAGE: tl.constexpr, STRIDE: tl.constexpr, SHIFT: tl.constexpr,
+                COUNT_MASK: tl.constexpr, LIVE: tl.constexpr, KINDS: tl.constexpr):
+    lane = tl.program_id(1)
+    _trim_at(Loc, Commit, _at(Flags, Deltas, lane, L_FLAGS, KINDS), _at(Locks, Deltas, lane, L_STAGE_LOCKS, KINDS),
+             tl.program_id(0), WIDTH, NPAGES, PAGE, STRIDE, SHIFT, COUNT_MASK, LIVE)
+
+
+@triton.jit(do_not_specialize=["n_rows"])
+def _pack_lanes(Loc, SM, EX, ESC, OFF, Refs, Flags, Stage, Overflow, Locks, Fail, Deltas,
+                n_rows, NPAGES: tl.constexpr, PAGE: tl.constexpr, H: tl.constexpr,
+                D: tl.constexpr, STRIDE: tl.constexpr, K0: tl.constexpr, K1: tl.constexpr,
+                OVERFLOW: tl.constexpr, SHIFT: tl.constexpr, COUNT_MASK: tl.constexpr, CAP: tl.constexpr,
+                CHUNK: tl.constexpr, LO: tl.constexpr, LIVE: tl.constexpr, FORCE: tl.constexpr,
+                KINDS: tl.constexpr):
+    # The promotion (commit) of DeviceLayer.commit for every lane: grid (pages, heads, 2 * lanes).
+    lane, kind = tl.program_id(2) // 2, tl.program_id(2) % 2
+    stage = _at(Stage, Deltas, lane, L_STAGE, KINDS)
+    _pack_at(Loc, stage, stage, _at(SM, Deltas, lane, L_SM, KINDS), _at(EX, Deltas, lane, L_EX, KINDS),
+             _at(ESC, Deltas, lane, L_ESC, KINDS), _at(OFF, Deltas, lane, L_OFF, KINDS),
+             _at(Refs, Deltas, lane, L_REFS, KINDS), _at(Flags, Deltas, lane, L_FLAGS, KINDS), stage,
+             _at(Overflow, Deltas, lane, L_OVERFLOW, KINDS), _at(Locks, Deltas, lane, L_OVERFLOW_LOCKS, KINDS),
+             _at(Fail, Deltas, lane, L_FAIL, KINDS), tl.program_id(0), tl.program_id(1), kind, n_rows,
+             NPAGES, PAGE, H, D, STRIDE, K0, K1, K0, K1, OVERFLOW, SHIFT, COUNT_MASK, CAP, CHUNK, LO, True, LIVE,
+             FORCE)
+
+
+@triton.jit(do_not_specialize=["n_rows"])
+def _publish_lanes(Loc, Flags, Locks, Fail, Refs, OverflowLocks, Stage, Events, Deltas, n_rows,
+                   NPAGES: tl.constexpr, PAGE: tl.constexpr, H: tl.constexpr, D: tl.constexpr,
+                   STRIDE: tl.constexpr, K0: tl.constexpr, K1: tl.constexpr, SHIFT: tl.constexpr,
+                   COUNT_MASK: tl.constexpr, LIVE: tl.constexpr, FALLBACK: tl.constexpr, OVERFLOW: tl.constexpr,
+                   BLOCK: tl.constexpr, LANES: tl.constexpr, KINDS: tl.constexpr):
+    # The promotion (commit) of DeviceLayer.commit for every lane: grid (pages, lanes).
+    lane = tl.program_id(1)
+    stage = _at(Stage, Deltas, lane, L_STAGE, KINDS)
+    _publish_at(Loc, stage, stage, _at(Flags, Deltas, lane, L_FLAGS, KINDS),
+                _at(Locks, Deltas, lane, L_STAGE_LOCKS, KINDS), _at(Fail, Deltas, lane, L_FAIL, KINDS),
+                _at(Refs, Deltas, lane, L_REFS, KINDS), _at(OverflowLocks, Deltas, lane, L_OVERFLOW_LOCKS, KINDS),
+                stage, _at(Events, Deltas, lane, L_EVENTS, KINDS), tl.program_id(0), n_rows,
+                NPAGES, PAGE, H, D, STRIDE, K0, K1, K0, K1, SHIFT, COUNT_MASK, LIVE, FALLBACK, OVERFLOW,
+                False, True, BLOCK, LANES)
 
 
 @triton.jit
@@ -588,3 +675,108 @@ class RawLane:
 
     def clear(self):
         pass
+
+
+class LaneGroup:
+    """The packed lanes of one store, settled together after a verify step.
+
+    DeviceLayer.settle runs _trim and then the promotion's _pack and _publish, once per lane. The lanes share no
+    state: each has its own envelope bytes, staging, overflow and fallback slots, lock and event words and failure
+    marks. So one launch of each kernel over (programs, lanes) does to every lane exactly what the per-lane loop
+    does, in the same kernel order per lane: 3 launches per step instead of 3 per lane. Each lane's buffers are
+    addressed from lane 0's by a fixed element offset (`deltas`), which needs one geometry for all lanes."""
+
+    def __init__(self, lanes, deltas):
+        self.lanes = lanes
+        self.deltas = deltas
+
+    @staticmethod
+    def _buffers(lane):
+        # In the order of the L_* columns.
+        planes = lane.planes
+        return (planes[-1], lane.stage_locks, lane.fail, planes[4], lane.overflow_locks, lane.stage, lane.events,
+                planes[0], planes[1], planes[2], planes[3], lane.overflow)
+
+    @staticmethod
+    def _geometry(lane):
+        return (lane.device, lane.heads, lane.pages, lane.page_stride, lane.live, lane.fallback_pages,
+                lane.force_overflow, tuple((t.dtype, tuple(t.shape), t.stride()) for t in LaneGroup._buffers(lane)))
+
+    @staticmethod
+    def _disjoint(lanes):
+        """No two lanes share writable state: the grouped launches run all lanes at once."""
+        def span(t):
+            return t.data_ptr(), t.data_ptr() + t.numel() * t.element_size()
+
+        raws = {span(lane.raw) for lane in lanes}
+        spans = list(raws)
+        if len(raws) == 1:  # one envelope buffer (static.py): each lane owns its own slice of every page
+            size = lanes[0].layout.size
+            offsets = sorted(lane.offset for lane in lanes)
+            if (any(b - a < size for a, b in zip(offsets, offsets[1:]))
+                    or offsets[0] < 0 or offsets[-1] + size > lanes[0].page_stride):
+                return False
+        elif len(raws) != len(lanes):
+            return False
+        for lane in lanes:
+            side = (lane.stage, lane.overflow, lane.fail, lane.stage_locks, lane.overflow_locks, lane.events)
+            if not all(t.is_contiguous() for t in side):
+                return False
+            spans += [span(t) for t in side if t.numel()]
+        spans.sort()
+        return all(b[0] >= a[1] for a, b in zip(spans, spans[1:]))
+
+    @classmethod
+    def build(cls, lanes):
+        """A group over `lanes`, or None when they cannot share the launches (the caller then settles per lane)."""
+        lanes = tuple(lanes)
+        if not lanes or any(type(lane) is not DeviceLayer for lane in lanes):
+            return None
+        first = lanes[0]
+        if any(cls._geometry(lane) != cls._geometry(first) for lane in lanes[1:]) or not cls._disjoint(lanes):
+            return None
+        rows = []
+        for lane in lanes:
+            row = []
+            for mine, ref in zip(cls._buffers(lane), cls._buffers(first)):
+                delta = mine.data_ptr() - ref.data_ptr()
+                if delta % mine.element_size():
+                    return None
+                row.append(delta // mine.element_size())
+            rows.append(row)
+        return cls(lanes, torch.tensor(rows, dtype=torch.int64, device=first.device))
+
+    def settle(self, locations, commit_lens, prepared=None):
+        """DeviceLayer.settle(locations, commit_lens, prepared) for every lane of the group."""
+        first = self.lanes[0]
+        if (locations.ndim != 2 or commit_lens.shape != (locations.shape[0],)
+                or locations.device != first.device or commit_lens.device != first.device
+                or locations.dtype not in (torch.int32, torch.int64)
+                or commit_lens.dtype not in (torch.int32, torch.int64)):
+            raise ValueError("inkling_kv12s: invalid verify settlement geometry")
+        if not locations.numel():
+            return
+        loc, pages = prepared if prepared is not None else DeviceLayer.settle_pages(locations)
+        lanes = len(self.lanes)
+        _trim_lanes[(loc.numel(), lanes)](
+            loc, commit_lens.contiguous(), first.planes[-1], first.stage_locks, self.deltas,
+            loc.shape[1], first.pages, PAGE, first.page_stride, STAGE_SHIFT, STAGE_MASK, first.live, LANE_KINDS,
+            num_warps=1,
+        )
+        pages = pages.reshape(-1).contiguous()
+        if not pages.numel():
+            return
+        count = pages.numel()
+        _pack_lanes[(count, first.heads, 2 * lanes)](
+            pages, *first.planes, first.stage, first.overflow, first.overflow_locks, first.fail, self.deltas,
+            count, first.pages, PAGE, first.heads, DIM, first.page_stride, *first.stage.stride()[:2],
+            first.overflow.shape[0], STAGE_SHIFT, STAGE_MASK, CAP, CHUNK, EXP_LO, first.live, first.force_overflow,
+            LANE_KINDS, num_warps=8,
+        )
+        _publish_lanes[(count, lanes)](
+            pages, first.planes[-1], first.stage_locks, first.fail, first.planes[4], first.overflow_locks,
+            first.stage, first.events, self.deltas, count, first.pages, PAGE, first.heads, DIM, first.page_stride,
+            *first.stage.stride()[:2], STAGE_SHIFT, STAGE_MASK, first.live, first.fallback_pages,
+            first.overflow.shape[0], triton.next_power_of_2(first.heads * DIM),
+            triton.next_power_of_2(2 * first.heads), LANE_KINDS, num_warps=4,
+        )

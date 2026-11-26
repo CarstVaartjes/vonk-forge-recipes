@@ -103,11 +103,14 @@ def make_forward(orig):
         if store is not None and store.pending:
             if _capturing(store):
                 store.pending = []  # never inside a CUDA graph capture (warm-up)
-                return out
-            try:
-                drain(store, self.model_runner.req_to_token_pool.req_generation)
-            except Exception as exc:  # noqa: BLE001
-                _disable(ring, f"capture failed: {exc!r}")
+            else:
+                try:
+                    drain(store, self.model_runner.req_to_token_pool.req_generation)
+                except Exception as exc:  # noqa: BLE001
+                    _disable(ring, f"capture failed: {exc!r}")
+        store = getattr(ring, "_inkling_snap", None)
+        if store is not None and sn.STATE["defer"]:
+            store.index.epoch += 1  # reservations pinned before this forward stop pinning
         return out
 
     forward_batch_generation.__wrapped__ = orig
@@ -151,7 +154,9 @@ def build_store(worker, slots):
         _disable(ring, f"draft pool layout not recognised: {exc!r}")
         return None
     charged = sn.STATE["charged"]
-    per_slot = (int(ring.window_left) + 1) * sum(int(b[0].numel()) * b.element_size() for b in k_bufs + v_bufs)
+    page = int(ring.sink_rows) if getattr(ring, "paged", False) else 1
+    per_slot = (int(ring.window_left) + 1 + sn.extra_rows(page)) * sum(
+        int(b[0].numel()) * b.element_size() for b in k_bufs + v_bufs)
     if charged is None or slots * per_slot > charged:
         _disable(ring, f"the snapshot pool ({slots * per_slot} B) was not charged to the KV budget (charged {charged})")
         return None
@@ -162,6 +167,15 @@ def build_store(worker, slots):
             return None
     store = sn.Store(ring, k_bufs, v_bufs, slots)
     ring._inkling_snap = store
+    if sn.STATE["defer"]:
+        try:
+            import torch.distributed as dist
+
+            sn.STATE["solo"] = not (dist.is_available() and dist.is_initialized()) or dist.get_world_size() == 1
+        except Exception:  # noqa: BLE001
+            sn.STATE["solo"] = False
+    if sn.STATE["defer"] and not sn.STATE["solo"]:
+        sn._log("prefix tail does not defer to snapshots: more than one rank (each would decide on its own slots)")
     sn.STATE["stores"].add(store)
     sn._log(f"draft-tail snapshots: {slots} slots x {store.length} positions, {len(layer_ids)} draft layers, "
             f"{store.nbytes / 2**20:.0f} MiB")
@@ -206,6 +220,10 @@ def make_ring_bytes(orig, slots):
         from sglang.srt.speculative.dflash_utils import get_dflash_attention_sliding_window_size
 
         window = int(get_dflash_attention_sliding_window_size(self.spec_aux_config.draft_model_config.hf_config)) + 1
+        if sn.STATE["defer"]:  # one page per slot more: the ring's page (the stock ring-bytes expression)
+            from sglang.srt.runtime_context import get_schedule
+
+            window += sn.extra_rows(get_schedule().page_size * self.dflash_draft_loc_space_scale)
         snap = int(slots) * window * int(self.dflash_draft_cell_size_per_token)
         sn.STATE["charged"] = snap
         sn._log(f"draft-tail snapshots: {snap / 2**30:.3f} GiB charged to the KV budget ({slots} x {window} positions)")
