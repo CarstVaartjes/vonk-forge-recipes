@@ -399,6 +399,9 @@ the token in its existing secret store; never embed it in a Model, Recipe,
 build context or publication. A configured token does not prove that the account
 has accepted terms or received model-specific approval. Verify access separately
 and report pending approval accurately; publication is not download readiness.
+A pinned Model revision that the provider no longer serves anonymously (404/401/403, or an
+unknown access status) is evidence only in the upstream refresh, never a review: the pin is
+digest-verified and the Controller's configured token covers gated downloads.
 
 `capabilities` (in the Model's display, with `modalities` and `license`) is the list
 of capability names the model supports. Leave out what is unknown. Correcting one
