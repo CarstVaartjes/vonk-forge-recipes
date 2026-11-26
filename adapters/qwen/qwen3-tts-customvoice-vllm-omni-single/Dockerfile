@@ -1,9 +1,9 @@
-FROM vllm/vllm-omni@sha256:f713b909f16cf8c7901f17c3aee3f471cbee5fbde5603b7dbe2631630887d7c2
+FROM vllm/vllm-omni@sha256:170d323159f5992ec11822b36fd9157b7299c7f4e4dc718c747e24fcd13758cc
 
 LABEL org.opencontainers.image.source="https://github.com/vllm-project/vllm-omni" \
-      org.opencontainers.image.revision="5917730a4b02aedb44d374173cdc1b10484ccd52" \
-      org.opencontainers.image.version="vllm-omni 0.32.0" \
-      io.vonk.upstream-image="vllm/vllm-omni:v0.32.0 (the release whose Qwen3-TTS online serving the creator's example launches)"
+      org.opencontainers.image.revision="06a28821a7f72bdb436c3df656b10f67fded0846" \
+      org.opencontainers.image.version="vllm-omni 0.34.0" \
+      io.vonk.upstream-image="vllm/vllm-omni:v0.34.0 (the release whose Qwen3-TTS online serving the creator's example launches)"
 
 # The creator's launch, `vllm-omni serve <model> --deploy-config qwen3_tts.yaml --omni`, with the
 # recipe's context setting scoped to the talker stage by the launcher.

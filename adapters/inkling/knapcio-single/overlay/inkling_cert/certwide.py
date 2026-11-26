@@ -61,6 +61,8 @@ class CertWide:
         self.sparse = torch.empty((MAX_ROWS, self.capacity * cert_math.TILE), dtype=torch.float32, device=device)
         self.partial = torch.empty((MAX_ROWS, PARTS), dtype=torch.int64, device=device)
         self.empty = torch.empty(0, dtype=torch.float32, device=device)
+        self.stats = None  # optional [MAX_ROWS + 1, 5 outcomes, UNION_BUCKETS] int64 (enable_stats)
+        self.counting = True  # False while the startup / reload self-tests run
         screen_ext.prepare_certwide(device.index)
         wide_ext.prepare_certwide(device.index)
 
@@ -98,7 +100,36 @@ class CertWide:
         self.exact(x, fallback, v_real, settings)
         self.reduce(fallback, self.sparse, self.state, self.tiles, self.groups,
                     self.partial, ids, v_real, cert_math.CAP, capped)
+        if self.stats is not None and self.counting:
+            self._count(m)
         return ids
+
+    UNION_STEP = 256    # tiles per union bucket
+    UNION_BUCKETS = 17  # the last one holds unions >= 16 * UNION_STEP (> the 2048-tile capacity)
+
+    def enable_stats(self):
+        """Diagnostic counters, written inside the graph after each run (three small launches, no sync)."""
+        device = self.state.device
+        self.stats = torch.zeros((MAX_ROWS + 1, 5, self.UNION_BUCKETS), dtype=torch.int64, device=device)
+        self._one = torch.ones(1, dtype=torch.int64, device=device)
+
+    def _count(self, m):
+        reason = self.state[0:1].clamp(0, 4).long()  # CERTIFIED, UNSAFE, TOO_MANY, OFF, INVALID
+        bucket = torch.div(self.state[1:2], self.UNION_STEP, rounding_mode="floor").clamp_(0, self.UNION_BUCKETS - 1)
+        self.stats[m].view(-1).index_add_(0, reason * self.UNION_BUCKETS + bucket.long(), self._one)
+
+    def describe_stats(self, host):
+        names = ("cert", "unsafe", "too_many", "off", "invalid")
+        parts = []
+        for m in range(host.shape[0]):
+            per = host[m]
+            if int(per.sum()) == 0:
+                continue
+            counts = " ".join(f"{names[r]}={int(per[r].sum())}" for r in range(5) if int(per[r].sum()))
+            union = ",".join(f"{b * self.UNION_STEP}+:{int(per[:3, b].sum())}"
+                             for b in range(self.UNION_BUCKETS) if int(per[:3, b].sum()))
+            parts.append(f"M={m}: {counts} (union tiles {union})")
+        return "; ".join(parts) if parts else "none"
 
     def refresh(self, entry, tables):
         # The graph captures the table and packed-buffer addresses.

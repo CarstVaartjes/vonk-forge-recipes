@@ -2,7 +2,7 @@
   "execution": {
     "build": {
       "base_image": {
-        "digest": "f713b909f16cf8c7901f17c3aee3f471cbee5fbde5603b7dbe2631630887d7c2",
+        "digest": "170d323159f5992ec11822b36fd9157b7299c7f4e4dc718c747e24fcd13758cc",
         "repository": "vllm/vllm-omni"
       },
       "context": {
@@ -171,8 +171,8 @@
     "source_reference": "https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice/tree/0c0e3051f131929182e2c023b9537f8b1c68adfe"
   },
   "release": {
-    "released_at": "2026-10-28",
-    "version": "0.32.0"
+    "released_at": "2026-11-22",
+    "version": "0.34.0"
   },
   "runtime": {
     "arguments": [

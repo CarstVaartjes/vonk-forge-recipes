@@ -4,7 +4,7 @@
     "alias": "inkling-2-mini-sage-exl3",
     "higher_tiers": {
       "stress": [
-        "Bounded long-context canaries at the upstream-measured 24,576-token ceiling (22,839-token prompt), one stream, draft on"
+        "Bounded long-context canaries at the upstream-measured 262,144-token context (22,839-token prompt), one stream, draft on"
       ]
     },
     "smoke_cases": [
