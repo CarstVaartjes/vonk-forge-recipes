@@ -20,13 +20,13 @@
       "size_bytes": 11767
     },
     {
-      "id": "chat-template-de56319deee1-00824420d1",
+      "id": "chat-template-89f895912fa0-00824420d1",
       "path": "chat_template.jinja",
       "roles": [
         "tokenizer"
       ],
-      "sha256": "de56319deee1deb2b88cf576cf20bdc57a8789723f7ff75f9c54acd740d15ecb",
-      "size_bytes": 15168
+      "sha256": "89f895912fa0e7c3c0273b6540f24c46be2c8feebdfad3510b0fe18149e5fba9",
+      "size_bytes": 18117
     },
     {
       "id": "consolidated-fe26a882ffba-e2816af0af",
@@ -66,7 +66,7 @@
       "slug": "mistral-small-4-119b-2603-eagle"
     },
     "publisher": "mistralai",
-    "slug": "mistral-small-4-119b-2603-eagle-9a8ea22d",
+    "slug": "mistral-small-4-119b-2603-eagle-452014fa",
     "variant": "2603",
     "version": "2603"
   },
@@ -74,6 +74,6 @@
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/mistralai/Mistral-Small-4-119B-2603-eagle",
-    "revision": "9a8ea22dca0161ff7af7879f4a0000f65314797d"
+    "revision": "452014facb0bf9f50076ac85507694cb11b38edf"
   }
 }
