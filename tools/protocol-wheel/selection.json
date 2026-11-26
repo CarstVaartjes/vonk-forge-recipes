@@ -37,6 +37,10 @@
       "wheel_directory": ""
     },
     {
+      "context": "adapters/three-d/hunyuan3d-2-1",
+      "wheel_directory": ""
+    },
+    {
       "context": "adapters/three-d/hy-motion",
       "wheel_directory": ""
     },

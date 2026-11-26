@@ -1,0 +1,52 @@
+{
+  "dependencies": [],
+  "files": [
+    {
+      "id": "config-15d2e68b7096-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "15d2e68b709674c0eb9bb5cc8b73e57ebe9a169a425bef224f46ae10053806a2",
+      "size_bytes": 548
+    },
+    {
+      "id": "model-917d3c470db9-9d75c1098f",
+      "path": "model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "917d3c470db999d32a312f8542149be91c7cbac61ee8fb4b67ae3d82b79ce21f",
+      "size_bytes": 4546005432
+    },
+    {
+      "id": "preprocessor-config-14e780d86fa1-36afccab5d",
+      "path": "preprocessor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "14e780d86fa1861f8751f868d7f45425b5feb55c38ca26f152ca5097ab30f828",
+      "size_bytes": 436
+    }
+  ],
+  "format": {
+    "precision": "fp32",
+    "quantization": "none"
+  },
+  "identity": {
+    "model": {
+      "publisher": "facebook",
+      "slug": "dinov2-giant"
+    },
+    "publisher": "facebook",
+    "slug": "dinov2-giant-611a9d42",
+    "variant": "DINOv2 Giant 611a9d42",
+    "version": "DINOv2 Giant 611a9d42"
+  },
+  "kind": "model",
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/facebook/dinov2-giant",
+    "revision": "611a9d42f2335e0f921f1e313ad3c1b7178d206d"
+  }
+}

@@ -62,6 +62,7 @@ secrets/
 /adapters/qwen/tournier-exl3-6-05-tensorfold-single/vendor/tensorfold-53ceb126d5d54e9193245bcc74130fc1d81cf46f.tar.gz
 /adapters/three-d/anytop/vonk_agent_protocol-4.1.0-py3-none-any.whl
 /adapters/three-d/gem-x-motion/vonk_agent_protocol-4.1.0-py3-none-any.whl
+/adapters/three-d/hunyuan3d-2-1/vonk_agent_protocol-4.1.0-py3-none-any.whl
 /adapters/three-d/hy-motion/vonk_agent_protocol-4.1.0-py3-none-any.whl
 /adapters/three-d/kimodo/kimodo/assets/skeletons/somaskel77/skin_standard.npz
 /adapters/three-d/kimodo/vonk_agent_protocol-4.1.0-py3-none-any.whl

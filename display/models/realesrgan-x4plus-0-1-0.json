@@ -1,0 +1,27 @@
+{
+  "capabilities": [],
+  "description": "Real-ESRGAN x4plus super-resolution generator (RRDBNet), the 0.1.0 release asset the Hunyuan3D 2.1 paint step upscales every generated view with. Immutable release and asset IDs bind the checkpoint.",
+  "family_title": "Real-ESRGAN",
+  "identity": {
+    "publisher": "xinntao",
+    "slug": "realesrgan-x4plus-0-1-0"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "xinntao"
+    ],
+    "spdx": "BSD-3-Clause",
+    "url": "https://github.com/xinntao/Real-ESRGAN/blob/a4abfb2979a7bbff3f69f58f58ae324608821e27/LICENSE"
+  },
+  "modalities": [
+    "image"
+  ],
+  "model_title": "Real-ESRGAN x4plus",
+  "tags": [
+    "xinntao",
+    "auxiliary",
+    "image",
+    "offline"
+  ]
+}

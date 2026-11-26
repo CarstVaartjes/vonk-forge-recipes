@@ -1,0 +1,44 @@
+{
+  "capabilities": [
+    "3d-generation",
+    "material-estimation"
+  ],
+  "description": "Tencent Hunyuan3D 2.1 at 0b946776: the image-to-shape flow-matching DiT (fp16 checkpoint) and the multi-view PBR paint model with its custom UNet modules. One Model serves both the image-to-PBR-mesh recipe and the paint-only recipe; each recipe selects only the files it runs.",
+  "family_title": "Hunyuan3D",
+  "identity": {
+    "publisher": "tencent",
+    "slug": "hunyuan3d-2-1-0b946776"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "tencent"
+    ],
+    "spdx": "LicenseRef-Tencent-Hunyuan-3D-2.1-Community-License",
+    "territorial_restrictions": {
+      "denied_jurisdictions": [
+        "EU",
+        "GB",
+        "KR"
+      ],
+      "notice": "The upstream Hunyuan3D 2.1 Community License does not apply in the European Union, United Kingdom, or South Korea."
+    },
+    "url": "https://huggingface.co/tencent/Hunyuan3D-2.1/blob/0b94677654c57bb9a6b6845cd7b704ccf551d327/LICENSE"
+  },
+  "lineage": {
+    "family": "hunyuan",
+    "generation": "Hunyuan3D",
+    "line": "hunyuan3d-2-1",
+    "model": "hunyuan3d-2-1",
+    "variant_kind": "base"
+  },
+  "modalities": [
+    "3d"
+  ],
+  "model_title": "Hunyuan3D-2.1",
+  "tags": [
+    "tencent",
+    "three-d",
+    "candidate"
+  ]
+}

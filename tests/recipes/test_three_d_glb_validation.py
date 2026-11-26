@@ -22,6 +22,7 @@ CONTEXTS = (
     "triposg",
     "partcrafter",
     "skintokens",
+    "hunyuan3d-2-1",
 )
 VALIDATOR_SHA256 = "740cbcd2a36546c39eaf67d26f3485f5c31f00a946ed116e53ef2c08934cf6c1"
 

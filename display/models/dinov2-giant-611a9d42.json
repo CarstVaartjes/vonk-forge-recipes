@@ -1,0 +1,27 @@
+{
+  "capabilities": [],
+  "description": "The exact DINOv2-Giant feature encoder loaded locally by the Hunyuan3D 2.1 adapter.",
+  "family_title": "DINOv2",
+  "identity": {
+    "publisher": "facebook",
+    "slug": "dinov2-giant-611a9d42"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "facebook"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/facebook/dinov2-giant/blob/611a9d42f2335e0f921f1e313ad3c1b7178d206d/README.md"
+  },
+  "modalities": [
+    "image"
+  ],
+  "model_title": "DINOv2 Giant",
+  "tags": [
+    "facebook",
+    "auxiliary",
+    "image",
+    "offline"
+  ]
+}
