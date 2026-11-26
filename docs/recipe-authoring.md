@@ -274,7 +274,7 @@ so a recipe uses a new kind only after the Controller reads this contract
 version. Examples: `recipe-audio-serving.json` (`tests/recipes/test_audio_serving_contract.py`).
 
 Contract compatibility: the library's release version is the contract's
-semantic version (`CONTRACT_VERSION`, release `v5.6.0`). New or changed models
+semantic version (`CONTRACT_VERSION`, release `v5.7.0`). New or changed models
 and recipes never change it: publication updates that release in place and
 records when it was last updated, and vonk-forge follows the newest release
 within its contract major version, so recipe changes never need a vonk-forge
