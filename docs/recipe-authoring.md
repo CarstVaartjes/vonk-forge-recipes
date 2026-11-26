@@ -399,6 +399,9 @@ the token in its existing secret store; never embed it in a Model, Recipe,
 build context or publication. A configured token does not prove that the account
 has accepted terms or received model-specific approval. Verify access separately
 and report pending approval accurately; publication is not download readiness.
+A pinned Model revision that the provider no longer serves anonymously (404/401/403, or an
+unknown access status) is evidence only in the upstream refresh, never a review: the pin is
+digest-verified and the Controller's configured token covers gated downloads.
 
 `capabilities` (in the Model's display, with `modalities` and `license`) is the list
 of capability names the model supports. Leave out what is unknown. Correcting one
@@ -1222,7 +1225,9 @@ repository's newest revision or an image repository's newest tag.
 - **Lock.** `tools/kit-pins lock <recipe>` derives `kit-lock.json` from the kit commit the
   recipe pins: each declared value resolved once to an immutable one (a Git commit, a Hugging
   Face revision, an image digest), recorded with what it named (`"kind"`: `tag`, `branch`,
-  `commit` or `digest`). `kit-lock.json` is generated output and is never edited by hand.
+  `commit` or `digest`). A declared full commit id is recorded as it is, with no provider
+  read, so a repository the provider no longer serves cannot block it; tags, branches and
+  short ids are resolved. `kit-lock.json` is generated output and is never edited by hand.
   Builds read only the lock and never resolve a tag. `lock` also moves what follows it: the
   vendored base archive (mirrored and declared in `adapter-sources.json` with its codeload
   URL as `origin`, never committed; a failed mirror upload names the

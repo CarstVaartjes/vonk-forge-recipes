@@ -175,7 +175,7 @@ class ModelTests(unittest.TestCase):
         )
         assert "parts" not in back["files"][0]
 
-    def test_provider_gate_change_creates_review_without_retargeting_model(
+    def test_gated_model_with_a_newer_revision_follows_it_like_any_other(
         self,
     ) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -199,11 +199,11 @@ class ModelTests(unittest.TestCase):
             target = refresh_model.Target(
                 "huggingface",
                 "example/model",
-                OLD,
+                NEW,
                 "2026-09-30",
                 None,
                 None,
-                "https://huggingface.co/example/model/tree/" + OLD,
+                "https://huggingface.co/example/model/tree/" + NEW,
                 access_status="gated",
             )
 
@@ -214,11 +214,10 @@ class ModelTests(unittest.TestCase):
                 lambda _provider, _repo: target,
             )
 
-            assert not result.items
-            assert result.drifted
-            assert "provider access changed to gated" in result.reasons[0]
+            assert not result.reasons
+            assert [item.target.sha for item in result.items] == [NEW]
 
-    def test_restricted_token_required_or_unspecified_model_is_unverified(self) -> None:
+    def test_restricted_token_required_or_unspecified_model_is_evidence(self) -> None:
         for requires_token in (True, None):
             with (
                 self.subTest(requires_token=requires_token),
@@ -248,20 +247,23 @@ class ModelTests(unittest.TestCase):
                 def restricted(_provider: str, _repo: str):
                     raise refresh_http.AccessRestricted("anonymous metadata denied")
 
-                result = refresh_items.collect_items(
-                    catalog,
-                    "recipe",
-                    object(),  # pyright: ignore[reportArgumentType]
-                    restricted,
-                )
+                def missing(_provider: str, _repo: str):
+                    raise refresh_http.NotFound("gone")
 
-                assert not result.items
-                assert not result.reasons
-                assert not result.drifted
-                assert result.unreachable
-                assert "no credentials were requested" in result.unreachable[0]
+                for resolver in (restricted, missing):
+                    result = refresh_items.collect_items(
+                        catalog,
+                        "recipe",
+                        object(),  # pyright: ignore[reportArgumentType]
+                        resolver,
+                    )
+                    assert not result.items
+                    assert not result.reasons
+                    assert not result.drifted
+                    assert not result.unreachable
+                    assert len(result.evidence) == 1
 
-    def test_unknown_anonymous_access_status_is_unverified(self) -> None:
+    def test_unknown_anonymous_access_status_is_evidence(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             model = model_with(("model.safetensors",))
             model["identity"]["slug"] = "unknown-access-model"
@@ -301,8 +303,8 @@ class ModelTests(unittest.TestCase):
             assert not result.items
             assert not result.reasons
             assert not result.drifted
-            assert result.unreachable
-            assert "access status is unknown" in result.unreachable[0]
+            assert not result.unreachable
+            assert len(result.evidence) == 1
 
     def test_huggingface_resolver_records_explicit_access_status(self) -> None:
         class FakeHttp:
