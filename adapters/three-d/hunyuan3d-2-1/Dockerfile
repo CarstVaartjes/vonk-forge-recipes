@@ -19,6 +19,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 COPY requirements.lock requirements-sdist.txt /tmp/
 COPY vonk_agent_protocol-4.1.0-py3-none-any.whl /tmp/vonk_agent_protocol-4.1.0-py3-none-any.whl
 # libgl1, libglib2.0-0 and libgomp1: opencv-python (from basicsr's requirements) and open3d load them.
+# --ignore-installed: the lock pins wheel, which Debian's python3-wheel owns (pip cannot uninstall it).
 # python-is-python3: compile_mesh_painter.sh runs `python -m pybind11 --includes`.
 # HOME and XDG_CACHE_HOME: diffusers copies the paint model's custom modules into its cache.
 RUN apt-get update \
@@ -36,7 +37,7 @@ RUN apt-get update \
         python3-pip \
     && rm -rf /var/lib/apt/lists/* \
     && python3 -m pip install --break-system-packages --no-cache-dir \
-        --require-hashes \
+        --ignore-installed --require-hashes \
         --extra-index-url https://download.pytorch.org/whl/cu132 \
         --requirement /tmp/requirements.lock \
     && python3 -m pip install --break-system-packages --no-cache-dir \
