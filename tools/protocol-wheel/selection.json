@@ -21,7 +21,15 @@
       "wheel_directory": ""
     },
     {
+      "context": "adapters/three-d/anytop",
+      "wheel_directory": ""
+    },
+    {
       "context": "adapters/three-d/gem-x-motion",
+      "wheel_directory": ""
+    },
+    {
+      "context": "adapters/three-d/hy-motion",
       "wheel_directory": ""
     },
     {

@@ -1,0 +1,25 @@
+{
+  "capabilities": [],
+  "description": "Qwen3-8B in bf16 (the full hidden-state text encoder HY-Motion reads with AutoModelForCausalLM): configuration, tokenizer and five safetensors shards.",
+  "family_title": "Qwen3",
+  "identity": {
+    "publisher": "qwen",
+    "slug": "qwen3-8b-b968826d"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "qwen"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/Qwen/Qwen3-8B/blob/b968826d9c46dd6066d109eabc6255188de91218/LICENSE"
+  },
+  "modalities": [
+    "text"
+  ],
+  "model_title": "Qwen3 8B",
+  "tags": [
+    "qwen",
+    "qwen3"
+  ]
+}

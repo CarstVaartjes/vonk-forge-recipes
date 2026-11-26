@@ -1,0 +1,52 @@
+{
+  "dependencies": [],
+  "files": [
+    {
+      "id": "license-d61bf11f12aa-c693279643",
+      "path": "LICENSE",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "d61bf11f12aad3e31dcc9be3e90df24cabf3bed9e1078a263a260f3785fdbd94",
+      "size_bytes": 505
+    },
+    {
+      "id": "args-d30efa1d8e36-9686866d83",
+      "path": "checkpoints/all_model_dataset_truebones_bs_16_latentdim_128/args.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "d30efa1d8e36789f4b5194bd12a4a7f554cc01d06b0ffdcbb7a0d1380f686ba6",
+      "size_bytes": 1118
+    },
+    {
+      "id": "model000459999-7d137ac1d3ce-c5d4e9daeb",
+      "path": "checkpoints/all_model_dataset_truebones_bs_16_latentdim_128/model000459999.pt",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "7d137ac1d3cef817d9334298b087db6316f27e2dd2f9d83b67cb4fb1513576c0",
+      "size_bytes": 9222606
+    }
+  ],
+  "format": {
+    "precision": "fp32",
+    "quantization": "none"
+  },
+  "identity": {
+    "model": {
+      "publisher": "inbar2344",
+      "slug": "anytop"
+    },
+    "publisher": "inbar2344",
+    "slug": "anytop-all-2358c7bc",
+    "variant": "2358c7bc",
+    "version": "2358c7bc"
+  },
+  "kind": "model",
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/Inbar2344/AnyTop",
+    "revision": "2358c7bc236516f60c50003e56940a3a823ea27d"
+  }
+}
