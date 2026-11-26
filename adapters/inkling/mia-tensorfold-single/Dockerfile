@@ -1,7 +1,7 @@
-# Mia AI Lab's Inkling-2-Mini / one DGX Spark / TensorFold kit (MiaAI-Lab/Inkling-2-Mini-DGX-Spark-TensorFold 6061fa89).
+# Mia AI Lab's Inkling-2-Mini / one DGX Spark / TensorFold kit (MiaAI-Lab/Inkling-2-Mini-DGX-Spark-TensorFold 9e3cf20b).
 # The creator publishes no image: scripts/prepare.sh builds a local tag (tensorfold-inkling2:c4-dc2ca8a) with an inline Dockerfile.
 # This file is that build, pinned: jschmied's Inkling 2 Mini CUDA engine (TensorFold PR #4441, commit dc2ca8a1, locked in
-# kit-lock.json) plus the kit's patches 0001 to 0017 (vendored), Zig 0.17.0, libtfgrammar built from xgrammar v0.2.8 (commit
+# kit-lock.json) plus the kit's patches 0001 to 0018 (vendored), Zig 0.17.0, libtfgrammar built from xgrammar v0.2.8 (commit
 # checked), and the JPEG and WebP decoders for image input (libjpeg-turbo 3.1.4.1, libwebp 1.6.0), on the
 # nvcr.io/nvidia/pytorch:26.07-py3 the kit builds on, with the kit's -Dnative-fp-decode default and a build-time sm_121 kernel
 # scan after. The thin Controller layer on top is the launcher wrapper, the licence texts and the non-root user.
@@ -70,7 +70,7 @@ RUN ls /opt/tensorfold/fatbin/*.fatbin >/dev/null \
 
 FROM nvcr.io/nvidia/pytorch:26.07-py3@sha256:7531d90bcbe0e43e1f7363029c7e145ce90eebeb494a7b4695fdba0329d7c3c3
 LABEL org.opencontainers.image.source="https://github.com/MiaAI-Lab/Inkling-2-Mini-DGX-Spark-TensorFold" \
-      org.opencontainers.image.revision="6061fa89a34d2a245bc4a230f04948f312347a5e" \
+      org.opencontainers.image.revision="9e3cf20b76e0140bebbbe6ed13f6e3a00e881f12" \
       org.opencontainers.image.licenses="Apache-2.0" \
       ai.vonkforge.runtime-interface="v1" \
       tf.kernels=embedded

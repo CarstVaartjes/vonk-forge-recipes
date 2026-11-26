@@ -26,6 +26,23 @@ Third-party code vendored in this repository:
   K / V tiles from a side pool.
 - overlay/inkling_vattn/ops.py: `_inkernel_bias_partials` is the same SGLang `_decode_partials` kernel body
   (sgl-project/sglang, Apache-2.0), modified to compute the relative-position bias per key tile in-kernel.
+- overlay/inkling_rsfix/markov.py and overlay/inkling_rsfix/blockwise.py: the changes of sgl-project/sglang pull
+  requests #51681 (dspark markov_sample) and #51692 (dspark blockwise_rejection), applied verbatim to copies of the
+  image's functions (sgl-project/sglang, Apache-2.0). overlay/inkling_rsfix/reject.py and selector.py are copies of
+  SGLang's reject_sampling kernels and DFLASH selector walk (Apache-2.0), modified as described in
+  overlay/inkling_rsfix/README.md.
+
+Third-party model files fetched at run time, not distributed in this repository:
+- Inkling-2-Mini-DFlash2 (huggingface.co/incoai/Inkling-2-Mini-DFlash2) by incoai, revision
+  4f9088ea66c21f2b99ed657d1941c306b03e84d2: the draft model (config.json, model.safetensors) and its SGLang
+  compatibility patch (sglang_inkling_dflash2.py). Licensed under the Apache License, Version 2.0; you may not use
+  these files except in compliance with the License. You may obtain a copy of the License at
+  http://www.apache.org/licenses/LICENSE-2.0. Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+  either express or implied. See the License for the specific language governing permissions and limitations under
+  the License. scripts/download.sh fetches them unmodified at that revision; scripts/launch.sh checks their sha256
+  and runs the patch, unmodified, inside the serving container only. The draft method builds on DFlash
+  (github.com/z-lab/dflash).
 
 The serving engines run from their published container images, pinned by digest in scripts/launch.sh:
 - SGLang (sgl-project/sglang), lmsysorg/sglang:inkling-2-mini, Apache-2.0.

@@ -4,7 +4,7 @@ Switch: `INKLING_PFUSE=loopmix,resnorm,sconvres` (or `all`); unset = nothing is 
 `INKLING_PFUSE_MIN_ROWS` (default 512, floor 64): smallest EXTEND / MIXED batch served by the fused path.
 Decode, target verify, smaller batches and anything with an unexpected dtype / layout run the stock code.
 
-Status 2026-11-21: written, reviewed, GPU-checked on Spark_06
+Status 2026-11-21: written, reviewed, GPU-checked on a GB10 Spark
 (ALL OK, see Results). Not yet A/B-tested end to end in the server (the patched `_forward` was only install-checked).
 
 ## Where the elementwise remainder goes (stock kernels, one 8192-token chunk)
@@ -96,7 +96,7 @@ and in `scripts/launch.sh` export `INKLING_PFUSE=all` (or a subset).
   correctness (bit-equality rate, error vs FP64 for stock and fused), microbench stock vs fused at the first
   token count, CUDA-graph replay, install in a subprocess. Exit 1 on any failure.
 
-## Results (Spark_06, GB10, 2026-11-21; logs in results/kbench/round2/pfuse/runs/)
+## Results (GB10, 2026-11-21; logs in results/kbench/round2/pfuse/runs/)
 
 Attribution of the remainder at 8192 tokens (stock kernels, `attrib8k.log`): 614 ms per chunk of the 744 ms
 closing term, every kernel at 215-300 GB/s (L2-assisted for the small ones). By kind: loop controllers 233 ms
@@ -140,7 +140,7 @@ Loop attn-local pipeline now: stats 1.91 ms + split down 0.79 + mix (two-pass, n
 the stats kernel runs at ~200 GB/s of its bytes, the mix kernel at ~100-120 GB/s of its DRAM bytes (L2 re-reads of
 the sources and weights): the remaining headroom is in the mix kernel.
 
-End-to-end estimate (per-chunk saving x chunks against track H's shipped TTFTs; not yet measured in the server):
+End-to-end estimate (per-chunk saving x chunks against the shipped TTFTs; not yet measured in the server):
 
 | prompt | shipped | with inkling_pfuse | speedup |
 |---|---:|---:|---:|

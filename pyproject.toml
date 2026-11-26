@@ -118,6 +118,7 @@ ban-relative-imports = "all"
 [tool.ruff.lint.flake8-tidy-imports.banned-api]
 "urllib.request.urlopen".msg = "use recipe_tooling.upstream_http"
 "urllib.request.build_opener".msg = "use recipe_tooling.upstream_http"
+"urllib.request.HTTPRedirectHandler".msg = "redirect policy lives in recipe_tooling.upstream_http"
 
 [tool.pyright]
 # One checker for our own code; adapters are excluded (see [tool.ruff]). The mode and the

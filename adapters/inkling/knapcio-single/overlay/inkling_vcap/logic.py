@@ -245,3 +245,26 @@ def calibrated_live_lens(
             p_other = torch.exp(logf.sum(dim=-1, keepdim=True) - logf)  # prod s != r
             lens = rule(base * p_other[..., None])
     return lens.clamp_(int(min_len), int(max_len))
+
+
+def mask_dead_q_rows_sparse(
+    q_rows: torch.Tensor, candidate_ids: torch.Tensor, draft_tokens: torch.Tensor, live_lens: torch.Tensor
+) -> torch.Tensor:
+    """Block verification under the cap on the DFLASH selector's sparse q: a masked COPY of ``q_rows`` [bs, G, K]
+    (row j = q of d_j over the K candidate ids ``candidate_ids`` [bs, G, K]) such that scattering it into a zero
+    dense [bs, G, V] buffer gives exactly ``mask_dead_draft_rows`` of the scatter of ``q_rows``:
+      - row g = L - 1 (the law of the first dead draft) all zeros when g < G;
+      - q_j(d_j) = 0 for every j >= g (d_j's lane is the one whose candidate id equals d_j; candidate ids of a slot
+        are distinct, so the lane is unique).
+    The input is never written (the draft graph owns it). Fixed shapes, no host sync (graph-safe)."""
+    bs, gamma, k = q_rows.shape
+    if bs == 0:
+        return q_rows.clone()
+    device = q_rows.device
+    g = (live_lens[:bs].to(device=device, dtype=torch.int64) - 1).clamp_(min=0)
+    pos = torch.arange(gamma, device=device)
+    cut_row = (pos[None, :] == g[:, None])[..., None]  # [bs, G, 1]; no row matches when g >= G
+    tok = draft_tokens[:bs].to(device=device, dtype=torch.int64).reshape(bs, gamma)
+    is_tok = candidate_ids[:bs].to(torch.int64) == tok[..., None]  # [bs, G, K]
+    dead_tok = is_tok & (pos[None, :] >= g[:, None])[..., None]
+    return q_rows[:bs].masked_fill(cut_row | dead_tok, 0.0)

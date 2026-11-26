@@ -27,7 +27,7 @@ MAX_ROWS = 16
 _EXT = None
 INFO: dict = {}
 
-# (N, K) -> cfg, from the GB10 microbenchmark (c1leak track, 2026-11-22); other shapes: DEFAULT_CFG
+# (N, K) -> cfg, from the GB10 microbenchmark (2026-11-22); other shapes: DEFAULT_CFG
 TABLE: dict = {}
 DEFAULT_CFG = 1242  # best or within 3 % of best on every draft shape at 1-16 rows (GB10, 2026-11-22)
 

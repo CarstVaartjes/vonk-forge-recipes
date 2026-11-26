@@ -57,6 +57,8 @@ class _State:
     originals: dict = {}
     gemv_mod = None
     flag_override_noted = False
+    compact_base = 0    # > 0 inside a hotbase walk (patch_draft_sampler)
+    compact_served = 0  # compute_base_logits calls that returned the compact hot logits
 
 
 STATE = _State()
@@ -214,6 +216,10 @@ def patch_inkling2_mtp(mod) -> None:
             if self.logits_mup_width_multiplier:
                 hidden = hidden / self.logits_mup_width_multiplier
             compact = hot_base_logits(hidden, hot)
+            if STATE.compact_base > 0:
+                # hotbase: the captured sampler's stock walk (patch_draft_sampler) reads only the hot columns
+                STATE.compact_served += 1
+                return compact, None
             full = torch.full(
                 (compact.shape[0], hot.width), float("-inf"),
                 dtype=compact.dtype, device=compact.device,
@@ -262,13 +268,15 @@ def patch_dspark_draft(mod) -> None:
         state, latent = markov_head._rnn_step(state, prev_tokens, hidden_states, f_rnn)
         step_dtype = markov_head.step_logits_dtype(base_logits.dtype)
         rows = base_logits.shape[0]
+        nhot = hot.ids32.numel()
+        compact = nhot != hot.width and base_logits.shape[-1] == nhot  # hotbase: [rows, N] in hot order
         # Full-width step logits: -inf off the hot set, so the kept logits are
         # the distribution the token is drawn from.
         full = torch.full((rows, hot.width), float("-inf"), dtype=step_dtype,
                           device=base_logits.device)
         ops.hot_step(
             latent, hot.fold, hot.fold_bias, base_logits, hot.ids32, full,
-            softcap=markov_head.step_softcap, vocab_limit=markov_head.step_vocab_limit,
+            softcap=markov_head.step_softcap, vocab_limit=markov_head.step_vocab_limit, base_compact=compact,
         )
         # Bias = an all-zero row (stride 0): x + 0 and the BF16 round are
         # identities, softcap and the hot roundings were applied above.
@@ -289,6 +297,35 @@ def patch_dspark_draft(mod) -> None:
 
     _draft_step._idb_hot_step = True
     _replace(mod, "_draft_step", _draft_step, "dspark_draft._draft_step")
+
+
+SAMPLER_MODULE = "sglang.srt.speculative.dspark_components.dspark_draft_sampler"
+
+
+def patch_draft_sampler(mod) -> None:
+    """hotbase: compact draft base logits for the captured sampler's stock Markov walk. Inside _markov_block the
+    only reader of base_logits is draft_markov_block -> the hotvocab _draft_step (when the int8 walker is off for
+    this bucket; it reads the full buffer and keeps the full-width path)."""
+    _require(mod, ["DsparkDraftSampler"], SAMPLER_MODULE)
+    cls = mod.DsparkDraftSampler
+    _require(cls, ["_markov_block"], "DsparkDraftSampler")
+    orig = cls._markov_block
+    if getattr(orig, "_idb_hotbase", False):
+        return
+
+    @functools.wraps(orig)
+    def _markov_block(self, model_hidden, sample_hidden, anchor, bs: int):
+        walker = getattr(self, "_markov_walker", None)
+        if walker is not None and walker.supports(bs):
+            return orig(self, model_hidden, sample_hidden, anchor, bs)
+        STATE.compact_base += 1
+        try:
+            return orig(self, model_hidden, sample_hidden, anchor, bs)
+        finally:
+            STATE.compact_base -= 1
+
+    _markov_block._idb_hotbase = True
+    _replace(cls, "_markov_block", _markov_block, "DsparkDraftSampler._markov_block (hotbase)")
 
 
 def patch_draft_tau(mod) -> None:
@@ -577,8 +614,15 @@ def arm(opts) -> None:
     if draft_patches:
         # One post-import callback per module name (_hooks keeps a dict).
         when_imported(DRAFT_MODULE, lambda mod: [patch(mod) for patch in draft_patches])
+    sampler_patches = []
+    if opts.hotbase:
+        sampler_patches.append(patch_draft_sampler)
     if opts.tau != 1.0:
-        when_imported(tau_mod.SAMPLER_MODULE, patch_sampler_tau)
+        sampler_patches.append(patch_sampler_tau)
+    if sampler_patches:
+        assert SAMPLER_MODULE == tau_mod.SAMPLER_MODULE
+        when_imported(SAMPLER_MODULE, lambda mod: [patch(mod) for patch in sampler_patches])
+    if opts.tau != 1.0:
         when_imported(tau_mod.SAG_MODULE, patch_sag_tau)
     if opts.dwin:
         when_imported(

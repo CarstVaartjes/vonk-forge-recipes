@@ -514,6 +514,7 @@ class ModelReExportTests(unittest.TestCase):
         )
         new = files(*old_paths, sha="c" * 64)
         new += files("split_files/text_encoders/te_int8.safetensors", sha="d" * 64)
+        new += files("README_strata.md", sha="e" * 64)
         result, _, edits = self.move(None, old_paths=old_paths, new_inventory=new)
         assert result.reasons == []
         assert result.items[0].noop

@@ -1,10 +1,17 @@
 {
   "dependencies": {
+    "drafter": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "4f9088ea66c21f2b99ed657d1941c306b03e84d2",
+      "repo": "incoai/Inkling-2-Mini-DFlash2",
+      "revision": "4f9088ea66c21f2b99ed657d1941c306b03e84d2"
+    },
     "engine": {
-      "commit": "10a85129180145c888693f222655f79e7d403216",
+      "commit": "c702887ba7be368e1714339dd755a7c3c9b263d5",
       "datasource": "git-ref",
       "kind": "commit",
-      "ref": "10a85129180145c888693f222655f79e7d403216",
+      "ref": "c702887ba7be368e1714339dd755a7c3c9b263d5",
       "repo": "vcruz305/exllamav3"
     },
     "model": {
@@ -23,7 +30,7 @@
     }
   },
   "kit": {
-    "commit": "ed76a4b14a47c5a1a526a2b98c7c2f5337adb2e6",
+    "commit": "ed64091c4d5020b8617b0d7d18ce1296af2337c0",
     "repo": "vcruz305/Inkling-2-Mini-SAGE-EXL3-recipe"
   }
 }

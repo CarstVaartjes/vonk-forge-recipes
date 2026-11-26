@@ -10,7 +10,7 @@ from collections.abc import Callable
 from typing import Any
 from urllib.error import HTTPError
 from urllib.parse import quote, urlparse
-from urllib.request import HTTPRedirectHandler, Request
+from urllib.request import Request
 
 from recipe_tooling.catalog_model import (
     add_model_arguments,
@@ -27,28 +27,13 @@ MAX_INLINE_ARTIFACT_BYTES = 16 * 1024 * 1024
 _HF_HOSTS = {"huggingface.co", "www.huggingface.co"}
 
 
-class _KeepTokenOnHuggingFace(HTTPRedirectHandler):
-    """Follow redirects, but never send the Hugging Face token to another host."""
-
-    def redirect_request(self, req, fp, code, msg, headers, newurl):
-        redirected = super().redirect_request(req, fp, code, msg, headers, newurl)
-        if redirected is not None and urlparse(newurl).hostname not in _HF_HOSTS:
-            redirected.remove_header("Authorization")
-        return redirected
-
-
 def _read[T](url: str, timeout: int, read: Callable[[Any], T]) -> T:
     """Read ``url`` through the shared retry; an ``HF_TOKEN`` authenticates Hugging Face."""
     headers = {"User-Agent": "vonk-forge-recipe-library/1"}
     token = os.environ.get("HF_TOKEN")
     if token and urlparse(url).hostname in _HF_HOSTS:
         headers["Authorization"] = f"Bearer {token}"
-    return fetch(
-        Request(url, headers=headers),
-        read,
-        timeout=timeout,
-        handlers=(_KeepTokenOnHuggingFace,),
-    )
+    return fetch(Request(url, headers=headers), read, timeout=timeout)
 
 
 def _get_json(url: str) -> object:

@@ -88,6 +88,13 @@ class SideGuard:
 
     # -- measurement -------------------------------------------------------
     def _usage(self):
+        # One launch (was a full-width int32 -> FP32 copy plus a [lanes, N] x [N, 3] cuBLAS matmul, ~38 us per step):
+        # per lane the integer sums of the lock words over the live / fallback / overflow segments, as FP32. The
+        # lock words are 0 / 1, so every sum is < 2**24 and equals the old FP32 matmul's value exactly.
+        if self.locks.is_cuda and self.locks.dtype == torch.int32 and self.locks.is_contiguous():
+            from .segsum import segment_sums
+
+            return segment_sums(self.locks, self.live, self.fallback)
         return torch.mm(self.locks.to(torch.float32), self.segments)  # exact: counts < 2**24
 
     def record(self, batch=None):

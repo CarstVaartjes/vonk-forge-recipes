@@ -74,8 +74,10 @@ def _check_cache_selectors(memory, speculative_algorithm, disaggregation_mode):
     if memory.radix_cache_backend is not None:
         raise IncompatibleImage("inkling_kv12s requires the built-in unified radix cache; "
                                 f"explicit backend {memory.radix_cache_backend!r} is unsupported")
-    if speculative_algorithm not in (None, "DSPARK"):
-        raise IncompatibleImage("inkling_kv12s supports a linear DSpark draft")
+    if speculative_algorithm not in (None, "DSPARK", "DFLASH"):
+        raise IncompatibleImage("inkling_kv12s supports a linear DSpark or DFLASH draft")
+    if speculative_algorithm == "DFLASH" and _POOL != "static":
+        raise IncompatibleImage("inkling_kv12s: a DFLASH draft needs INKLING_KV12S_POOL=static")
     if disaggregation_mode not in (None, "null", "none"):
         raise IncompatibleImage("inkling_kv12s: prefill/decode disaggregation and PD decode restore are unsupported")
 
@@ -173,8 +175,14 @@ def _register_config(module):
                 raise IncompatibleImage("inkling_kv12s requires unsharded, resident request ownership")
             spec = module.get_spec()
             _check_cache_selectors(memory, spec.speculative_algorithm, module.get_disagg().disaggregation_mode)
-            if spec.speculative_eagle_topk not in (None, 1) or spec.speculative_dflash_draft_kv_ring:
-                raise IncompatibleImage("inkling_kv12s requires a linear draft chain in unified KV storage")
+            if spec.speculative_eagle_topk not in (None, 1):
+                raise IncompatibleImage("inkling_kv12s requires a linear draft chain")
+            dflash = spec.speculative_algorithm == "DFLASH"
+            if bool(spec.speculative_dflash_draft_kv_ring) != dflash:
+                # DFLASH keeps its draft KV in the stock ring (a fixed charge next to the
+                # packed target store); the DSpark draft has no ring.
+                raise IncompatibleImage("inkling_kv12s: a DFLASH draft needs SGLANG_ENABLE_DFLASH_DRAFT_KV_RING=1, "
+                                        "and only a DFLASH draft keeps a draft KV ring")
             if os.environ.get("SGLANG_DEBUG_POISON_POOL", "0").strip().lower() not in ("", "0", "false"):
                 raise IncompatibleImage("inkling_kv12s requires zero-initialized page envelopes")
             if any(getattr(memory, flag, False) for flag in (
@@ -775,7 +783,7 @@ class Forward:
 
 
 def _packed_prefill_in_capture(q, layer, page_table, cu_seqlens_q, seqused_k, softmax_scale, *, r, proj, out,
-                               warps=None):
+                               warps=None, gate=None, sinks=None, y=None, zero_tail=True):
     """inkling_attn.ops.packed_prefill_attention without its host-side length check
     (which reads seqused_k): geometry is validated on shapes only, so the call can be
     captured; the kernel bounds every page and length on the device."""
@@ -796,7 +804,7 @@ def _packed_prefill_in_capture(q, layer, page_table, cu_seqlens_q, seqused_k, so
     planes = [*layer.planes, layer.stage, layer.overflow]
     build.load().fwd(q, layer.raw, layer.raw, page_table, cu_seqlens_q, seqused_k, r, proj, out, lse,
                      float(softmax_scale), -1, projp, ops.WARPS if warps is None else int(warps), planes,
-                     ops.W8_FROM)
+                     ops.W8_FROM, gate=gate, sinks=sinks, y=y, zero_tail=bool(zero_tail))
     return out, lse
 
 
@@ -805,7 +813,7 @@ def dispatch_packed_fa4(stock, layer, kwargs, *, warps=None):
     import torch
 
     from inkling_attn.ops import packed_prefill_attention
-    from inkling_attn.patch import STATS, packed_rel_projection
+    from inkling_attn.patch import STATS, gate_begin, gate_commit, packed_rel_projection
 
     from .storage import PAGE
 
@@ -830,6 +838,12 @@ def dispatch_packed_fa4(stock, layer, kwargs, *, warps=None):
             and all(kwargs.get(name) is None for name in unsupported)):
         from .static import CAPTURING
 
+        # INKLING_ATTN_GATE=all: the gated epilogue (y = gate_sink(out, lse) in-kernel; out stays unwritten). With
+        # two launches into one output, the first zeroes y's tail (or all of y when it is the inactive one), the
+        # second must not.
+        g = gate_begin(q, kwargs["out"]) if kwargs.get("return_softmax_lse") else None  # gate_sink needs the LSE
+        gk = {k_: v_ for k_, v_ in g.items() if k_ != "_visit"} if g else {}
+
         if CAPTURING or (torch.cuda.is_available() and torch.cuda.is_current_stream_capturing()):
             # Prefill graph warmup and capture (static pools): the eager scratch gather reads the
             # page table on the host. A captured prefill gathers the prefix into the bounded BF16
@@ -842,7 +856,7 @@ def dispatch_packed_fa4(stock, layer, kwargs, *, warps=None):
                 # Small buckets: the eager rule (per-visit decode of the prefix outweighs).
                 result = _packed_prefill_in_capture(
                     q, layer, table, cu_q, seq_k, kwargs["softmax_scale"], r=bias, proj=proj,
-                    out=kwargs["out"], warps=warps,
+                    out=kwargs["out"], warps=warps, **gk,
                 )
             else:
                 # The prefix in the BF16 scratch when it fits (device decision), else the
@@ -854,13 +868,15 @@ def dispatch_packed_fa4(stock, layer, kwargs, *, warps=None):
                 none = torch.zeros_like(cu_q)
                 _, lse_bf16 = prefill_attention(
                     q, k, v, local, torch.where(fits, cu_q, none), seq_k, bias, proj, kwargs["softmax_scale"],
-                    None, out=kwargs["out"], warps=warps,
+                    None, out=kwargs["out"], warps=warps, **gk,
                 )
                 _, lse_packed = _packed_prefill_in_capture(
                     q, layer, table, torch.where(fits, none, cu_q), seq_k, kwargs["softmax_scale"], r=bias,
-                    proj=proj, out=kwargs["out"], warps=warps,
+                    proj=proj, out=kwargs["out"], warps=warps, **gk, **({"zero_tail": False} if gk else {}),
                 )
                 result = (kwargs["out"], torch.where(fits, lse_bf16, lse_packed))
+            if g:
+                gate_commit(g, kwargs["out"])
             STATS["kernel"] += 1
             return result if kwargs.get("return_softmax_lse") else result[0]
         scratch = _PREFIX_SCRATCH[0] if _PREFIX_SCRATCH else None
@@ -872,13 +888,19 @@ def dispatch_packed_fa4(stock, layer, kwargs, *, warps=None):
             k, v, local = copy
             result = prefill_attention(
                 q, k, v, local, cu_q, seq_k, bias, proj, kwargs["softmax_scale"], None,
-                out=kwargs["out"], warps=warps,
+                out=kwargs["out"], warps=warps, **gk,
             )
+            if g:
+                result = (kwargs["out"], result[1])  # FA4's (out, lse); gate_sink takes y from the visit
         else:
             result = packed_prefill_attention(
                 q, layer, table, cu_q, seq_k, kwargs["softmax_scale"], r=bias, proj=proj,
-                out=kwargs["out"], warps=warps,
+                out=kwargs["out"], warps=warps, **gk,
             )
+            if g:
+                result = (kwargs["out"], result[1])
+        if g:
+            gate_commit(g, kwargs["out"])
         STATS["kernel"] += 1
         return result if kwargs.get("return_softmax_lse") else result[0]
 
@@ -1095,8 +1117,18 @@ def _register_dspark(module, eager=True):
                     ids = window.verify_cache_loc_2d
                 else:
                     ids = iteration.write_ids(target.runner_ids).view_as(window.verify_cache_loc_2d)
-                for lane in view.owned_layers:
-                    lane.settle(ids, commit)
+                lanes = list(view.owned_layers)
+                # The page candidates depend only on the verify ids: build them once for all owned layers
+                # (the same tensors each layer's settle computed; saves 4 launches per layer).
+                shared = (lanes and ids.ndim == 2 and ids.numel()
+                          and all(callable(getattr(lane, "settle_pages", None)) for lane in lanes))
+                if shared:
+                    prepared = lanes[0].settle_pages(ids)
+                    for lane in lanes:
+                        lane.settle(ids, commit, prepared=prepared)
+                else:
+                    for lane in lanes:
+                        lane.settle(ids, commit)
             return result
         return decode
 
@@ -1133,6 +1165,43 @@ def _register_probe_dspark(module):
 
     _wrap(module.DSparkWorkerV2, "forward_batch_generation",
           "self batch on_publish grammar_barrier pp_proxy_tensors", probe)
+
+
+def _register_dflash(module):
+    """DFLASH (DFlash2): settle the target's tentative verify writes, as for DSpark, and
+    probe the outermost forward. The verify ids of a decode step are the worker's
+    persistent block buffer (physical rows on the static pools); the next step refills
+    it later on the same stream, after these kernels."""
+    from .pressure import outermost
+    from .static import view_of
+
+    def settle(original):
+        def forward(self, batch, on_publish=None, grammar_barrier=None, pp_proxy_tensors=None):
+            # Decided before the call: the worker switches the batch to TARGET_VERIFY
+            # (an extend mode) for its verify and the scheduler restores it afterwards.
+            mode = batch.forward_mode
+            decode = not (mode.is_extend() or batch.is_extend_in_batch or mode.is_idle())
+            result = original(self, batch, on_publish, grammar_barrier, pp_proxy_tensors)
+            view = view_of(self.target_worker.model_runner.token_to_kv_pool)
+            commit = getattr(result, "accept_lens", None)
+            if view is not None and commit is not None and getattr(self, "_hosts_draft", True) and decode:
+                bs = commit.numel()
+                ids = self._draft_verify_out_cache_loc_buf[:bs]
+                if ids.shape != (bs, int(self.block_size)):
+                    raise RuntimeError("inkling_kv12s: unexpected DFLASH verify window")
+                for lane in view.owned_layers:
+                    lane.settle(ids, commit)
+            return result
+        return forward
+
+    def probe(original):
+        def forward(self, batch, on_publish=None, grammar_barrier=None, pp_proxy_tensors=None):
+            return outermost(lambda: original(self, batch, on_publish, grammar_barrier, pp_proxy_tensors), batch)
+        return forward
+
+    signature = "self batch on_publish grammar_barrier pp_proxy_tensors"
+    _wrap(module.DFlashWorkerV2, "forward_batch_generation", signature, settle)
+    _wrap(module.DFlashWorkerV2, "forward_batch_generation", signature, probe)  # outer: sees the settled usage
 
 
 def _register_probe_worker(module):
@@ -1444,7 +1513,8 @@ def _register_static_sizing(module):
                     overlap=not get_server_args().disable_overlap_schedule)
                 lanes = static.DRAFT_WINDOW_LANES
                 lane = self._full_per_token  # one draft lane: the target's visit geometry (8 x 256 x 2 B)
-                if lanes and not self._draft_follows_swa and self._draft_cell_size:
+                dspark = kvc.spec_algorithm.is_dspark()
+                if dspark and lanes and not self._draft_follows_swa and self._draft_cell_size:
                     draft_cfg = getattr(getattr(kvc, "spec_aux_config", None), "draft_model_config", None)
                     local = layers = None
                     for hf in (getattr(draft_cfg, "hf_text_config", None), getattr(draft_cfg, "hf_config", None)):
@@ -1611,6 +1681,7 @@ def register_static():
         ("sglang.srt.models.inkling_common.inkling2_attn", _register_model),
         ("sglang.srt.speculative.dspark_components.dspark_worker_v2", lambda m: _register_dspark(m, eager=False)),
         ("sglang.srt.speculative.dspark_components.dspark_worker_v2", _register_probe_dspark),
+        ("sglang.srt.speculative.dflash_worker_v2", _register_dflash),
         ("sglang.srt.managers.tp_worker", _register_probe_worker),
         ("sglang.srt.managers.scheduler", _register_scheduler),
         ("sglang.srt.managers.schedule_batch", _register_decode_capacity),

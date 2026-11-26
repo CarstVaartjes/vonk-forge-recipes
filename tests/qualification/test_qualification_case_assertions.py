@@ -432,8 +432,8 @@ def test_qualification_parameters_do_not_enter_recipe_content_identity(built_cat
 # Recipe-only protection misses changes in a shared image build context.
 REVIEWED_SHARED_IDENTITIES = {
     "ltx-2-19b-distilled-fp8-diffusers-single": (
-        "23b41e2cbc37217ec2e9f246267324462d8435fb3b30663e8a82114db66bd230",
-        "6e10cc06a0b61e7b53c6079efe402392a84e4924ba560d285bbd6a7e918293fb",
+        "157826ca00f594d51b472556aa626c324c6b7f8d77b6944787147fa7fb9d0c97",
+        "43c7925a39f2d2e35f98d490742dd7fb11593d18b9e7350fc4bfb85d736d773c",
     ),
     "pixal3d-pytorch-single": (
         "d97ae285f73edad40714c47752ab47be03f1641f52a0ea92dc30c516aec81074",

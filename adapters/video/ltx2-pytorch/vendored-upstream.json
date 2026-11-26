@@ -1,7 +1,7 @@
 {
   "source": {
     "repo": "Lightricks/LTX-2",
-    "commit": "f0f2f8607189c78a72420b2b63cb1975b5eca179"
+    "commit": "c3a7efb18256cba2d76cc32f5b47811d7c9ad642"
   },
   "ours": [
     "nvfp4-sm121.patch",

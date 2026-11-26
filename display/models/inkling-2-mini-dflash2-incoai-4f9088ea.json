@@ -1,0 +1,30 @@
+{
+  "capabilities": [],
+  "description": "IncoAI's DFlash2 block-diffusion speculative-decoding draft for Inkling 2 Mini (BF16). Apache-2.0 per the model card.",
+  "family_title": "Inkling",
+  "identity": {
+    "publisher": "incoai",
+    "slug": "inkling-2-mini-dflash2-incoai-4f9088ea"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "IncoAI",
+      "Z-Lab"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/incoai/Inkling-2-Mini-DFlash2/blob/4f9088ea66c21f2b99ed657d1941c306b03e84d2/README.md"
+  },
+  "modalities": [
+    "text"
+  ],
+  "model_title": "Inkling 2 Mini DFlash2 draft (IncoAI)",
+  "tags": [
+    "candidate",
+    "dflash2",
+    "incoai",
+    "inkling-2-mini-dflash2-incoai",
+    "language",
+    "speculator"
+  ]
+}
