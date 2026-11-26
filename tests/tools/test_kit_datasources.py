@@ -966,7 +966,7 @@ class KitModelAssessmentTests(unittest.TestCase):
         )
         assert not result.mechanical
 
-    def test_a_declared_model_that_stopped_being_readable_is_a_review(self) -> None:
+    def test_a_declared_model_that_stopped_being_readable_stays_as_locked(self) -> None:
         result, _ = self.assess(
             KIT_NEW,
             KIT_NEW,
@@ -975,10 +975,9 @@ class KitModelAssessmentTests(unittest.TestCase):
             {},
             hub=hub_for(private=(NEW,)),
         )
-        assert not result.mechanical
-        assert any("cannot be read" in r and "HTTP 401" in r for r in result.reasons), (
-            result.reasons
-        )
+        assert not result.drifted
+        assert not result.reasons, result.reasons
+        assert any("as locked" in e for e in result.evidence), result.evidence
 
 
 # ---------------------------------------------------------------------------
