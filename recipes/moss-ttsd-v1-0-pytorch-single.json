@@ -1,0 +1,519 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
+        "repository": "nvcr.io/nvidia/cuda"
+      },
+      "context": {
+        "path": "adapters/audio/moss-ttsd-pytorch"
+      },
+      "dockerfile": "adapters/audio/moss-ttsd-pytorch/Dockerfile",
+      "network": {
+        "hosts": [
+          "download.pytorch.org",
+          "download-r2.pytorch.org",
+          "pypi.org",
+          "pypi.nvidia.com",
+          "files.pythonhosted.org",
+          "archive.ubuntu.com",
+          "security.ubuntu.com",
+          "ports.ubuntu.com"
+        ]
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "moss-ttsd-v1-0-pytorch-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "audio-job",
+      "input": {
+        "max_bytes": 33640448,
+        "media_types": [
+          "audio/wav",
+          "text/plain"
+        ],
+        "required": true,
+        "slots": [
+          {
+            "description": "UTF-8 dialogue with a speaker tag before each turn, [S1] to [S5], for example \"[S1] Welcome back. [S2] Thanks for having me.\" Up to about ten minutes of audio per job.",
+            "extensions": [
+              ".txt"
+            ],
+            "id": "script",
+            "label": "Dialogue script",
+            "max_file_bytes": 65536,
+            "max_files": 1,
+            "max_total_bytes": 65536,
+            "media_types": [
+              "text/plain"
+            ],
+            "min_files": 1
+          },
+          {
+            "description": "Optional WAV clips of the voices to clone, 3 to 10 seconds each, one per speaker. Files are taken in file-name order: the first clones [S1], the second [S2], and so on (name them 1-host.wav, 2-guest.wav). Each needs its transcript.",
+            "extensions": [
+              ".wav"
+            ],
+            "id": "reference_audio",
+            "label": "Reference clips",
+            "max_file_bytes": 16777216,
+            "max_files": 5,
+            "max_total_bytes": 33554432,
+            "media_types": [
+              "audio/wav"
+            ],
+            "min_files": 0
+          },
+          {
+            "description": "UTF-8 transcript of each reference clip, one file per clip in the same file-name order (1-host.txt, 2-guest.txt). A missing [Sk] tag is added.",
+            "extensions": [
+              ".txt"
+            ],
+            "id": "reference_text",
+            "label": "Reference transcripts",
+            "max_file_bytes": 4096,
+            "max_files": 5,
+            "max_total_bytes": 20480,
+            "media_types": [
+              "text/plain"
+            ],
+            "min_files": 0
+          }
+        ]
+      },
+      "output": {
+        "max_total_bytes": 33554432,
+        "slots": [
+          {
+            "description": "Mono PCM16 WAV at the model's native 24 kHz.",
+            "extensions": [
+              ".wav"
+            ],
+            "id": "speech",
+            "label": "Dialogue audio",
+            "max_file_bytes": 33554432,
+            "max_files": 1,
+            "max_total_bytes": 33554432,
+            "media_types": [
+              "audio/wav"
+            ],
+            "min_files": 1
+          }
+        ]
+      }
+    }
+  ],
+  "kind": "recipe",
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "readme-a8abd4fe44e8-b335630551",
+          "id": "ttsd-readme-a8abd4fe44e8-b335630551",
+          "mount": {
+            "target": "/models/ttsd"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "added-tokens-9dfb40d3a3f8-dec41b9537",
+          "id": "ttsd-added-tokens-9dfb40d3a3f8-dec41b9537",
+          "mount": {
+            "target": "/models/ttsd"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-894e3ace884e-00824420d1",
+          "id": "ttsd-chat-template-894e3ace884e-00824420d1",
+          "mount": {
+            "target": "/models/ttsd"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-6e5eebd8d1e3-587cb980af",
+          "id": "ttsd-config-6e5eebd8d1e3-587cb980af",
+          "mount": {
+            "target": "/models/ttsd"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "configuration-moss-tts-56e31e857216-b91e7d37db",
+          "id": "ttsd-configuration-moss-tts-56e31e857216-b91e7d37db",
+          "mount": {
+            "target": "/models/ttsd"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-04e44319786a-97dd3d578b",
+          "id": "ttsd-generation-config-04e44319786a-97dd3d578b",
+          "mount": {
+            "target": "/models/ttsd"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "inference-utils-12cdf3260114-68152c3362",
+          "id": "ttsd-inference-utils-12cdf3260114-68152c3362",
+          "mount": {
+            "target": "/models/ttsd"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "merges-8831e4f1a044-b0d6dcfed4",
+          "id": "ttsd-merges-8831e4f1a044-b0d6dcfed4",
+          "mount": {
+            "target": "/models/ttsd"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00004-ad8bb115b6c8-1913267ec8",
+          "id": "ttsd-model-00001-of-00004-ad8bb115b6c8-1913267ec8",
+          "mount": {
+            "target": "/models/ttsd"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00004-7cb9641e2f25-60f6088da9",
+          "id": "ttsd-model-00002-of-00004-7cb9641e2f25-60f6088da9",
+          "mount": {
+            "target": "/models/ttsd"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00004-646b34580996-fc35f2c4d5",
+          "id": "ttsd-model-00003-of-00004-646b34580996-fc35f2c4d5",
+          "mount": {
+            "target": "/models/ttsd"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00004-of-00004-ab0a0ed173b7-5078e75d62",
+          "id": "ttsd-model-00004-of-00004-ab0a0ed173b7-5078e75d62",
+          "mount": {
+            "target": "/models/ttsd"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-9a7229d966d3-0a05be8238",
+          "id": "ttsd-model-safetensors-index-9a7229d966d3-0a05be8238",
+          "mount": {
+            "target": "/models/ttsd"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "modeling-moss-tts-02b00b7b715f-df55431560",
+          "id": "ttsd-modeling-moss-tts-02b00b7b715f-df55431560",
+          "mount": {
+            "target": "/models/ttsd"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "processing-moss-tts-24fb7a5495cb-a889af5a05",
+          "id": "ttsd-processing-moss-tts-24fb7a5495cb-a889af5a05",
+          "mount": {
+            "target": "/models/ttsd"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "processor-config-6821d4805f10-27f0cb76af",
+          "id": "ttsd-processor-config-6821d4805f10-27f0cb76af",
+          "mount": {
+            "target": "/models/ttsd"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "special-tokens-map-55cbd0665670-c07a9be597",
+          "id": "ttsd-special-tokens-map-55cbd0665670-c07a9be597",
+          "mount": {
+            "target": "/models/ttsd"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-cb3c8fa82993-224931eb13",
+          "id": "ttsd-tokenizer-cb3c8fa82993-224931eb13",
+          "mount": {
+            "target": "/models/ttsd"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-87b1f37a4a73-94d5c6ba8f",
+          "id": "ttsd-tokenizer-config-87b1f37a4a73-94d5c6ba8f",
+          "mount": {
+            "target": "/models/ttsd"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vocab-ca10d7e9fb3e-ba05d8e2e4",
+          "id": "ttsd-vocab-ca10d7e9fb3e-ba05d8e2e4",
+          "mount": {
+            "target": "/models/ttsd"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "ttsd",
+      "model": {
+        "content_sha256": "c3eb6504132ddff3e2bbd85f39c491f857d01d7be7567d72558e730e6f49854f",
+        "kind": "model",
+        "publisher": "openmoss",
+        "slug": "moss-ttsd-v1-0-c7cd852d"
+      }
+    },
+    {
+      "files": [
+        {
+          "file_id": "readme-795c97ec27b3-b335630551",
+          "id": "codec-readme-795c97ec27b3-b335630551",
+          "mount": {
+            "target": "/models/codec"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file---init---ed0b4910a5e5-8e2c1f7272",
+          "id": "codec-file---init---ed0b4910a5e5-8e2c1f7272",
+          "mount": {
+            "target": "/models/codec"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-0f669e288d39-587cb980af",
+          "id": "codec-config-0f669e288d39-587cb980af",
+          "mount": {
+            "target": "/models/codec"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "configuration-moss-audio-tokenizer-349b7ff7e1b3-b43a23ee44",
+          "id": "codec-configuration-moss-audio-tokenizer-349b7ff7e1b3-b43a23ee44",
+          "mount": {
+            "target": "/models/codec"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00002-037f441ed30a-27a6880801",
+          "id": "codec-model-00001-of-00002-037f441ed30a-27a6880801",
+          "mount": {
+            "target": "/models/codec"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00002-a187d73d2cda-2cca3b5a88",
+          "id": "codec-model-00002-of-00002-a187d73d2cda-2cca3b5a88",
+          "mount": {
+            "target": "/models/codec"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-e107e83fee64-0a05be8238",
+          "id": "codec-model-safetensors-index-e107e83fee64-0a05be8238",
+          "mount": {
+            "target": "/models/codec"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "modeling-moss-audio-tokenizer-65cae7744845-6919ea4b0d",
+          "id": "codec-modeling-moss-audio-tokenizer-65cae7744845-6919ea4b0d",
+          "mount": {
+            "target": "/models/codec"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "codec",
+      "model": {
+        "content_sha256": "4065b1125ab640f3cc9e06fa68ad05fa069fa2bc91f316e2b2f9b14ec3f1311a",
+        "kind": "model",
+        "publisher": "openmoss",
+        "slug": "moss-audio-tokenizer-3cd226ba"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "OpenMOSS"
+    ],
+    "source_reference": "https://github.com/OpenMOSS/MOSS-TTS/blob/934d6826b084c46a0d033402174d5f8ac4ed2519/clis/moss_ttsd_app.py"
+  },
+  "release": {
+    "released_at": "2026-11-26",
+    "version": "0.1.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "max-new-tokens",
+        "setting": "max-new-tokens",
+        "value": null
+      }
+    ],
+    "engine": "pytorch-pipeline",
+    "entrypoint": [
+      "/opt/vonk/bin/pytorch-pipeline"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "PYTORCH_CUDA_ALLOC_CONF",
+        "value": "expandable_segments:True"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 120
+    }
+  },
+  "settings": {
+    "concurrency": null,
+    "kind": "job",
+    "knobs": {
+      "max-new-tokens": {
+        "change_effect": "none",
+        "maximum": 8192,
+        "minimum": 256,
+        "value": 2000
+      }
+    }
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 23825764795,
+            "image_bytes": 16000000000,
+            "safety_margin_bytes": 12000000000,
+            "working_bytes": 20000000000
+          },
+          "memory": {
+            "peak_bytes": 34000000000,
+            "reserve_bytes": 4000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "inference.completed",
+            "artifact.output"
+          ],
+          "kind": "audio-job.output",
+          "name": "job-output",
+          "request": {
+            "fixture": "qualification/fixtures/ttsd-script.txt",
+            "input_slots": {
+              "script": "qualification/fixtures/ttsd-script.txt"
+            },
+            "output_slot": "speech",
+            "transport": "job"
+          }
+        }
+      ],
+      "interface": "audio-job"
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "alignment": "unspecified",
+  "component_bindings": [
+    "codec"
+  ],
+  "description": "Long-form multi-speaker dialogue with MOSS-TTSD v1.0 (8B) for podcasts, interviews and audiobooks: write the script with [S1] to [S5] speaker tags, and optionally clone each speaker from a 3 to 10 second reference clip with its transcript; 20 languages. Without clips the model invents the voices; with clips it continues in each cloned speaker's voice. Writes one mono 24 kHz WAV. Runs the creator's MOSS-TTSD app steps (text normalization on, audio temperature 1.1, top-p 0.9, top-k 50, repetition penalty 1.1) with the creator's torch 2.9.1 cu128 and transformers 5.0.0 stack, bf16 weights and SDPA attention, loading the 8B model and the MOSS audio tokenizer per job. The length is a setting, max new tokens, about 12.5 per second of audio: 2000 by default (about 2.7 minutes), up to 8192 (about 11 minutes). Memory is an estimate until tried: 16.7 GB of bf16 weights and the 7.1 GB fp32 tokenizer, plus runtime, about 34 GB. Apache-2.0 weights and code.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "moss-ttsd-v1-0-pytorch-single"
+  },
+  "kind": "recipe-display",
+  "knobs": {
+    "max-new-tokens": {
+      "description": "Upper bound on generated audio tokens; about 12.5 tokens per second of audio.",
+      "label": "Max new tokens",
+      "unit": "tokens"
+    }
+  },
+  "tags": [
+    "audio",
+    "dialogue",
+    "podcast",
+    "text-to-speech",
+    "voice-cloning",
+    "moss",
+    "pytorch",
+    "single",
+    "spark"
+  ],
+  "title": "MOSS-TTSD v1.0 multi-speaker dialogue single Spark"
+}
