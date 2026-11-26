@@ -1178,7 +1178,9 @@ peaks raised when they were, and the sweep re-check only when a recipe document 
 Respect `policy/base-image-holds.json`: a held base and Dockerfile must agree until the
 hold is updated/removed with working evidence; an optional `source` (`<owner>/<repo>`) also
 declines that GitHub repository's newer releases (`tools/check-base-image-holds`,
-`tests/tools/test_base_image_holds.py`). `policy/model-revision-holds.json` declines one Model
+`tests/tools/test_base_image_holds.py`); each hold is a typed contract (`BaseImageHold`), and its
+`source` must be a GitHub repository the held recipe follows (its source reference or adapter pin).
+`policy/model-revision-holds.json` declines one Model
 revision that cannot run on the recipe's Sparks, with its reason; a newer
 upstream revision is assessed again (`tools/check-model-revision-holds`,
 `tests/tools/test_model_revision_holds.py`). A recipe that mounts every file of its Model follows added
@@ -1436,10 +1438,10 @@ review policies; no static guard can prove upstream completeness or honesty.
 | `tools/check-model-construction-device --base origin/main`, `tests/tools/test_check_model_construction_device.py` | New adapter runtime code (added lines, code only; vendored archives and `vendored-upstream.json` verbatim creator copies excluded) builds no full model as real CPU tensors (`init_weights_on_device(cpu)`, `low_cpu_mem_usage=False`) and puts no CUDA device in a model constructor. Build on meta, assign the checkpoint, fail on any parameter left on meta, then let the loader place the model. Upstream source a patch script rewrites is text to this guard: prove it with the adapter's patched-source behaviour test. |
 | `tools/kit-pins check`, `tests/tools/test_kit_pins.py`, `tests/tools/test_kit_prebuilt_images.py` | Kit declarations, lock, image/base/model consumers agree. Regenerate the lock; use a justified override/image exception only for an intentional deviation. |
 | `tools/check-image-provenance`, `tests/tools/test_published_image_follow.py` | Claimed build commit matches the selected source image. Fix provenance or supply the supported explicit unavailable-commit evidence. |
-| `tools/check-base-image-holds`, `tests/tools/test_base_image_holds.py` | A held digest stays consistent. Change/remove the hold only with replacement evidence. |
+| `tools/check-base-image-holds`, `tests/tools/test_base_image_holds.py` | A held digest stays consistent and a hold's `source` is followed by the recipe. Change/remove the hold only with replacement evidence. |
 | `tools/check-model-revision-holds`, `tests/tools/test_model_revision_holds.py` | No recipe uses the Model revision its hold declines. Remove the hold only with evidence that the declined revision runs. |
 | `tests/qualification/test_memory_envelope.py`, `tests/qualification/test_single_spark_memory_headroom.py` | Memory consistency, component accounting and need checks. Repair the reported launch/envelope inconsistency; follow the memory section above. |
-| `tests/qualification/test_recipe_capabilities.py`, `tests/recipes/test_chat_configuration.py`, `tests/recipes/test_served_model_name.py` | Served Model, parser flags, aliases, tags and cases agree. Enable the real launch support or stop claiming the capability; use chat-trained weights or an explicit supported template. |
+| `tests/qualification/test_recipe_capabilities.py`, `tests/recipes/test_chat_configuration.py`, `tests/recipes/test_served_model_name.py` | Served Model, parser flags, aliases, tags and cases agree. A launch that declares tool flags in its runtime arguments is judged by them alone; a vendored start script counts only when the arguments declare none. Enable the real launch support or stop claiming the capability; use chat-trained weights or an explicit supported template. |
 | `tests/recipes/test_recipe_option_controls.py`, `tests/recipes/test_qwen36_fp8_options.py` | Deployment choices and base defaults execute as declared. Bind actual runtime differences, keep request controls per request. |
 | `tests/recipes/test_recipe_releases.py`, `tests/recipes/test_recipe_refresh_repairs.py` | Current release metadata, valid dates/version shape and bounded source closure. Correct release data or repair the specific refresh regression. |
 | `tests/recipes/test_job_writable_paths.py`, `tests/recipes/test_adapter_output_staging.py`, `tests/recipes/test_local_media_path_exists.py` | Managed writable paths, atomic outputs, existing local media inputs. Fix path handling; do not add root/broad-write workarounds. |

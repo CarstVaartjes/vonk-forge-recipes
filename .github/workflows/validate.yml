@@ -226,7 +226,13 @@ jobs:
         run: |
           set -euo pipefail
           ref=$(python3 tools/prebuilt-images platform-ref)
-          status=$(gh api "repos/CarstVaartjes/vonk-forge/compare/${ref}...main" --jq .status)
+          rc=0
+          status=$(.github/scripts/gh-api-retry "repos/CarstVaartjes/vonk-forge/compare/${ref}...main" --jq .status) || rc=$?
+          if [[ $rc -eq 75 ]]; then
+            echo "::notice::GitHub is unreachable; platform pin ${ref} was not checked"
+            exit 0
+          fi
+          [[ $rc -eq 0 ]] || exit "$rc"
           case "$status" in
             ahead|identical) echo "platform pin ${ref} is on vonk-forge main ($status)" ;;
             *) echo "::error::platform pin ${ref} is not an ancestor of vonk-forge main ($status)"; exit 1 ;;
@@ -243,8 +249,14 @@ jobs:
         run: |
           set -euo pipefail
           ref=$(python3 tools/prebuilt-images platform-ref)
-          gh api "repos/CarstVaartjes/vonk-forge/contents/control/packaging/public-contracts.lock?ref=${ref}" \
-            -H 'Accept: application/vnd.github.raw+json' > "$RUNNER_TEMP/platform-contracts.lock"
+          rc=0
+          .github/scripts/gh-api-retry "repos/CarstVaartjes/vonk-forge/contents/control/packaging/public-contracts.lock?ref=${ref}" \
+            -H 'Accept: application/vnd.github.raw+json' > "$RUNNER_TEMP/platform-contracts.lock" || rc=$?
+          if [[ $rc -eq 75 ]]; then
+            echo "::notice::GitHub is unreachable; recipes were not checked against the platform lock"
+            exit 0
+          fi
+          [[ $rc -eq 0 ]] || exit "$rc"
           "$RECIPE_TEST_PYTHON" tools/check-platform-contracts --platform-lock "$RUNNER_TEMP/platform-contracts.lock"
 
       - name: Require touched multi-Spark vLLM recipes to bound KV by need
