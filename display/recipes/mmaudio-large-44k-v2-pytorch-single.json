@@ -1,0 +1,40 @@
+{
+  "alignment": "unspecified",
+  "component_bindings": [
+    "dfn5b-clip",
+    "bigvgan"
+  ],
+  "description": "Single-Spark MMAudio job: a text prompt, optionally with a video, in; one mono 44.1 kHz WAV out. It follows the creator's demo.py for the large_44k_v2 checkpoint with its defaults: bf16 weights, 25 Euler steps, classifier-free guidance 4.5, 8 seconds, seed 42. With a video the audio follows it, the video's own length caps the duration, and the creator's CLIP and Synchformer features condition the audio; without one it is text-to-audio. An optional negative prompt is the creator's own (an empty one by default). The audio is not trimmed, as the creator does, so its length is a whole number of 1,024-sample latents (a 1 second request gives 45,056 samples). The creator reads every frame of the video for its mux; this recipe reads only the frames the audio needs (load_all_frames=False). The creator writes FLAC and muxes the audio into the video; this recipe writes the 16-bit PCM WAV the job format uses and skips the mux. The creator's DFN5B-CLIP id (ViT-H-14-384) now redirects to the ViT-H-14-378 repository, which is what is mounted. The MMAudio weights are CC-BY-NC-4.0 (non-commercial) and the code is MIT; recorded for information, never gated.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "mmaudio-large-44k-v2-pytorch-single"
+  },
+  "kind": "recipe-display",
+  "knobs": {
+    "cfg-strength": {
+      "description": "Classifier-free guidance strength; the creator's default is 4.5 and its Gradio demo allows 1 and up (10 is this recipe's limit).",
+      "label": "Guidance strength"
+    },
+    "duration-seconds": {
+      "description": "Length of the audio. MMAudio was trained on 8 seconds; a video's length caps it. The creator sets no maximum; 30 seconds is this recipe's limit.",
+      "label": "Duration",
+      "unit": "s"
+    },
+    "seed": {
+      "description": "Random seed of the sampling; the creator's default is 42.",
+      "label": "Seed"
+    }
+  },
+  "tags": [
+    "executable",
+    "mmaudio",
+    "video-to-audio",
+    "text-to-audio",
+    "audio",
+    "pytorch-pipeline",
+    "single",
+    "spark",
+    "native"
+  ],
+  "title": "MMAudio large 44k v2 video-and-text-to-audio PyTorch single Spark"
+}
