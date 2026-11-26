@@ -1,4 +1,5 @@
 import http.client
+import socket
 import ssl
 import urllib.request
 from urllib.error import URLError
@@ -64,7 +65,14 @@ def test_always_dropping_raises_after_the_bound():
 def test_certificate_error_is_definitive():
     error = URLError(ssl.SSLCertVerificationError("bad cert"))
     calls, waits, run = _run([error])
-    with pytest.raises(URLError):
+    with pytest.raises(RuntimeError, match="provider request failed") as raised:
         run()
+    assert raised.value.__cause__ is error
     assert len(calls) == 1
     assert not waits
+
+
+def test_temporary_dns_failure_is_retried():
+    calls, _, run = _run([URLError(socket.gaierror(socket.EAI_AGAIN, "try again"))])
+    assert run() == "ok"
+    assert len(calls) == 2

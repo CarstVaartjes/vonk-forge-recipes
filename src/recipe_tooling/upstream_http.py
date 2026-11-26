@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import http.client
 import random
+import socket
 import ssl
 import threading
 import time
@@ -75,6 +76,7 @@ def _transient(error: BaseException) -> bool:
             ConnectionError,
             TimeoutError,
             ssl.SSLEOFError,
+            socket.gaierror,
         ),
     )
 
@@ -169,9 +171,7 @@ def fetch[T](
                 raise RuntimeError(f"provider returned HTTP {error.code}") from error
             wait = advised if advised is not None else _backoff(attempt, jitter)
         except (URLError, OSError, http.client.HTTPException) as error:
-            if not _transient(error):
-                raise
-            if last:
+            if last or not _transient(error):
                 raise RuntimeError(f"provider request failed: {error}") from error
             wait = _backoff(attempt, jitter)
         else:
