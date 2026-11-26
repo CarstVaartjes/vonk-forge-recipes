@@ -1138,7 +1138,15 @@ contexts refresh together. Human repairs may intentionally diverge with evidence
 An adapter that installs a creator's GitHub release asset pins it by version and
 sha256. A refresh moves the `releases/download/<tag>/<asset>` URL and re-pins the
 sha256 from the creator's `<asset>.sha256`, checked against GitHub's recorded
-digest when GitHub records one. These go to review ("re-pin by hand"): a missing
+digest when GitHub records one. A URL written with `${ARG}` references is read
+through the Dockerfile's `ARG NAME=default` lines and left as written; the
+`ARG ..VERSION=` and sha256 defaults move instead, and the refresh re-expands the URL
+afterwards (it must name the new tag and asset). An adapter that reaches the
+repository only through its Dockerfile's `releases/download/` URL (no clone, archive,
+codeload, raw URL or commit-named file; the adapter owns the pin and carries no
+patches or mods) is judged by the
+release: diverged or truncated history and changed source files are not reasons, and
+the move is never a no-op. These go to review ("re-pin by hand"): a missing
 asset or `.sha256`, a disagreement, a target that is not a release, or a Dockerfile
 that does not pin the old asset by sha256. The refresh never leaves a declared
 `source.line`; it only notes that a newer line exists. Moving to another line is a
@@ -1147,23 +1155,30 @@ A proven recipe moves too: the refresh rewrites its entry in
 `tests/fixtures/proven-recipe-bytes.json` and the sweep re-checks it. A refresh
 branch only moves forward (never force-pushed); a PR whose checks failed on an
 unchanged refresh is reported in the recipe's review issue and moves forward again
-only when upstream or main's checks (`tools/`, `tests/`, `.github/`) change.
+only when upstream or main's checks (`src/`, `tools/`, `tests/`, `.github/`,
+`api/recipes/`) change. A PR whose checks failed or were cancelled holds no lane: it
+does not defer other refresh PRs that share its files; if it merges anyway (a rerun,
+or a non-required check failed), a conflicting sibling is regenerated on main.
 Every refresh PR body carries a `## Principles` section that states only what the
 move did: pins moved (and any held), proven bytes followed when the fixture changed,
 peaks raised when they were, and the sweep re-check only when a recipe document changed.
 
 Respect `policy/base-image-holds.json`: a held base and Dockerfile must agree until the
-hold is updated/removed with working evidence (`tools/check-base-image-holds`,
+hold is updated/removed with working evidence; an optional `source` (`<owner>/<repo>`) also
+declines that GitHub repository's newer releases (`tools/check-base-image-holds`,
 `tests/tools/test_base_image_holds.py`). `policy/model-revision-holds.json` declines one Model
 revision that cannot run on the recipe's Sparks, with its reason; a newer
 upstream revision is assessed again (`tools/check-model-revision-holds`,
 `tests/tools/test_model_revision_holds.py`). A recipe that mounts every file of its Model follows added
-files of the repository, except weights files added beside byte-identical catalogued files: that is
+files of the repository, except weights files and metadata added beside byte-identical catalogued files: that is
 another checkpoint and does not move the recipe (#2749). Recipes in `policy/published-images.json` follow the
 published image digest and its recorded build commit, not unrelated newer Git
 heads. `tools/check-image-provenance --base origin/main` checks changed recipes.
 An unavailable recorded commit needs the explicit unverified provenance mark
-and review; do not claim a byte comparison that could not run. Outages wait;
+and review; do not claim a byte comparison that could not run. An unreadable
+provider (registry, GitHub; `check-image-provenance`, `kit-pins check`,
+`check-vendored-upstream`) is a note, skipped this run and re-checked when the recipe next
+changes, never a failed check;
 missing source is unverified (`tests/tools/test_published_image_follow.py`).
 When the refresher moves a published image it also replaces the adapter
 Dockerfile's image-description comment (between `LABEL` and the
@@ -1423,7 +1438,7 @@ review policies; no static guard can prove upstream completeness or honesty.
 | `tests/qualification/test_family_aware_coverage.py`, `tests/qualification/test_qualification_coverage_identity.py` | Coverage equivalence binds actual runtime/topology/content identities. Rebuild coverage and fix false equivalence. |
 | `tests/recipes/test_prebuilt_images.py`, `tests/tools/test_publish_image_guard.py`, `tests/tools/test_release_bundle.py`, `tests/tools/test_release_assets.py` | Plan/source/build keys, digests, signed index and packaged bytes agree. Rebuild/resolve the correct artifacts before signing. |
 | `tools/check-test-git`, `tests/tools/test_check_test_git.py` | An added test line runs git (an argv headed `git`, a `git`-named helper, `git ...` in a shell string, a `GIT_*` env key). Tests never use git: the tool under test takes its changed set, commit or epoch as an argument and the CI step or hook supplies it from git; feed it diff text (`tests/added_diff.py`). Only added lines are checked and there is no allowlist. |
-| Ruff `TID251` (`[tool.ruff.lint.flake8-tidy-imports.banned-api]` in `pyproject.toml`) | `urllib.request.urlopen` or `build_opener` anywhere outside `src/recipe_tooling/upstream_http.py`, in any file, not only added lines. Open provider URLs through `fetch` there (bounded retry, `Retry-After`, per-host busy memory); a persistent 429/503 is `UpstreamBusy`, "not checked this run", never an issue. A caller that must not retry goes through `open_once` in the same module: `src/recipe_tooling/refresh_auth.py` (the App credential exchange: POST, a GET of `/installation` and a DELETE; a security edge, never retried), `src/recipe_tooling/adapter_sources.py` (its own jittered retry with mirror fallback), a local fixture server in a test. `spark_sweep/smoke.py` keeps its own `urlopen` with a reasoned `noqa: TID251`: it opens the served recipe's own endpoint, not a provider, and the sweep layer may not import `recipe_tooling.upstream_http` (`tests/tools/test_package_import_direction.py`). `tools/prepare-remote-code-smoke` runs inside the image and holds the opener only as script text. |
+| Ruff `TID251` (`[tool.ruff.lint.flake8-tidy-imports.banned-api]` in `pyproject.toml`) | `urllib.request.urlopen`, `build_opener` or `HTTPRedirectHandler` anywhere outside `src/recipe_tooling/upstream_http.py`, in any file, not only added lines. `upstream_http` drops `Authorization` when a redirect leaves the original scheme and host (Docker Hub's presigned blob URLs answer 400 to a Bearer header), so a new redirect policy belongs there. Open provider URLs through `fetch` there (bounded retry, `Retry-After`, per-host busy memory); a persistent 429/503 is `UpstreamBusy`, "not checked this run", never an issue. A caller that must not retry goes through `open_once` in the same module: `src/recipe_tooling/refresh_auth.py` (the App credential exchange: POST, a GET of `/installation` and a DELETE; a security edge, never retried), `src/recipe_tooling/adapter_sources.py` (its own jittered retry with mirror fallback), a local fixture server in a test. `spark_sweep/smoke.py` keeps its own `urlopen` with a reasoned `noqa: TID251`: it opens the served recipe's own endpoint, not a provider, and the sweep layer may not import `recipe_tooling.upstream_http` (`tests/tools/test_package_import_direction.py`). `tools/prepare-remote-code-smoke` runs inside the image and holds the opener only as script text. |
 | `tools/check-nccl-ib-hca`, `tests/tools/test_check_nccl_ib_hca.py` | An added line under `adapters/` (scripts and extensionless launchers too, not `.md`/`.rst`/`.txt`) that assigns `NCCL_IB_HCA` to anything but the inherited platform value (`$NCCL_IB_HCA`, `environ["NCCL_IB_HCA"]`, optionally with a `${NCCL_IB_HCA:-...}` default). Each 200 Gb/s port is two RDMA devices and the helper names both; one device cuts the link to about 112 Gb/s. Read or forward the variable, never set it. Only added lines count. |
 | `tools/check-final-stage-ldd`, `tests/tools/test_check_final_stage_ldd.py` | An added or final-stage-changed adapter Dockerfile on a plain CUDA runtime/base image copies a binary into `bin/` without `RUN ! ldd <binary> \| grep "not found"`. Only added lines count. |
 | `src/recipe_tooling/added_lines.py`, `tests/tools/test_added_lines.py` | The one parser of the diff the added-line guards read (the `check-*` guards above, `check-model-construction-device`, `check-writable-state-env`). A block the same diff deletes unchanged (a verbatim move or split; one uniform indentation shift allowed; Python launchers and `.py` count as one file type) is not an addition, so moving code does not re-surface old findings. Each guard passes its own `judged` predicate, and a deletion pays only when it judges both the file the block left and the file it entered: a block leaving an exempt owner or an out-of-scope file is still new work where it lands. A deleted block pays for one copy only; an edited or copied line stays added. A guard whose verdict depends on context (`check-serial-reads` reads the loop line, `check-estimate-gates` the test function) judges again when that context gained a line. |

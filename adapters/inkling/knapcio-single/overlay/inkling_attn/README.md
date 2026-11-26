@@ -38,7 +38,7 @@ grids per call (`launch_global`): requests whose prefix (seqused_k - new rows) i
 8 warps, the others on 4; each CTA reads its request's lengths on the device and returns before any shared-memory
 access when the other grid owns the request (no host sync, CUDA-graph capturable). `INKLING_ATTN_W8_FROM=0`, SWA
 layers and `INKLING_ATTN_WARPS=8` keep a single launch. Checks: `tests/test_w8split_cpu.py`,
-`r2/tracks/longpf/tools/gpu_check_longpf_kv12s.py` (GPU, both loaders, 256K-1M, graph replay).
+a development GPU check, not shipped (both loaders, 256K-1M, graph replay).
 
 ## Math and exactness
 
@@ -95,7 +95,7 @@ with a prefix replay too; docs/prefill/PREFILL.md 2.3). The kernel is captured i
 no host sync, no allocation except the LSE `torch.empty` (graph pool). Rows past `cu_seqlens_q[-1]` are not
 written, as FA4. Breakable prefill graphs (attention replayed outside the visit) are excluded.
 
-## Results (Spark_06, GB10, clocks untouched, 2026-11-21)
+## Results (GB10, clocks untouched, 2026-11-21)
 
 `results/kbench/round2/attn/check_attn.py`, run5 (`runs/run5.log`, `runs/results_run5.json`). Inputs: real layer-0 / layer-5
 `proj`, q, k ~ N(0, 1.5^2), v ~ N(0, 1), r ~ N(0, 2^2), shuffled pages of 128.

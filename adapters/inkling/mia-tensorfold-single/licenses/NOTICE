@@ -67,4 +67,17 @@ Third-party software in the image
   which the container prints at every start; by running the image you accept them. This project's Apache-2.0 license covers its own
   work only, not the software in the image.
 
+tonyd2wild/Inkling-2-Mini-NVFP4-DGX-Spark
+  https://github.com/tonyd2wild/Inkling-2-Mini-NVFP4-DGX-Spark by tonyd2wild, Apache License, Version 2.0. Patch 0018
+  adapts code from its TensorFold patch 0018 (mini_dflash2.zig): the NVFP4 quantization of the draft-head copy (fp4Of)
+  and the lone-stream draft chances calibrated by the lanes' Landing table. The adapted parts are marked in
+  patches/0018-mini-dflash2-drafter.patch.
+
+Inkling-2-Mini-DFlash2 (a local folder; not included in this repository or its image)
+  https://huggingface.co/incoai/Inkling-2-Mini-DFlash2 by Inco AI, Apache License, Version 2.0. The DFlash 2 draft model
+  this recipe drafts with by default (DRAFTER=dflash2). scripts/fetch.sh downloads it at the revision pinned in
+  scripts/config.sh and scripts/prepare.sh checks its SHA-256; it is mounted read-only into the container. Nothing of
+  it is copied, modified or redistributed by this project. DFlash (https://github.com/z-lab/dflash, MIT) is the method
+  it follows.
+
 See CREDITS.md for everyone this project builds on.

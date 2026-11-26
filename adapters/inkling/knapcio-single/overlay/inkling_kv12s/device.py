@@ -423,7 +423,23 @@ class DeviceLayer(Layer):
             self._launch_pack(pages, self.stage, self.stage, promote=True)
             self._launch_publish(pages, self.stage, self.stage, tentative=False, promote=True)
 
-    def settle(self, locations, commit_lens):
+    @staticmethod
+    def settle_pages(locations):
+        """(contiguous locations, the page-final candidate pages) for one verify step, shared by every layer.
+
+        One entry per verify ROW instead of per location: a row is at most PAGE consecutive positions of one request
+        and the paged allocation keeps loc % PAGE == position % PAGE (page_size == PAGE is checked at pool setup), so
+        a row has at most one page-final location; its page (or 0 = nothing to commit) is the row maximum. The commit
+        kernels then run B programs instead of B * W, most of which only exited. A row with two page-final locations
+        would break that and fails loudly (device assert) instead of skipping a page."""
+        loc = locations.contiguous()
+        final = loc.remainder(PAGE) == PAGE - 1
+        if loc.shape[1] > PAGE:
+            return loc, torch.where(final, loc // PAGE, 0)
+        torch._assert_async(final.sum(1).le(1).all(), "inkling_kv12s: two page-final locations in one verify row")
+        return loc, torch.where(final, loc // PAGE, 0).amax(dim=1)
+
+    def settle(self, locations, commit_lens, prepared=None):
         if (locations.ndim != 2 or commit_lens.shape != (locations.shape[0],)
                 or locations.device != self.device or commit_lens.device != self.device
                 or locations.dtype not in (torch.int32, torch.int64)
@@ -431,14 +447,13 @@ class DeviceLayer(Layer):
             raise ValueError("inkling_kv12s: invalid verify settlement geometry")
         if not locations.numel():
             return
-        loc = locations.contiguous()
+        loc, pages = prepared if prepared is not None else self.settle_pages(locations)
         _trim[(loc.numel(),)](
             loc, commit_lens.contiguous(), self.planes[-1], self.stage_locks,
             loc.shape[1], self.pages, PAGE, self.page_stride, STAGE_SHIFT, STAGE_MASK, self.live, num_warps=1,
         )
         # One candidate per full page. A rejected candidate is either empty or
         # still staged with a shorter count. Already packed draft pages are skipped.
-        pages = torch.where(loc.remainder(PAGE) == PAGE - 1, loc // PAGE, 0)
         self.commit(pages)
 
     def release(self, pages, *, recycle=True):
@@ -558,7 +573,11 @@ class RawLane:
         return publish
 
     # The packed lanes' lifetime hooks: nothing to settle, release or recycle.
-    def settle(self, locations, commit_lens):
+    @staticmethod
+    def settle_pages(locations):
+        return None
+
+    def settle(self, locations, commit_lens, prepared=None):
         pass
 
     def commit(self, pages):

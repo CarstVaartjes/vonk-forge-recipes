@@ -5,7 +5,7 @@ the head (358 MB) instead of pico's coded head (715 MB), bounds every logit rigo
 GEMV only on the 16-row tiles that can hold the argmax. Every other logit is written as -inf. The stock softcap,
 padding mask and argmax then run unchanged and return the same token as the full head, bit for bit.
 
-Status (2026-11-21): written, CPU-tested (21 tests), and GPU-checked on Spark_06 with real weights:
+Status (2026-11-21): written, CPU-tested (21 tests), and GPU-checked on GB10 with real weights:
 `tools/gpu_check_cert.py` PASS, `tools/smoke_hooks.py` PASS (all hooks land on the image's sglang, cert outside
 pico). Not yet run in a serving boot: the next step is `INKLING_CERT_HEAD=check` for a few thousand steps, then an
 A/B against `=0`.
@@ -131,6 +131,23 @@ The device flag is written before each verify replay by the `TargetVerifyExecuto
 head. The first eager call per row bucket goes through these kernels in full-fallback mode, and later eager calls
 go straight to pico. Rows > 16 (c3 and up) never reach here: pico itself takes only 1-16.
 
+### On the DFLASH worker (`dflash.py`, `SPEC=dflash2`, launch `CERT_DFLASH` / `CERT_WIDE_DFLASH`)
+
+DFLASH has no verify epilogue: its accept runs eagerly after the target-verify graph, as the argmax of the verify
+logits on greedy batches. A wrapper of `DFlashWorkerV2.forward_batch_generation` marks the step, and a wrapper of
+`TpModelWorker.forward_batch_generation` sets `on` right before that step's target verify to
+`batch_ok(batch)` and `DFlashWorkerV2._can_skip_verify_logits(batch, sampling_info)` (all greedy, no grammar,
+logprobs, logit adjustments or selector sample), and back to 0 right after it, so no other replay reads a stale 1.
+- Narrow head (<= 16 rows): it writes pico's exact logits on the candidate tiles and -inf elsewhere, so the stock
+  argmax over the verify logits returns the certified token. Under the verify cap (`inkling_vcap` on DFLASH,
+  `STATE.src_index`), dead rows are given their anchor's hidden row before the screen, selected on the device by
+  `on`, so they add no candidate tiles; live rows keep their own rows and no accept reads a dead row's token.
+- Wide head (17..`INKLING_CERT_WIDE_MAX_ROWS` rows): the certified IDs, which the wide head returns instead of
+  writing the logits, are looked up after each target-verify replay (`DecodeCudaGraphRunner._process_output_after_replay`,
+  from the replayed graph's own output) and passed to `DFlashWorkerV2._accept_block` as its target prediction. A wide
+  replay whose IDs cannot be identified stops the server; the compact ragged verify layout is refused.
+- Check mode (`CERT_DFLASH=check`): 34,808 rows, 0 mismatches.
+
 ## Patch points
 
 | target | what |
@@ -145,8 +162,8 @@ TP > 1 disables the package with a log line.
 
 Coexistence:
 - `inkling_pico12`: required, and its wrapper sits inside ours.
-- `inkling_vcap`: independent. Dead rows are still verify rows with real hidden states, and their logits are
-  certified like the others.
+- `inkling_vcap`: under DSpark, independent: dead rows are still verify rows with real hidden states, and their
+  logits are certified like the others. Under DFLASH, see above (dead rows take their anchor's row).
 - `inkling_draftbytes`: the draft head is not touched.
 
 ## Cost and memory
@@ -158,7 +175,7 @@ Coexistence:
 
 ## Reviews and logs
 
-- GPU logs (Spark_06): `results/kbench/round2/cert/gpu2.log` (first PASS), `gpu3.log` (persistent variant, rejected),
+- GPU logs (GB10): `results/kbench/round2/cert/gpu2.log` (first PASS), `gpu3.log` (persistent variant, rejected),
   `gpu4.log` (final kernel).
 
 ## Files

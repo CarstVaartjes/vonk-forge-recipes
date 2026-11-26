@@ -445,6 +445,18 @@ class GuardTests(unittest.TestCase):
         assert problems == []
         assert "could not tell" in notes[0]
 
+    def test_an_unreadable_registry_is_a_note_not_a_failure(self) -> None:
+        class BlobsDown(FakeRegistry):
+            def __call__(self, url: str, _headers: dict[str, str]) -> Any:
+                if "/blobs/" in url:
+                    return 400, {}, b""
+                return super().__call__(url, _headers)
+
+        fake = BlobsDown({"org.opencontainers.image.version": "24.04"}, None)
+        problems, notes = self.check({"recipes/recipe.json"}, fake)
+        assert problems == []
+        assert len(notes) == 1
+
     def test_the_vendored_check_skips_only_a_correctly_marked_pin(self) -> None:
         vendored = guard.vendored
         with tempfile.TemporaryDirectory() as tmp:
