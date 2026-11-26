@@ -4,12 +4,15 @@ A rate limit (429) or a "busy" answer (503) is transient: it is retried with exp
 backoff and jitter, honouring ``Retry-After`` (seconds or an HTTP date). If it persists the
 item is "not checked this run" (``UpstreamBusy``); the next run asks again. The host is then
 remembered as busy for the advised time, so the rest of the run does not queue behind it.
-Other failures (outages, network errors, anything else) are our own faults and stay errors.
+A dropped or timed-out connection is retried the same way. Other failures (outages, definitive
+network answers such as a certificate error, anything else) are our own faults and stay errors.
 """
 
 from __future__ import annotations
 
+import http.client
 import random
+import ssl
 import threading
 import time
 import urllib.request
@@ -50,6 +53,30 @@ def _advised(error: HTTPError, now: float) -> float | None:
         return max(0.0, parsedate_to_datetime(value).timestamp() - now)
     except (TypeError, ValueError):
         return None
+
+
+def _transient(error: BaseException) -> bool:
+    """A dropped or timed-out connection (also inside a ``URLError``); not a definitive answer.
+
+    A TLS certificate failure is an answer about the peer, never retried.
+    """
+    if isinstance(error, URLError) and not isinstance(error, HTTPError):
+        return (
+            _transient(error.reason)
+            if isinstance(error.reason, BaseException)
+            else True
+        )
+    if isinstance(error, ssl.SSLCertVerificationError):
+        return False
+    return isinstance(
+        error,
+        (
+            http.client.RemoteDisconnected,
+            ConnectionError,
+            TimeoutError,
+            ssl.SSLEOFError,
+        ),
+    )
 
 
 def _backoff(attempt: int, jitter: Callable[[], float]) -> float:
@@ -141,7 +168,9 @@ def fetch[T](
                     ) from error
                 raise RuntimeError(f"provider returned HTTP {error.code}") from error
             wait = advised if advised is not None else _backoff(attempt, jitter)
-        except (URLError, TimeoutError) as error:
+        except (URLError, OSError, http.client.HTTPException) as error:
+            if not _transient(error):
+                raise
             if last:
                 raise RuntimeError(f"provider request failed: {error}") from error
             wait = _backoff(attempt, jitter)
