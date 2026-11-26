@@ -22,3 +22,8 @@ safetensors==0.8.0
 # The numpy version the CHORD image locks; Pillow as in CHORD.
 numpy==2.2.6
 Pillow==12.3.0
+
+# vonk-agent-protocol 4.1.0 requirements (jsonschema>=4.26.0, pydantic>=2.13.5): the wheel is
+# installed with --no-deps, so the hash lock carries them (as in adapters/three-d/kimodo).
+pydantic==2.13.5
+jsonschema==4.26.0

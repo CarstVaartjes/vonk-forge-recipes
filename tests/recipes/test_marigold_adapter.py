@@ -81,15 +81,20 @@ class FakeProcessor:
 
 
 class FakePipeline:
-    def __init__(self, kind: str, properties: Any, calls: list[Any]) -> None:
+    def __init__(
+        self, kind: str, mount: Path, properties: Any, calls: list[Any]
+    ) -> None:
         self.kind = kind
+        self.mount = mount
         self.target_properties = properties
         self.image_processor = FakeProcessor
         self.calls = calls
 
     def __call__(self, image: Any, generator: Any) -> Any:
         width, height = image.size
-        self.calls.append((self.kind, image.mode, generator, image.getpixel((0, 0))))
+        self.calls.append(
+            (self.kind, image.mode, generator, image.getpixel((0, 0)), self.mount)
+        )
         shape = (height, width, 3)
         if self.kind == "normals":
             return SimpleNamespace(prediction=np.zeros((1, *shape), "f4"))
@@ -135,7 +140,7 @@ def _use_fake(adapter: Any, monkeypatch: pytest.MonkeyPatch, task: str) -> None:
     monkeypatch.setattr(
         adapter,
         "_load_pipeline",
-        lambda kind, mount: FakePipeline(kind, properties, adapter.calls),
+        lambda kind, mount: FakePipeline(kind, mount, properties, adapter.calls),
     )
 
 
@@ -242,7 +247,10 @@ def test_depth_is_sixteen_bit_and_normals_are_rgb(
     with Image.open(outputs / "depth.png") as depth:
         assert depth.mode == "I;16"
         assert set(np.asarray(depth).flat) == {int(0.5 * (2**16 - 1))}
-    assert [call[0] for call in adapter.calls] == ["normals", "depth"]
+    assert [(call[0], call[4]) for call in adapter.calls] == [
+        ("normals", tmp_path / "primary"),
+        ("depth", tmp_path / "depth"),
+    ]
 
 
 @pytest.mark.parametrize("task", ["intrinsics-appearance", "intrinsics-lighting"])
@@ -324,7 +332,7 @@ def test_a_pipeline_with_other_target_properties_fails_with_no_output(
     monkeypatch.setattr(
         adapter,
         "_load_pipeline",
-        lambda kind, mount: FakePipeline(kind, other, adapter.calls),
+        lambda kind, mount: FakePipeline(kind, mount, other, adapter.calls),
     )
     _stage(adapter._INPUT_ROOT, "tiny.png", FIXTURE.read_bytes())
     with pytest.raises(SystemExit, match="target properties"):
