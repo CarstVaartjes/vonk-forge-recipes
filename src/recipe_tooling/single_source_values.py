@@ -248,7 +248,10 @@ def scan_source(
             or not (owner_span[0] <= match.start() < owner_span[1])
         ]
     elif registration.kind == ValueKind.CONTRACT_VERSION:
-        if tree is not None:
+        # The owner file holds the major and the placeholder publication stamps.
+        if path == registration.owner:
+            pass
+        elif tree is not None:
             names = {"CONTRACT_VERSION", "CONTRACT_MAJOR"}
             if "contracts/" in path or "vonk_forge_contracts" in text:
                 names.add("__version__")

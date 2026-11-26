@@ -84,7 +84,7 @@ elif args[:2] == ["release", "create"]:
     state["releases"].append({
         "id": state["next_id"], "tag_name": tag, "draft": "--draft" in args,
         "target_commitish": option("--target"), "name": option("--title"),
-        "assets": [Path(args[-1]).name],
+        "assets": [Path(a).name for a in args[3:] if a.startswith("/")],
     })
     save()
     sys.exit(0)
@@ -132,7 +132,9 @@ def run_step(name: str, tmp_path: Path, env: dict[str, str]) -> None:
     assert result.returncode == 0, result.stderr
 
 
-def publish(tmp_path: Path, releases: list[dict[str, object]]) -> dict[str, Any]:
+def publish(
+    tmp_path: Path, releases: list[dict[str, object]], wheel: str = ""
+) -> dict[str, Any]:
     (tmp_path / "bin").mkdir()
     for name, body in (("gh", FAKE_GH), ("release-python", FAKE_PYTHON)):
         (tmp_path / "bin" / name).write_text(body)
@@ -164,6 +166,7 @@ def publish(tmp_path: Path, releases: list[dict[str, object]]) -> dict[str, Any]
             "RELEASE_EXISTS": outputs["exists"],
             "UPDATED_AT": "2026-11-02T00:00:00Z",
             "ATTESTATION_BUNDLE": str(tmp_path / "attestation.json"),
+            "WHEEL": wheel,
         },
     )
     return json.loads(state.read_text())
@@ -194,6 +197,16 @@ def test_a_stranded_draft_is_replaced_by_a_published_release(
     assert releases[0]["assets"] == ["recipe-library.tar"]
     assert state["tags"] == {TAG: SHA}
     assert other in state["releases"]
+
+
+@pytest.mark.skipif(shutil.which("jq") is None, reason="gh's --jq is emulated with jq")
+def test_a_new_version_is_undrafted_only_with_its_wheel(tmp_path: Path) -> None:
+    wheel = tmp_path / "vonk_forge_public_contracts-3.0.0-py3-none-any.whl"
+    wheel.write_bytes(b"wheel")
+    state = publish(tmp_path, [], wheel=str(wheel))
+    (release,) = state["releases"]
+    assert release["draft"] is False
+    assert release["assets"] == ["recipe-library.tar", wheel.name]
 
 
 def test_a_published_release_is_updated_in_place(tmp_path: Path) -> None:

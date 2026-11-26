@@ -2,7 +2,7 @@
   {
     "semantic_id": "recipe_contract.version",
     "owner": "contracts/src/vonk_forge_contracts/_version.py",
-    "selector": "__version__",
+    "selector": "CONTRACT_MAJOR",
     "kind": "contract-version"
   }
 ]

@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# The git edge of tools/contract-version. It finds the last v* release tag, exports
+# that tree's schemas and examples into WORKDIR, and asks the tool for the next
+# version. stdout is one line, "<released version> <next version or none>"; the
+# findings and the change class go to stderr. It fails when _version.py was hand-set
+# (G3) or the change is breaking without the CONTRACT_MAJOR bump.
+# Usage: .github/scripts/contract-version WORKDIR
+set -euo pipefail
+work=$1
+contracts=contracts/src/vonk_forge_contracts
+git fetch --quiet --no-tags --force origin '+refs/tags/v*:refs/tags/v*'
+tag=$(git tag -l 'v*' --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1 || true)
+if [[ -z "$tag" ]]; then
+  echo "::error::no v<MAJOR>.<MINOR>.<PATCH> release tag to compare with" >&2
+  exit 1
+fi
+released=${tag#v}
+major=$(python3 tools/contract-version committed-major "$contracts/_version.py" --base-version "$released")
+mkdir -p "$work"
+git archive "$tag" "$contracts/schema" "$contracts/examples" | tar -x -C "$work"
+changed=yes
+if git diff --quiet "$tag" HEAD -- contracts/src; then changed=no; fi
+next=$(python3 tools/contract-version next \
+  --base-schemas "$work/$contracts/schema" --base-vectors "$work/$contracts/examples" \
+  --head-schemas "$contracts/schema" --head-vectors "$contracts/examples" \
+  --base-version "$released" --major "$major" --src-changed "$changed")
+echo "$released $next"

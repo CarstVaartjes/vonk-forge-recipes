@@ -274,19 +274,24 @@ so a recipe uses a new kind only after the Controller reads this contract
 version. Examples: `recipe-audio-serving.json` (`tests/recipes/test_audio_serving_contract.py`).
 
 Contract compatibility: the library's release version is the contract's
-semantic version (`CONTRACT_VERSION`, release `v5.7.0`). New or changed models
-and recipes never change it: publication updates that release in place and
-records when it was last updated, and vonk-forge follows the newest release
-within its contract major version, so recipe changes never need a vonk-forge
-release. A change to the contract itself bumps `CONTRACT_VERSION`: once
-`v<CONTRACT_VERSION>` is released, validate.yml refuses any change under
-`contracts/src` until `_version.py` names a new version.
+semantic version (`CONTRACT_VERSION`). New or changed models and recipes never
+change it: publication updates that release in place and records when it was
+last updated, and vonk-forge follows the newest release within its contract
+major version, so recipe changes never need a vonk-forge release. Nobody sets
+the version by hand: publication computes it from the change class of the
+schemas and examples since the last release (`tools/contract-version`, see
+AGENTS.md), and `_version.py` keeps only `CONTRACT_MAJOR` and its placeholder.
+A contract change never names the version it will ship in; the
+"Contract change class" check on the PR shows the class it computes. A new field
+is born optional and absent when unset: a new required field on an existing
+model is breaking.
 
-- **Patch:** a fix that keeps every published field, meaning and public API,
-  such as a stricter check of a value producers already write.
+- **Patch:** a change under `contracts/src` that keeps every schema and example
+  byte, such as a fix, a new function or a stricter check in code of a value
+  producers already write.
 
-- **Additive (minor):** add an optional field or a new public API without
-  changing existing wire requirements (`4.9.0` added the `read_catalog` reader). The Controller reads published documents with `read_model` and
+- **Additive (minor):** add an optional field, a model, an enum member or an
+  example, or relax a requirement, without changing existing wire requirements. The Controller reads published documents with `read_model` and
   `read_recipe`, which ignore fields they do not know, and identifies each
   document by the `document_sha256` of its published JSON, so an older
   Controller keeps working and picks the field up when vonk-forge upgrades.
@@ -306,7 +311,8 @@ release. A change to the contract itself bumps `CONTRACT_VERSION`: once
   new word never overflows one. A Controller pinned before 4.9.0 loses what it
   cannot read, so the adoption order still applies.
 - **Breaking (major, for example `3.0.0`, which moved display text out of the documents, `4.0.0`, which moved a Model's modalities, capabilities and licence into its display, and `5.0.0`, which removed `identity.family` from the Model in favour of the display `lineage`):** remove or rename a field, make one required,
-  or change a field's meaning. Making a required field optional also needs
+  or change a field's meaning. Raise `CONTRACT_MAJOR` in `_version.py` by one in the
+  same PR; the change class check fails a breaking change without it. Making a required field optional also needs
   consumer compatibility evidence if producers will stop emitting it: ignoring
   unknown fields does not let an old reader accept a missing required field.
   Deploy it consumer-first: pin this recipes commit in vonk-forge, deploy it,
@@ -1438,7 +1444,7 @@ review policies; no static guard can prove upstream completeness or honesty.
 | `tools/check-recipe-model-references`, `tests/recipes/test_recipe_model_references.py`, `tests/tools/test_display_split.py` | Every pinned Model/file exists at the exact digest, and every Recipe and Model has exactly one display file and none is orphaned. Catalog the missing immutable Model or update all bindings together; add or remove the display with its document. |
 | `tools/check-model-families`, `tests/tools/test_check_model_families.py` | One consistent catalog hierarchy in the displays. Add the Family/Line/Model to `display/families` or correct the Model display's `lineage`; never a format in a Family or Line. |
 | `tools/check-recipe-topology --base origin/main`, `tests/recipes/test_recipe_topology_check.py` | Existing id keeps Spark count. Create a distinct topology id. |
-| validate.yml "Require a contract version bump for a changed contract" | `contracts/src` equals the released `v<__version__>` tag. Bump `__version__` in `contracts/src/vonk_forge_contracts/_version.py` (patch, minor or major as above). |
+| validate.yml "Contract change class", `tests/tools/test_contract_version.py` | `_version.py` holds `CONTRACT_MAJOR` and the placeholder `"<CONTRACT_MAJOR>.0.0"` (never a hand-set version), and a breaking change raises `CONTRACT_MAJOR` by one. Restore the placeholder, make a new field optional, or raise the major for an intended break. |
 | `tests/tools/test_catalog_reader.py` | The consumer reader keeps every readable entry: an unknown word stays as an `UnrecognisedWord`, an unreadable optional block is dropped while its entry stays, an entry with malformed execution data is skipped, and only a wrong envelope or major or a digest mismatch refuses the index. Keep producer validation strict; change the reader's rules in `catalog_reader.py` only. |
 | `tests/recipes/test_recipe_executability.py` | Unique normalized titles, executable metadata/entrypoint, actual shebang/ELF for copied executables. A multi-node recipe that sets `NCCL_NET=IB` (no socket fallback) on an `nvidia/cuda` adapter must install `ibverbs-providers` in the Dockerfile's final stage. Repair the launcher, display or image packages; do not publish placeholder tags. |
 | `tests/recipes/test_ray_poll_interpreter.py` | A launcher that starts a Ray head polls the cluster with `sys.executable`: the image's `python3`, the interpreter a build-time `import ray` check runs under. Never name an interpreter path the image may lack. |
