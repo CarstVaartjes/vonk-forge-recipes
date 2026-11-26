@@ -103,7 +103,7 @@ includes it in the normally signed catalog; publication is not hardware proof.
 
 ## Setup and producer gates
 
-Producer tools, contracts and tests use Python **3.14**. Adapter sources remain
+Producer tools, contracts and tests use Python **3.14**. The pinned platform's `recipe-image-plan` call in recipe-images.yml runs on 3.15 (passed as `--python`). Adapter sources remain
 **3.12-compatible** because they overlay upstream images. Everything under
 `adapters/` follows upstream style and is excluded from Ruff and Pyright;
 functional tests still validate its behaviour, pins and executability.
@@ -166,7 +166,7 @@ when main has moved on, the newer run publishes.
 publish.yml's `platform_ref:` is the one owner of the platform revision (a full
 vonk-forge SHA that must be an ancestor of vonk-forge main); the guard in
 `tests/recipes/test_prebuilt_images.py` keeps every other pin equal. GitHub takes no
-expression in `uses: …@ref`, so those pins stay literal. To move it, check the
+expression in `uses: …@ref`, so those pins stay literal. This is the last manual move: RG removes the pin. To move it, check the
 reusable workflow's inputs and the scripts the workflows call at the new SHA,
 then change every literal in one PR (consumer-first for contract majors, see
 below).

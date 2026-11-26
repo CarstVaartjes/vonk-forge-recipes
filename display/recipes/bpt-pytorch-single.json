@@ -1,0 +1,30 @@
+{
+  "alignment": "unspecified",
+  "description": "Single-Spark BPT job: one dense mesh in, a rebuilt artist-style mesh out. As the creator does, a point cloud with normals (4,096 points drawn from 50,000 surface samples of the mesh normalised to the unit cube) conditions the 500M-parameter model, which writes a new mesh of typically 1,000 to 5,000 faces (at most about 8,000) at temperature 0.5 with top-k 50 and top-p 0.95; the input's own topology is not used. The creator writes an OBJ in the normalised cube; this recipe restores the source mesh's bounding box with the exact inverse of that normalisation and publishes a GLB without colour, and the creator's decode-failure fallback (itself a TypeError) is a job failure here. There is no face-count control upstream. The temperature range is this recipe's (the creator gives none) and the seed is this recipe's own, because the creator's script leaves every random generator unseeded. The creator's torch 2.1 to 2.5 stack has no aarch64 sm_121 build, so the image runs the platform's torch 2.14 stack on CUDA 13.0, with the creator's numpy 1.26.4 and two pins of this recipe's own: trimesh 4.5.3 (upstream lists it unpinned; 4.6 and newer refuse the creator's trimesh.load of a Trimesh object) and transformers 4.57.1 (upstream lists none). The code is under the Tencent Hunyuan 3D 2.0 Community License (the territory excludes the EU, the UK and South Korea, a separate licence applies above 1 million monthly active users, and distributions carry its Notice), while the weights card says MIT. Recorded for information, never gated.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "bpt-pytorch-single"
+  },
+  "kind": "recipe-display",
+  "knobs": {
+    "seed": {
+      "description": "Seeds this recipe's sampling; the creator's script is unseeded.",
+      "label": "Seed"
+    },
+    "temperature": {
+      "description": "Sampling temperature of the mesh tokens; the creator's default is 0.5 and it gives no range (this recipe allows 0.1 to 1.0).",
+      "label": "Temperature"
+    }
+  },
+  "tags": [
+    "executable",
+    "three-d",
+    "pytorch-pipeline",
+    "single",
+    "spark",
+    "retopology",
+    "mesh-to-mesh",
+    "native"
+  ],
+  "title": "BPT retopology PyTorch single Spark"
+}

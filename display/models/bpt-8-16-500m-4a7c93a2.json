@@ -1,0 +1,34 @@
+{
+  "capabilities": [
+    "retopology"
+  ],
+  "description": "BPT (blocked and patchified tokenization, 500M parameters, 8-16 block and offset size): an autoregressive transformer conditioned on a point cloud with normals sampled from a dense mesh, which writes a new mesh of 1,000 to 5,000 faces in an artist-like face layout (at most about 8,000 faces). The point-cloud encoder (Michelangelo) is part of this checkpoint. The checkpoint file's card is MIT licensed; the code carries the Tencent Hunyuan 3D 2.0 Community License.",
+  "family_title": "BPT",
+  "identity": {
+    "publisher": "whaohan",
+    "slug": "bpt-8-16-500m-4a7c93a2"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "whaohan"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/whaohan/bpt/blob/4a7c93a2691b38682fc33ba8a414f2bf849700e3/README.md"
+  },
+  "lineage": {
+    "family": "bpt",
+    "generation": "BPT",
+    "line": "bpt",
+    "model": "bpt",
+    "variant_kind": "base"
+  },
+  "modalities": [
+    "3d"
+  ],
+  "model_title": "BPT",
+  "tags": [
+    "whaohan",
+    "bpt"
+  ]
+}
