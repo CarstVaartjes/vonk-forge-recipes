@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/drama-3-vllm-omni-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "927e26c937428f9dd5f2c1c64460a908bb08c2abc80ce82eb62d38414bdb3969",
+        "source_bundle_sha256": "e8d7e279e21f6d571b99bd0bf571b03a9b40df00837431bfe8eed27a24281de3",
+        "runtime_image": {
+          "build_key": "e3d73ab32475544b98acc743739b1640b2af73a78610efcb184ffeaa62499432",
+          "image_digest": "sha256:6001bb2f692492cd0502de2caed1fcb235d2e68bd70daf14ffe626a8aa9c820b"
+        },
+        "model_digests": [
+          "34b0dd669afb05b9c2b9fb19627a70e55dd1f0fb67af201cbf0be19e73c18c3e"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "recipe.runtime_exit",
+      "cause_summary": "Recipe runtime exited; needs fix",
+      "evidence_refs": [
+        "f2033aeaba7e12bd64d718905be987fa793d549bd922110b9be4be1b26849b43"
+      ],
+      "tested_at": "2026-11-26T22:33:29.680374Z",
+      "platform": {
+        "controller_source_sha": "ff2090813f4a07c51a4c00df3a41cd821035f5ad",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}
