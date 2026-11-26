@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/marigold-iid-lighting-pytorch-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "fd4a5c5f416e0a9a847a8f5f9a7826393778e6a66f19a3d4938e18a1253f116a",
+        "source_bundle_sha256": "12bdec8a6c8280920815555ca81775ee945cb62f2903463541a420d7b3bb77fd",
+        "runtime_image": {
+          "build_key": "6be9d53b3bb1b4ccc69eeedc96173f57f386f870415674adc60cf2f51adcecf9",
+          "image_digest": "sha256:e458988d4eb78e27ac4800bbf2d01568652384d9a076b4a2b86ac05a02f1a2ce"
+        },
+        "model_digests": [
+          "2df42ffb25ab4ced69738a525a106c493a3107b6e611ff5cf8f3d813bc93376f"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "13341b4b76e813d5c8da58f37db36c8f1f431ac8332175f312928e03306c341b"
+      ],
+      "tested_at": "2026-11-26T11:13:26.769049Z",
+      "platform": {
+        "controller_source_sha": "88f8e8b5c54c4df81522fa3257e013021fa76b6a",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}

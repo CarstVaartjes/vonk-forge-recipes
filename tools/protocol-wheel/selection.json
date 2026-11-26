@@ -9,6 +9,10 @@
       "wheel_directory": ""
     },
     {
+      "context": "adapters/audio/mmaudio-pytorch",
+      "wheel_directory": ""
+    },
+    {
       "context": "adapters/image/marigold-diffusers",
       "wheel_directory": ""
     },
