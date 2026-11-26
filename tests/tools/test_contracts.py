@@ -102,10 +102,15 @@ def test_github_release_source_binds_all_model_files_and_unique_assets() -> None
         with pytest.raises(ValidationError):
             ModelDefinition.model_validate(invalid)
 
-    restricted = copy.deepcopy(document)
-    restricted["requires_token"] = True
-    with pytest.raises(ValidationError, match="public, anonymous"):
-        ModelDefinition.model_validate(restricted)
+    # The retired field is optional and ignored: a document with or without it
+    # validates, so neither shape changes the other's bytes.
+    for value in (True, False):
+        with_field = copy.deepcopy(document)
+        with_field["requires_token"] = value
+        ModelDefinition.model_validate(with_field)
+    without_field = copy.deepcopy(document)
+    without_field.pop("requires_token", None)
+    ModelDefinition.model_validate(without_field)
 
 
 def test_github_lfs_source_example_binds_oid_size_path_and_commit() -> None:
@@ -129,7 +134,6 @@ def test_github_lfs_source_refuses_what_it_cannot_download() -> None:
     repository = "source.repository must be a canonical GitHub repository URL"
     empty_sha256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     cases = (
-        (lambda doc: doc.update(requires_token=True), "public, anonymous"),
         (
             lambda doc: doc["files"][0].update(
                 parts=[

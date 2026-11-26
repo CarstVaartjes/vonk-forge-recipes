@@ -124,7 +124,7 @@ published-document readers to bypass producer validation (`tests/tools/test_cont
 
 | Document | Required structure (read the definitions for typed variants); every document also writes its defaulted `kind` (`model`, `recipe`, `recipe-display`, `model-display`, `recipe-api`) |
 | --- | --- |
-| Model | `identity`, `requires_token`, `dependencies`, `source`, `format`, `files`. |
+| Model | `identity`, `dependencies`, `source`, `format`, `files`. |
 | Recipe | `identity`, `models`, `execution`, `runtime`, `topology`, `interfaces`, `validation`, `provenance`, `settings`, `release`; `options` is optional. |
 | Recipe display | `identity` (the Recipe's), `title`, `description`, `tags`; `alignment`, `knobs` and `component_bindings` are optional. |
 | Model display | `identity` (the Model's own `publisher`/`slug`), `family_title`, `model_title`, `description`, `tags`, and the Model's declared facts: `modalities`, `capabilities`, `license`; `lineage` (its place in the catalog hierarchy) is required for a Model a recipe serves first and absent for a helper. |
@@ -399,8 +399,8 @@ a gap, or whose joined name is also published whole, is refused. The platform
 downloads and verifies the parts, assembles the file and installs it as one
 ordinary file, so recipes select `<name>` like any other file.
 
-Provider-gated checkpoints may be included. Set `requires_token: true` and
-preserve the provider's license and access requirements. The Controller keeps
+Provider-gated checkpoints may be included. `requires_token` is a retired, optional,
+ignored Model field (writers still write it for now): preserve the provider's license and access requirements. The Controller keeps
 the token in its existing secret store; never embed it in a Model, Recipe,
 build context or publication. A configured token does not prove that the account
 has accepted terms or received model-specific approval. Verify access separately
