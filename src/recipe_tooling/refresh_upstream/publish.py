@@ -121,10 +121,8 @@ def arm_mechanical_pr(number: int, recipe_id: str, summary: Summary) -> bool:
         )
         return False
 
-    # Listed once per run; a PR prepared after the listing is not in it, so list again.
-    if summary.open_pulls is None or not any(
-        pr.get("number") == number for pr in summary.open_pulls
-    ):
+    # Listed once per run, and again after a push (it changes a PR's files).
+    if summary.open_pulls is None:
         summary.open_pulls = with_all_files(
             refresh_github.gh_json(
                 "pr",
@@ -432,6 +430,7 @@ def _publish(
         "push", "-q", "origin", f"{commit}:refs/heads/{branch}", cwd=root
     )
     summary.prepared += 1
+    summary.open_pulls = None
     title = f"Refresh {assessment.label} to the newest upstream pins"
     body = refresh_render.pr_body(assessment)
     label, other = (

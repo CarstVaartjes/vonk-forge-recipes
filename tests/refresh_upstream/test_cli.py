@@ -13,7 +13,7 @@ from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
-from refresh_helpers import NEW, OLD, PATCH_HOME
+from refresh_helpers import NEW, OLD, OWN, PATCH_HOME
 from repo_root import ROOT
 
 from recipe_tooling.refresh_upstream import apply as refresh_apply
@@ -156,17 +156,29 @@ class PerRecipeFaultTests(unittest.TestCase):
         assert len(summary.failures) == 1
         assert summary.failures[0].startswith("a: ValueError: Expecting value")
 
-    def test_an_over_limit_mechanical_recipe_refreshes_its_existing_issue(self) -> None:
+    def test_an_over_limit_recipe_keeps_its_open_refresh_pr(self) -> None:
         synced: list[tuple[str, bool, list[str]]] = []
+        calls: list[tuple[str, ...]] = []
 
         def sync(assessment, _summary, *, create=True):
             synced.append((assessment.recipe_id, create, list(assessment.reasons)))
 
+        assessments = {"a": self.drifted("a")}
         with patch.object(refresh_model, "MAX_MECHANICAL_PER_RUN", 0):
-            self.run_refresh({"a": self.drifted("a")}, sync_issue=sync)
+            _, summary = self.run_refresh(assessments, sync_issue=sync)
 
         assert [(r, c) for r, c, _ in synced] == [("a", False)]
         assert "over this run's limit" in synced[0][2][0]
+        assert assessments["a"].prepared  # the result itself is untouched
+        pulls = [{"number": 5, "headRefName": "refresh/a", "body": "", **OWN}]
+        with (
+            patch.object(refresh_github, "gh_json", side_effect=[pulls, [], []]),
+            patch.object(
+                refresh_github, "gh", side_effect=lambda *a, **k: calls.append(a)
+            ),
+        ):
+            refresh_publish.close_stale_refresh_prs(assessments, summary)
+        assert not [c for c in calls if c[:2] == ("pr", "close")]
 
     def test_an_error_syncing_an_unreachable_recipe_does_not_starve_the_next(
         self,

@@ -287,21 +287,34 @@ def upstream_blob(http: refresh_http.Http, repo: str, sha: str) -> bytes:
     return data
 
 
-VERSION_LINE = re.compile(r'^[+-]\s*version\s*=\s*"[^"]*"\s*$')
+VERSION_LINE = re.compile(r'^\s*version\s*=\s*"[^"]*"\s*$')
+VERSION_TABLES = {"[project]", "[tool.poetry]"}
 
 
 def version_only_bump(entry: dict[str, Any]) -> bool:
-    """Whether a changed ``pyproject.toml`` differs only in its ``version`` lines."""
-    changed = [
-        line
-        for line in str(entry.get("patch") or "").splitlines()
-        if line[:1] in "+-" and not line.startswith(("+++", "---"))
-    ]
-    return (
-        PurePosixPath(entry["filename"]).name == "pyproject.toml"
-        and bool(changed)
-        and all(VERSION_LINE.match(line) for line in changed)
-    )
+    """Whether a changed ``pyproject.toml`` differs only in its package ``version`` lines.
+
+    A ``version`` counts only under the nearest table header seen in the hunk being
+    ``[project]`` or ``[tool.poetry]``; a hunk without one stays a change.
+    """
+    if PurePosixPath(entry["filename"]).name != "pyproject.toml":
+        return False
+    table = ""
+    changed = 0
+    for line in str(entry.get("patch") or "").splitlines():
+        if line.startswith("@@"):
+            table = ""
+            continue
+        if line.startswith(("+++", "---")):
+            continue
+        text = line[1:].strip()
+        if line.startswith(("+", "-")):
+            if not (VERSION_LINE.match(text) and table in VERSION_TABLES):
+                return False
+            changed += 1
+        elif text.startswith("["):
+            table = text
+    return changed > 0
 
 
 def classify_changes(

@@ -179,24 +179,62 @@ class MergeGateTests(unittest.TestCase):
         assessment = refresh_model.Assessment(
             "recipe", edits={"recipe.json": b"new pin\n"}
         )
+        for moved in ("policy/rules.json", "contracts/src/model.py"):
+            with self.subTest(moved=moved):
 
-        def git(*arguments: str, **_: object) -> str:
-            # main moved only under contracts/ and policy/
-            if arguments[0] == "diff":
-                watched = {"contracts/", "policy/"} & set(arguments)
-                return "policy/rules.json" if watched else ""
-            return ""
+                def git(*arguments: str, moved: str = moved, **_: object) -> str:
+                    # the entries of main's changed set under the given pathspecs
+                    if arguments[0] == "diff":
+                        specs = arguments[arguments.index("--") + 1 :]
+                        return "\n".join(p for p in [moved] if p.startswith(specs))
+                    return ""
 
+                summary = refresh_publish.Summary()
+                summary.started = "a" * 40
+                with (
+                    patch(
+                        "recipe_tooling.refresh_upstream.github.gh", return_value="[]"
+                    ),
+                    patch(
+                        "recipe_tooling.refresh_upstream.github.git", side_effect=git
+                    ),
+                    patch(
+                        "recipe_tooling.refresh_upstream.apply.verify",
+                        return_value=None,
+                    ),
+                ):
+                    number = refresh_publish.publish_mechanical(
+                        Path(), assessment, summary
+                    )
+
+                assert number is None
+                assert f"main changed {moved}" in summary.deferred[0]
+
+    def test_arming_after_a_push_sees_the_pushed_files(self) -> None:
         summary = refresh_publish.Summary()
-        summary.started = "a" * 40
+        summary.healthy = True
+        before = [
+            {
+                "number": 419,
+                **OWN,
+                "autoMergeRequest": {"enabledAt": "now"},
+                "files": [{"path": "recipes/a.json"}],
+            },
+            {"number": 421, **OWN, "files": [{"path": "recipes/b.json"}]},
+        ]
+        after = [before[0], {**before[1], "files": [{"path": "recipes/a.json"}]}]
         with (
-            patch("recipe_tooling.refresh_upstream.github.gh", return_value="[]"),
-            patch("recipe_tooling.refresh_upstream.github.git", side_effect=git),
+            patch(
+                "recipe_tooling.refresh_upstream.github.gh_json",
+                side_effect=[before, after],
+            ),
+            patch("recipe_tooling.refresh_upstream.github.gh"),
         ):
-            number = refresh_publish.publish_mechanical(Path(), assessment, summary)
-
-        assert number is None
-        assert "main changed policy/rules.json" in summary.deferred[0]
+            summary.armed.append(419)
+            assert refresh_publish.arm_mechanical_pr(421, "recipe-b", summary)
+            summary.armed.remove(421)
+            summary.open_pulls = None  # what a push to the PR's branch does
+            assert not refresh_publish.arm_mechanical_pr(421, "recipe-b", summary)
 
     def test_open_pulls_are_listed_once_per_run(self) -> None:
         summary = refresh_publish.Summary()

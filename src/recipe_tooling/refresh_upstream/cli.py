@@ -22,6 +22,7 @@ revision); and the whole test suite still passes.
 from __future__ import annotations
 
 import argparse
+import dataclasses
 import os
 import traceback
 from concurrent.futures import ThreadPoolExecutor
@@ -200,11 +201,22 @@ def command_run(arguments: argparse.Namespace) -> int:
                     summary.deferred.append(
                         f"{result.recipe_id}: mechanical, over this run's limit"
                     )
-                    # An issue left from an earlier run must not keep showing its old reason.
-                    result.reasons.append(
-                        "mechanical, but over this run's limit; a later run prepares it"
+                    # An issue left from an earlier run must not keep showing its old
+                    # reason; the result itself stays as assessed (a live PR stays open).
+                    refresh_publish.sync_issue(
+                        dataclasses.replace(
+                            result,
+                            reasons=[
+                                *result.reasons,
+                                (
+                                    "mechanical, but over this run's limit; a later "
+                                    "run prepares it"
+                                ),
+                            ],
+                        ),
+                        summary,
+                        create=False,
                     )
-                    refresh_publish.sync_issue(result, summary, create=False)
                     continue
                 members = groups.get(result.recipe_id)
                 if members is None:

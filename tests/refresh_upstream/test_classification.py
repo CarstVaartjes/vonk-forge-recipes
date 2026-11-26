@@ -50,7 +50,7 @@ class ClassificationTests(unittest.TestCase):
                 assert classify(comparison(files=(name,)))
 
     def test_a_pyproject_version_bump_alone_is_mechanical(self) -> None:
-        def pyproject(*lines: str):
+        def pyproject(*lines: str, table: str = "[project]"):
             return refresh_model.Comparison(
                 "ahead",
                 [],
@@ -58,7 +58,9 @@ class ClassificationTests(unittest.TestCase):
                     {
                         "filename": "pyproject.toml",
                         "status": "modified",
-                        "patch": "@@ -1,3 +1,3 @@\n [project]\n" + "\n".join(lines),
+                        "patch": "@@ -1,3 +1,3 @@\n"
+                        + (f" {table}\n" if table else "")
+                        + "\n".join(lines),
                     }
                 ],
                 False,
@@ -68,6 +70,9 @@ class ClassificationTests(unittest.TestCase):
         bump = ('-version = "1.0.0"', '+version = "1.1.0"')
         assert classify(pyproject(*bump)) == []
         assert classify(pyproject(*bump, '+dependencies = ["torch"]'))
+        # a dependency's version is a change, and so is a hunk with no table header
+        assert classify(pyproject(*bump, table="[tool.poetry.dependencies]"))
+        assert classify(pyproject(*bump, table=""))
 
     def test_downgrade_divergence_and_truncation_are_not(self) -> None:
         for cmp in (
