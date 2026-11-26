@@ -1,0 +1,25 @@
+{
+  "capabilities": [],
+  "description": "FLAN-T5 Large: the text encoder TangoFlux builds with T5EncoderModel (the creator's text_encoder_name google/flan-t5-large), with its tokenizer files.",
+  "family_title": "FLAN-T5",
+  "identity": {
+    "publisher": "google",
+    "slug": "flan-t5-large-0613663d"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "google"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/google/flan-t5-large/blob/0613663d0d48ea86ba8cb3d7a44f0f65dc596a2a/README.md"
+  },
+  "modalities": [
+    "text"
+  ],
+  "model_title": "FLAN-T5 Large",
+  "tags": [
+    "google",
+    "flan-t5"
+  ]
+}

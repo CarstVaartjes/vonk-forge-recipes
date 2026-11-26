@@ -283,6 +283,13 @@ PROVEN_FIXED_MEDIA = {
     "wan-2-2-t2v-14b-comfyui-single",
     "wan-2-2-ti2v-5b-comfyui-single",
 }
+# Unproven recipes with no cost control to shrink the smoke: the paint step is fixed by the creator
+# (views, steps, remesh and seed), and the full recipe runs demo.py's shape defaults, offering only a
+# seed (no cost) and deliberately not the Gradio app's steps and octree controls.
+CREATOR_FIXED_MEDIA = {
+    "hunyuan3d-2-1-pytorch-single",
+    "hunyuan3d-2-1-paint-pytorch-single",
+}
 MINIMAL_MEDIA_PARAMETERS = {
     "mova-360p-diffusers-single": {"num-frames": 1, "num-inference-steps": 2},
     "mova-720p-diffusers-single": {"num-frames": 1, "num-inference-steps": 2},
@@ -295,10 +302,12 @@ MINIMAL_MEDIA_PARAMETERS = {
         "num-inference-steps": 2,
     },
     "hunyuan-video-15-i2v-step-distilled-diffusers-single": {"num-frames": 1},
+    "partcrafter-pytorch-single": {"num-parts": 2, "seed": 0},
     "ltx-2-19b-dev-fp4-pytorch-single": {"num-frames": 1, "num-inference-steps": 2},
     "fasth3-8step-v2-drowzeys-tensorfold-single": {"num-frames": 124},
     "minimax-h3-keys-heretic-drowzeys-comfyui-single": {"num-frames": 124},
     "stable-audio-3-small-sfx-pytorch-single": {"duration-seconds": 2},
+    "tangoflux-pytorch-single": {"duration-seconds": 2.0, "steps": 10, "seed": 0},
     # the 1 second smoke video caps the duration at its own length
     "mmaudio-large-44k-v2-pytorch-single": {"duration-seconds": 1.0},
     "minimax-h3-diffusers-single": {"num-frames": 124, "num-inference-steps": 4},
@@ -393,12 +402,17 @@ def test_every_media_smoke_has_minimal_controls_or_reviewed_identity_boundary():
             assert spec["inputs"] == [
                 {"slot": "mesh", "fixture": "skintokens-rigged-figure"}
             ]
+        elif slug in CREATOR_FIXED_MEDIA:
+            settings = read_recipe(slug).settings
+            assert isinstance(settings, RecipeJobSettings)
+            assert set(settings.knobs) <= {"seed"}
         else:
             assert slug in PROVEN_FIXED_MEDIA, (
                 f"review minimal smoke controls for {slug}"
             )
     assert seen == (
         PROVEN_FIXED_MEDIA
+        | CREATOR_FIXED_MEDIA
         | MINIMAL_MEDIA_PARAMETERS.keys()
         | MINIMAL_BY_FIXTURE_MEDIA
         | SHARED_PROVEN_MEDIA.keys()

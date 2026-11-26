@@ -1,0 +1,10 @@
+# Source-only packages, installed after requirements.lock with
+#   pip install --no-deps --no-build-isolation --require-hashes -r requirements-sdist.txt
+# Their build backends and import dependencies are in requirements.lock; --no-deps because
+# realesrgan's declared dependencies pull facexlib and gfpgan, which none of its package modules import
+# (realesrgan and its submodules import only basicsr, cv2, numpy, torch and torchvision), and because
+# basicsr's build-system.requires lists torch, which uv cannot build off-target. Versions are the
+# creator's requirements.txt pins, except xatlas (the creator pins 0.0.9, this is 0.0.10).
+basicsr @ https://files.pythonhosted.org/packages/86/41/00a6b000f222f0fa4c6d9e1d6dcc9811a374cabb8abb9d408b77de39648c/basicsr-1.4.2.tar.gz#sha256=b89b595a87ef964cda9913b4d99380ddb6554c965577c0c10cb7b78e31301e87
+realesrgan @ https://files.pythonhosted.org/packages/75/40/4af728ed9c48ac65634976535f36afd421de39315920e5f740049a6524a6/realesrgan-0.3.0.tar.gz#sha256=0d36da96ab9f447071606e91f502ccdfb08f80cc82ee4f8caf720c7745ccec7e
+xatlas @ https://files.pythonhosted.org/packages/c7/4e/43b2360419a04451a1523d6f82e4e438c920b8ccf0296b409c978c04fbfe/xatlas-0.0.10.tar.gz#sha256=bc36b6c7db8fcf1f58f1b5badd8927fdf8eb2b2182e436f07831dc789c9fbf04

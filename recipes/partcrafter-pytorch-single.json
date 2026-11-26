@@ -1,0 +1,348 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
+        "repository": "nvcr.io/nvidia/cuda"
+      },
+      "context": {
+        "path": "adapters/three-d/partcrafter"
+      },
+      "dockerfile": "adapters/three-d/partcrafter/Dockerfile",
+      "network": {
+        "hosts": [
+          "codeload.github.com",
+          "download.pytorch.org",
+          "download-r2.pytorch.org",
+          "pypi.org",
+          "pypi.nvidia.com",
+          "files.pythonhosted.org",
+          "archive.ubuntu.com",
+          "security.ubuntu.com",
+          "ports.ubuntu.com"
+        ]
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "partcrafter-pytorch-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "mesh-job",
+      "input": {
+        "max_bytes": 16777216,
+        "media_types": [
+          "image/jpeg",
+          "image/png",
+          "image/webp"
+        ],
+        "required": true,
+        "slots": [
+          {
+            "description": "One object image. An RGBA cutout with a real alpha channel is used as-is; any other image has its background removed with BRIA RMBG-1.4 first.",
+            "extensions": [
+              ".jpeg",
+              ".jpg",
+              ".png",
+              ".webp"
+            ],
+            "id": "image",
+            "label": "Object image",
+            "max_file_bytes": 16777216,
+            "max_files": 1,
+            "max_total_bytes": 16777216,
+            "media_types": [
+              "image/jpeg",
+              "image/png",
+              "image/webp"
+            ],
+            "min_files": 1
+          }
+        ]
+      },
+      "output": {
+        "max_total_bytes": 1073741824,
+        "slots": [
+          {
+            "description": "part_00.glb ... one GLB per part, plus object.glb with every part as its own node",
+            "extensions": [
+              ".glb"
+            ],
+            "id": "parts",
+            "label": "Part meshes",
+            "max_file_bytes": 268435456,
+            "max_files": 17,
+            "max_total_bytes": 1073741824,
+            "media_types": [
+              "model/gltf-binary"
+            ],
+            "min_files": 2
+          }
+        ]
+      }
+    }
+  ],
+  "kind": "recipe",
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "preprocessor-config-14e780d86fa1-ea49d31434",
+          "id": "primary-001",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-25329e19f8c1-31237d51d1",
+          "id": "primary-002",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-aa0b83921a33-ac49b4dec9",
+          "id": "primary-003",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-index-c6956993e6a5-ee03ace9a3",
+          "id": "primary-004",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "scheduler-config-83b4baea6a13-67ecb3dc37",
+          "id": "primary-005",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-0c65b565d90d-98e965502a",
+          "id": "primary-006",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-915aba1d29c6-6e22ab20f4",
+          "id": "primary-007",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-c49fbf1e8054-101abd63da",
+          "id": "primary-008",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-b43b006e5692-86e9ee3b4f",
+          "id": "primary-009",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "d967cdb20ce7412e5119f9a262fbe1c6ad11ad554f2d85bd5b626600a7db64f6",
+        "kind": "model",
+        "publisher": "wgsxm",
+        "slug": "partcrafter-69a0ffc1"
+      }
+    },
+    {
+      "files": [
+        {
+          "file_id": "config-d774e7d35151-587cb980af",
+          "id": "bria-001",
+          "mount": {
+            "target": "/models/rmbg"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-46ef7fe46f2a-9d75c1098f",
+          "id": "bria-002",
+          "mount": {
+            "target": "/models/rmbg"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "background-removal",
+      "model": {
+        "content_sha256": "a299e63e04996bf7c5ecf040f119a1d01aad3198e7e5ad6adb33e0572f2b0146",
+        "kind": "model",
+        "publisher": "bria-ai",
+        "slug": "bria-rmbg-1-4"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "wgsxm",
+      "bria-ai"
+    ],
+    "source_reference": "https://huggingface.co/wgsxm/PartCrafter/tree/69a0ffc1dad5e48e7e5ed91c0609f2b1276eb31f"
+  },
+  "release": {
+    "released_at": "2026-11-26",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "entrypoint",
+        "setting": null,
+        "value": "/opt/vonk/source/run.py"
+      },
+      {
+        "name": "output-mime",
+        "setting": null,
+        "value": "model/gltf-binary"
+      },
+      {
+        "name": "num-parts",
+        "setting": "num-parts",
+        "value": null
+      },
+      {
+        "name": "seed",
+        "setting": "seed",
+        "value": null
+      }
+    ],
+    "engine": "pytorch-pipeline",
+    "entrypoint": [
+      "/opt/vonk/bin/pytorch-pipeline"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 60
+    }
+  },
+  "settings": {
+    "concurrency": null,
+    "kind": "job",
+    "knobs": {
+      "num-parts": {
+        "change_effect": "none",
+        "maximum": 16,
+        "minimum": 1,
+        "value": 3
+      },
+      "seed": {
+        "change_effect": "none",
+        "maximum": 2147483647,
+        "minimum": 0,
+        "value": 0
+      }
+    }
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 4149831104,
+            "image_bytes": 12000000000,
+            "safety_margin_bytes": 12000000000,
+            "working_bytes": 4000000000
+          },
+          "memory": {
+            "peak_bytes": 14000000000,
+            "reserve_bytes": 4000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "inference.completed",
+            "artifact.output"
+          ],
+          "kind": "mesh-job.output",
+          "name": "job-output",
+          "request": {
+            "fixture": "qualification/fixtures/partcrafter-np2.png",
+            "input_slots": {
+              "image": "qualification/fixtures/partcrafter-np2.png"
+            },
+            "output_slot": "parts",
+            "transport": "job"
+          }
+        }
+      ],
+      "interface": "mesh-job"
+    }
+  }
+}

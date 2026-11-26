@@ -1,0 +1,33 @@
+{
+  "alignment": "unspecified",
+  "component_bindings": [
+    "background-removal"
+  ],
+  "description": "Single-Spark PartCrafter job: one object image in, a set of separate untextured part meshes out. PartCrafter generates a chosen number of geometrically distinct parts of the object in one pass, each a GLB (part_00.glb, part_01.glb, ...), plus object.glb, the composed scene with every part as its own node and the creator's seeded random per-part vertex colours. The job runs the creator's inference script at its own defaults (50 steps, guidance 7.0, 1,024 latent tokens, fp16) and its image preparation: an RGBA cutout with a real alpha channel is used as it is, and any other image has its background removed with BRIA RMBG-1.4, composited on white, cropped to the foreground and padded by 10 percent. The num-parts knob is the number of parts to generate (the creator allows 1 to 16; its recommended count is in the example file name np2, np3, ...). A part the model fails to decode fails the job and names the part, where the creator would write a one-vertex placeholder. The creator's renders, manifest and Gemini part-suggestion and style-transfer helpers are not run. The PartCrafter code and weights are MIT licensed; the RMBG-1.4 helper is source-available for non-commercial use under its own agreement. Recorded for information, never gated. The creator's torch 2.5 stack has no aarch64 sm_121 build, so the image runs the platform's torch 2.14 stack on CUDA 13.2, and its torch_cluster import (used only by the encoder, never at inference) is patched out because it has no aarch64 wheel.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "partcrafter-pytorch-single"
+  },
+  "kind": "recipe-display",
+  "knobs": {
+    "num-parts": {
+      "description": "How many separate parts to generate; the creator allows 1 to 16 and its README example uses 3.",
+      "label": "Parts"
+    },
+    "seed": {
+      "description": "Random seed of the sampling and of the per-part vertex colours in object.glb; the creator's default is 0.",
+      "label": "Seed"
+    }
+  },
+  "tags": [
+    "executable",
+    "three-d",
+    "pytorch-pipeline",
+    "single",
+    "spark",
+    "image-to-three-d",
+    "part-aware",
+    "native"
+  ],
+  "title": "PartCrafter part-aware image-to-3D PyTorch single Spark"
+}
