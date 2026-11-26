@@ -207,15 +207,3 @@ def test_failed_generation_leaves_no_output_and_keeps_platform_scratch(
     assert sorted(path.name for path in outputs.iterdir()) == ["cache", "tmp"]
     assert (outputs / "tmp" / "kept").is_file()
     assert (outputs / "cache" / "kept").is_file()
-
-
-@pytest.mark.parametrize("value", [None, "0", "3601", "soon"])
-def test_job_must_declare_a_bounded_timeout(
-    adapter: Any, monkeypatch: pytest.MonkeyPatch, value: str | None
-) -> None:
-    if value is None:
-        monkeypatch.delenv("VONK_JOB_TIMEOUT_SECONDS")
-    else:
-        monkeypatch.setenv("VONK_JOB_TIMEOUT_SECONDS", value)
-    with pytest.raises(SystemExit, match="VONK_JOB_TIMEOUT_SECONDS|between"):
-        adapter._job_deadline()

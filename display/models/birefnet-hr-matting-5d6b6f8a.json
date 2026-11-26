@@ -1,6 +1,6 @@
 {
   "capabilities": [
-    "image-editing"
+    "background-removal"
   ],
   "description": "Immutable public snapshot at 5d6b6f8a of ZhengPeng7/BiRefNet_HR-matting: BiRefNet_HR-matting, the creator's matting variant of the HR model, which keeps soft edges such as fur, needles and fences. Weights in fp16 (0.44 GB) with the model's own remote code (birefnet.py, config), which the mounted Model carries. MIT licensed.",
   "family_title": "BiRefNet",

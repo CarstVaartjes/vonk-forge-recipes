@@ -1,6 +1,6 @@
 {
   "capabilities": [
-    "image-editing"
+    "background-removal"
   ],
   "description": "Immutable public snapshot at a7a562f6 of ZhengPeng7/BiRefNet_HR: BiRefNet_HR, the creator's high-resolution dichotomous image segmentation model (trained at 2048x2048) for sharp object cutouts. Weights in fp16 (0.44 GB) with the model's own remote code (birefnet.py, config), which the mounted Model carries. MIT licensed.",
   "family_title": "BiRefNet",
