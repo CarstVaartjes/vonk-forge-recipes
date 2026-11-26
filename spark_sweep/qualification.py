@@ -493,6 +493,10 @@ def recipe_evidence(
         return None
 
 
+#: Platform-blamed tries of one recheck on one release before the retries end.
+RECHECK_PLATFORM_TRIES = 3
+
+
 def recheck_due(
     evidence: RecipeQualificationEvidence | None,
     content_sha256: str,
@@ -500,19 +504,23 @@ def recheck_due(
 ) -> bool:
     """An operator-named recipe has no verdict on the deployed Controller release yet.
 
-    A pass or a recipe-blamed failure of this content recorded on this release settles it;
-    a platform-blamed record says nothing about the recipe, so the recipe stays due. With
-    the release unknown nothing is due: a run now could not record which release it proves.
+    A pass or a recipe-blamed failure of this content recorded on this release settles it.
+    A platform-blamed record says nothing about the recipe, so it is tried again (with
+    backoff), up to ``RECHECK_PLATFORM_TRIES`` such records on this release; then the
+    retries end and the deferred rows are what the operator investigates. With the release
+    unknown nothing is due: a run now could not record which release it proves.
     """
     if release is None:
         return False
-    return not any(
-        r.identity.content_sha256 == content_sha256
-        and r.blame != QualificationBlame.PLATFORM
+    here = [
+        r
+        for r in (evidence.records if evidence is not None else ())
+        if r.identity.content_sha256 == content_sha256
         and (r.platform.controller_source_sha or r.platform.controller_version)
         == release
-        for r in (evidence.records if evidence is not None else ())
-    )
+    ]
+    platform = sum(r.blame == QualificationBlame.PLATFORM for r in here)
+    return platform == len(here) and platform < RECHECK_PLATFORM_TRIES
 
 
 def rerun_settled(

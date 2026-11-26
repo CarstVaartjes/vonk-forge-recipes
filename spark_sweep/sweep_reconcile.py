@@ -545,12 +545,22 @@ class SweepReconcile:
                 )
             },
         )
+        # A recheck after its own platform-blamed try keeps its attempts and backs off.
+        again = (
+            why == RetestReason.OPERATOR_RECHECK
+            and entry.get("status") != RecipeStatus.PASSED
+        )
+        attempts = int(entry.get("attempts", 0)) if again else 0
         entry.update(
             status=RecipeStatus.PENDING,
-            attempts=0,
+            attempts=attempts,
             revalidate=why == RetestReason.PASSED_OLDER_REVISION,
             requeued_because=why,
         )
+        if again:
+            entry["not_before"] = self.clock.now() + verdict.retry_delay(
+                self.cfg.retry_delay, attempts
+            )
         for stale in (
             "phase",
             "failure_class",

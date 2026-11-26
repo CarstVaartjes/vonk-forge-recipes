@@ -60,9 +60,11 @@ Schedule Fix to verify, Untested, platform-blocked work after its fix is observe
 and Re-check last. `--retry-failed` never requeues Working. `--recheck SLUG`
 (repeatable, exact slug or key) runs a named recipe once on the deployed
 Controller release whatever its status, for a release proof. A pass or a
-recipe-blamed failure of the current content on that release settles it; a
-platform-blamed record does not. A pending recheck survives a restart without
-the flag, and a name that is no recipe stops `plan` and `run`.
+recipe-blamed failure of the current content on that release settles it. A
+platform-blamed try is retried with its attempts kept and backoff, up to three on
+that release (`RECHECK_PLATFORM_TRIES`); then the retries end and its deferred
+rows stay in `results.jsonl`. A pending recheck survives a restart without the
+flag, and a name that is no recipe stops `plan` and `run`.
 
 Evidence files keep only what the readers consult (`retained()` in
 `src/recipe_tooling/qualification/evidence_retention.py`): per identity of the current content the newest pass,
