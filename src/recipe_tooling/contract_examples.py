@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import copy
 import json
-from pathlib import Path
 from typing import Any
 
 from recipe_tooling.paths import REPO_ROOT
@@ -32,17 +31,15 @@ from vonk_forge_contracts import (
 ROOT = REPO_ROOT
 
 EXAMPLES = ROOT / "contracts/src/vonk_forge_contracts/examples"
-# Refusals only a producer-side check raises are fixtures of that check, not wheel data.
-API_CHECKS = ROOT / "tests/fixtures/api-checks"
 
 
 def _read(name: str) -> dict[str, Any]:
     return json.loads((EXAMPLES / name).read_text(encoding="utf-8"))
 
 
-def _write(name: str, document: dict[str, Any], root: Path = EXAMPLES) -> None:
-    (root / name).parent.mkdir(parents=True, exist_ok=True)
-    (root / name).write_text(
+def _write(name: str, document: dict[str, Any]) -> None:
+    (EXAMPLES / name).parent.mkdir(parents=True, exist_ok=True)
+    (EXAMPLES / name).write_text(
         json.dumps(document, indent=2, sort_keys=True, ensure_ascii=False) + "\n",
         encoding="utf-8",
     )
@@ -84,14 +81,11 @@ def _invalid(
     lenient readers consumers use ignore the unknown field.
     """
 
-    root, folder = (
-        (API_CHECKS, "") if contract == "check_recipe_api" else (EXAMPLES, "invalid/")
-    )
-    _write(f"{folder}{name}.json", document, root)
+    _write(f"invalid/{name}.json", document)
     expect: dict[str, Any] = {"contract": contract, "error_contains": error_contains}
     if producer_only:
         expect["producer_only"] = True
-    _write(f"{folder}{name}.expect.json", expect, root)
+    _write(f"invalid/{name}.expect.json", expect)
 
 
 def _with_identity_family(model: dict[str, Any]) -> dict[str, Any]:

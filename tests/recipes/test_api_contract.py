@@ -44,8 +44,6 @@ from vonk_forge_contracts.resolver import (
 
 EXAMPLES = ROOT / "contracts/src/vonk_forge_contracts/examples"
 INVALID = EXAMPLES / "invalid"
-# Vectors only ``check_recipe_api`` refuses: producer-side, so not shipped in the wheel.
-CHECKED = ROOT / "tests/fixtures/api-checks"
 APIS = sorted((ROOT / "api/recipes").glob("*.json"))
 GUARD = runpy.run_path(str(ROOT / "tools/check-recipe-api"))
 
@@ -134,8 +132,7 @@ def _refuse(contract: str, document: dict[str, Any]) -> None:
 
 API_VECTORS = sorted(
     path
-    for folder in (INVALID, CHECKED)
-    for path in folder.glob("recipe-api-*.json")
+    for path in INVALID.glob("recipe-api-*.json")
     if not path.name.endswith(".expect.json")
 )
 

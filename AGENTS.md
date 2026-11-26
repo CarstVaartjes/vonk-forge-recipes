@@ -324,7 +324,7 @@ them, that more than one process reads (Controller, vonkctl, publication, recipe
 producers). A thing is wire when a consumer imports it or an imported model's
 fields reach it; `SHARED_FUNCTIONS` in its `__init__.py` is the one owner list of the
 public functions, and `tools/check-wire-only` (validate.yml) rejects an added public
-function outside it and any added filesystem traversal (`glob`, `iterdir`, `os.walk`, a
+function outside it and any added filesystem traversal (`glob`, `iterdir`, `os.walk`, `open(`, `.read_text(`, `.read_bytes(`, a
 `library_root` or `root: Path` parameter). Library checks, status derivation and the
 sweep-only enums live in `recipe_tooling` (`library_checks`, `qualification/status`,
 `qualification/api_checks`). A tool's own state, and its projection of another system's wire
