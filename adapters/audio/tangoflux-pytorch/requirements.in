@@ -1,0 +1,34 @@
+--extra-index-url https://download.pytorch.org/whl/cu130
+
+# The creator's environment is torch 2.4.0 on CUDA 12 (requirements.txt); no cu12x aarch64 sm_121
+# build of it exists, so the stack is the GB10-proven Foley/CHORD one: torch 2.14.0 on cu130.
+torch==2.14.0
+# CUDA closure of that torch, held at the versions the Foley lock resolved (the others match).
+cuda-bindings==13.3.1
+cuda-pathfinder==1.7.0
+nvidia-nvjitlink==13.3.33
+
+# diffusers 0.39.0 (the version the Foley image proves on GB10) still has the
+# training_utils.compute_density_for_timestep_sampling the creator imports at module level, and
+# still takes the creator's 3D txt_ids and img_ids; transformers 4.57.1 with its tokenizers 0.22.1
+# and huggingface-hub 0.36.0 are the Foley versions the creator's T5 loading needs.
+diffusers==0.39.0
+transformers==4.57.1
+tokenizers==0.22.1
+huggingface-hub==0.36.0
+safetensors==0.8.0
+# The creator imports datasets at module level in tangoflux/__init__.py and model.py (load_dataset,
+# Audio); its own pin, installed, never stubbed.
+datasets==2.21.0
+pyyaml==6.0.3
+tqdm
+# The adapter writes the WAV with soundfile and reads no audio through torchaudio, which no
+# inference module imports.
+soundfile==0.13.1
+# numpy 2.2.6 is the version the Stable Audio 3 adapter locks (the creator pins none).
+numpy==2.2.6
+
+# vonk-agent-protocol 4.1.0 requirements (jsonschema>=4.26.0, pydantic>=2.13.5): the wheel is
+# installed with --no-deps, so the hash lock carries them (as in adapters/three-d/kimodo).
+pydantic==2.13.5
+jsonschema==4.26.0

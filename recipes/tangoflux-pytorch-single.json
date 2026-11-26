@@ -1,0 +1,357 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
+        "repository": "nvcr.io/nvidia/cuda"
+      },
+      "context": {
+        "path": "adapters/audio/tangoflux-pytorch"
+      },
+      "dockerfile": "adapters/audio/tangoflux-pytorch/Dockerfile",
+      "network": {
+        "hosts": [
+          "codeload.github.com",
+          "download.pytorch.org",
+          "download-r2.pytorch.org",
+          "pypi.org",
+          "pypi.nvidia.com",
+          "files.pythonhosted.org",
+          "archive.ubuntu.com",
+          "security.ubuntu.com",
+          "ports.ubuntu.com"
+        ]
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "tangoflux-pytorch-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "audio-job",
+      "input": {
+        "max_bytes": 16384,
+        "media_types": [
+          "text/plain"
+        ],
+        "required": true,
+        "slots": [
+          {
+            "description": "UTF-8 text prompt describing the audio to generate.",
+            "extensions": [
+              ".txt"
+            ],
+            "id": "prompt",
+            "label": "Audio prompt",
+            "max_file_bytes": 16384,
+            "max_files": 1,
+            "max_total_bytes": 16384,
+            "media_types": [
+              "text/plain"
+            ],
+            "min_files": 1
+          }
+        ]
+      },
+      "output": {
+        "max_total_bytes": 8388608,
+        "slots": [
+          {
+            "description": "Generated clip as 16-bit PCM stereo WAV at 44.1 kHz, up to 29.95 seconds.",
+            "extensions": [
+              ".wav"
+            ],
+            "id": "audio",
+            "label": "Generated audio",
+            "max_file_bytes": 8388608,
+            "max_files": 1,
+            "max_total_bytes": 8388608,
+            "media_types": [
+              "audio/wav"
+            ],
+            "min_files": 1
+          }
+        ]
+      }
+    }
+  ],
+  "kind": "recipe",
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "license-500719bcf10a-4673a3aba0",
+          "id": "primary-001",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "stability-ai-community-license-d6f6b1a4dce5-4459cc1338",
+          "id": "primary-002",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-78cd6ee6a99d-587cb980af",
+          "id": "primary-003",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tangoflux-720ae39607a6-43a079fc85",
+          "id": "primary-004",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vae-d73619a1d1e1-b56c3d31f8",
+          "id": "primary-005",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "2688573745027a7e1d85d94cdb1f49572d53d1c61fdbdbea666b14fd0f0fc610",
+        "kind": "model",
+        "publisher": "declare-lab",
+        "slug": "tangoflux-367005e9"
+      }
+    },
+    {
+      "files": [
+        {
+          "file_id": "config-bfa5beeb5a46-587cb980af",
+          "id": "text-encoder-001",
+          "mount": {
+            "target": "/models/flan-t5-large"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-a9dd06ce490f-9d75c1098f",
+          "id": "text-encoder-002",
+          "mount": {
+            "target": "/models/flan-t5-large"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "special-tokens-map-5c87151ef0f7-c07a9be597",
+          "id": "text-encoder-003",
+          "mount": {
+            "target": "/models/flan-t5-large"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "spiece-d60acb128cf7-3009ca8c22",
+          "id": "text-encoder-004",
+          "mount": {
+            "target": "/models/flan-t5-large"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-fe2ebbbbde29-224931eb13",
+          "id": "text-encoder-005",
+          "mount": {
+            "target": "/models/flan-t5-large"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-5d19985330a9-94d5c6ba8f",
+          "id": "text-encoder-006",
+          "mount": {
+            "target": "/models/flan-t5-large"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "text-encoder",
+      "model": {
+        "content_sha256": "438be8368cc21efd5b0cc73d67c5d3e0f3dd8d4fd3b76bbaa43d41f4dd26c04e",
+        "kind": "model",
+        "publisher": "google",
+        "slug": "flan-t5-large-0613663d"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "declare-lab",
+      "google"
+    ],
+    "source_reference": "https://huggingface.co/declare-lab/TangoFlux/tree/367005e963cb3a9fb2e03a46104d7de23e34ceea"
+  },
+  "release": {
+    "released_at": "2026-11-26",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "entrypoint",
+        "setting": null,
+        "value": "/opt/vonk/source/run.py"
+      },
+      {
+        "name": "output-mime",
+        "setting": null,
+        "value": "audio/wav"
+      },
+      {
+        "name": "duration-seconds",
+        "setting": "duration-seconds",
+        "value": null
+      },
+      {
+        "name": "steps",
+        "setting": "steps",
+        "value": null
+      },
+      {
+        "name": "seed",
+        "setting": "seed",
+        "value": null
+      },
+      {
+        "name": "guidance-scale",
+        "setting": null,
+        "value": 4.5
+      }
+    ],
+    "engine": "pytorch-pipeline",
+    "entrypoint": [
+      "/opt/vonk/bin/pytorch-pipeline"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 60
+    }
+  },
+  "settings": {
+    "concurrency": null,
+    "kind": "job",
+    "knobs": {
+      "duration-seconds": {
+        "change_effect": "none",
+        "maximum": 30.0,
+        "minimum": 1.0,
+        "value": 10.0
+      },
+      "seed": {
+        "change_effect": "none",
+        "maximum": 2147483647,
+        "minimum": 0,
+        "value": 0
+      },
+      "steps": {
+        "change_effect": "none",
+        "maximum": 100,
+        "minimum": 10,
+        "value": 50
+      }
+    }
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 7197446726,
+            "image_bytes": 10000000000,
+            "safety_margin_bytes": 12000000000,
+            "working_bytes": 2000000000
+          },
+          "memory": {
+            "peak_bytes": 12000000000,
+            "reserve_bytes": 4000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "inference.completed",
+            "artifact.output"
+          ],
+          "kind": "audio-job.output",
+          "name": "job-output",
+          "request": {
+            "fixture": "qualification/fixtures/sfx-prompt.txt",
+            "input_slots": {
+              "prompt": "qualification/fixtures/sfx-prompt.txt"
+            },
+            "output_slot": "audio",
+            "transport": "job"
+          }
+        }
+      ],
+      "interface": "audio-job"
+    }
+  }
+}

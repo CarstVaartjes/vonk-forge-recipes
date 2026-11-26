@@ -25,6 +25,7 @@ secrets/
 /adapters/audio/hunyuan-video-foley-native/vendor/transformers-a957b7911a758d54597914b4479fe6e81424d64f.tar.gz.part-002
 /adapters/audio/mmaudio-pytorch/vonk_agent_protocol-4.1.0-py3-none-any.whl
 /adapters/audio/stable-audio-3-small-sfx/vendor/stable-audio-3-790793b89ddceea612be9ce42ff6830d18f6fa57.tar.gz
+/adapters/audio/tangoflux-pytorch/vonk_agent_protocol-4.1.0-py3-none-any.whl
 /adapters/deepseek/drowzeys-ds4-dspark-port-single/vendor/ds4-80ebbc396aee40eedc1d829222f3362d10fa4c6c.tar.gz
 /adapters/deepseek/ds4-tp2/vendor/ds4-b3f50180ec2c7324892be1f50bc83555ccb8d5e7.tar.gz
 /adapters/deepseek/ds4/vendor/ds4-b3f50180ec2c7324892be1f50bc83555ccb8d5e7.tar.gz
