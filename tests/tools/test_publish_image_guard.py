@@ -59,7 +59,7 @@ def test_publication_cannot_succeed_without_its_image_artifact(tmp_path: Path) -
         "wrong-content",
         "unresolved",
         "pending",
-        "resolved-wrong-key",
+        "carried-key",
         "invalid-digest",
         "refused",
     ],
@@ -88,8 +88,10 @@ def test_release_must_pin_current_build_and_resolved_digest(
     if fault == "pending":
         row.pop("prebuilt_image")
         images = {}
-    if fault == "resolved-wrong-key":
+    if fault == "carried-key":
+        # resolve carries an earlier key's pin for the same content: the digest ran.
         images = {CONTENT: {**IMAGE, "build_key": "9" * 64}}
+        row["prebuilt_image"] = dict(images[CONTENT])
     if fault == "invalid-digest":
         images = {CONTENT: {**IMAGE, "reference": "ghcr.io/o/r:mutable"}}
     if fault == "refused":
@@ -105,7 +107,9 @@ def test_release_must_pin_current_build_and_resolved_digest(
     if fault == "unresolved":
         images = {}
     result = _check(tmp_path, plan, index, images)
-    assert (result.returncode == 0) == (fault in {None, "pending"}), result.stderr
+    assert (result.returncode == 0) == (fault in {None, "pending", "carried-key"}), (
+        result.stderr
+    )
     if fault == "pending":
         assert f"Image pending: test: {KEY}" in result.stdout
 

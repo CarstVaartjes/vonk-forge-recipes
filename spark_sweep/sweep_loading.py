@@ -7,6 +7,8 @@ from dataclasses import replace
 from functools import partial
 from typing import TYPE_CHECKING, Any
 
+from recipe_tooling.qualification.identity import execution_key
+
 from . import policy, verdict
 from .catalog import (
     dig,
@@ -444,7 +446,8 @@ class SweepLoading:
         held = (
             verdict.held_receipt(self.state.data["loads"].get(slot["request_key"]))
             and latest is not None
-            and current_identity(latest) == current_identity(recipe)
+            and execution_key(current_identity(latest))
+            == execution_key(current_identity(recipe))
         )
         if self.blind or slot["request_key"] in self.unobserved_loads:
             # Unknown is no ending: a receipt last seen held stays held.

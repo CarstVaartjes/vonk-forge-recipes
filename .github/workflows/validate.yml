@@ -457,6 +457,14 @@ jobs:
           set -euo pipefail
           python3 tools/check-closed-sets
 
+      # A recipe image is its digest: qualification identities are compared only in
+      # recipe_tooling.qualification.identity, never by build key. Checks only added lines.
+      - name: Reject new identity comparisons outside the identity module
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/check-identity-compare --diff "$RUNNER_TEMP/added.diff"
+
       - name: Reject new tests that gate on a real recipe's declared memory
         shell: bash
         run: |

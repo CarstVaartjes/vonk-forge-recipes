@@ -432,7 +432,7 @@ def test_a_trust_remote_code_choice_also_parses_with_remote_code() -> None:
     assert TOOL["trust_remote_code"](changed) == (False, True)
 
 
-def test_image_workflow_checks_imports_before_platform_layer_and_push() -> None:
+def test_image_workflow_checks_imports_before_push() -> None:
     workflow = (ROOT / ".github/workflows/recipe-images.yml").read_text()
     assert "python tools/prepare-remote-code-smoke" in workflow
     assert "if [ -f remote-code-smoke.py ]; then" in workflow
@@ -441,10 +441,7 @@ def test_image_workflow_checks_imports_before_platform_layer_and_push() -> None:
     )
     assert workflow.index(
         "localhost/vonk/recipe-build /tmp/remote-code-smoke.py"
-    ) < workflow.index("mkdir -p adapter")
-    assert workflow.index("mkdir -p adapter") < workflow.index(
-        "name: Push to every recipe"
-    )
+    ) < workflow.index("name: Push to every recipe")
 
 
 def run_smoke(

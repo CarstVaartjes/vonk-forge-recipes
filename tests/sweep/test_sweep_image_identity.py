@@ -15,7 +15,7 @@ from recipe_tooling.qualification.evidence_store import merge_evidence
 from spark_sweep import policy
 from spark_sweep.catalog import parse_recipe
 from spark_sweep.catalog_contract import RuntimeImageIdentity
-from spark_sweep.identity import content_identity
+from spark_sweep.identity import content_identity, verdict_matches
 from spark_sweep.lifecycle import RecipeStatus, RetestReason
 from spark_sweep.qualification import history_evidence
 
@@ -159,3 +159,20 @@ def test_history_evidence_keeps_verdicts_for_different_images():
         "sha256:" + "b" * 64,
         "sha256:" + "d" * 64,
     }
+
+
+def test_a_verdict_still_matches_its_image_under_a_new_build_key():
+    image = RuntimeImageIdentity(build_key="a" * 64, image_digest="sha256:" + "b" * 64)
+    first = recipe("runtime", content_sha256="e" * 64, runtime_image=image)
+    entry = {"verdict_identity": content_identity(first).model_dump(mode="json")}
+    adopted = replace(
+        first, runtime_image=image.model_copy(update={"build_key": "c" * 64})
+    )
+    rebuilt = replace(
+        first,
+        runtime_image=RuntimeImageIdentity(
+            build_key="c" * 64, image_digest="sha256:" + "d" * 64
+        ),
+    )
+    assert verdict_matches(entry, adopted)
+    assert not verdict_matches(entry, rebuilt)

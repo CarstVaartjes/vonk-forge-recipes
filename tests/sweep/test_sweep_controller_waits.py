@@ -678,3 +678,28 @@ def test_hold_saved_without_operation_ids_adopts_them_on_its_next_observation(
     assert "vonk-forge/b" in sweep.controller_wait_holds()
     for key in ("vonk-forge/a", "vonk-forge/b"):
         assert sweep.state.entry(key).get("attempts", 0) == 0
+
+
+@pytest.mark.parametrize("flip", ["build_key", "image_digest"])
+def test_a_hold_survives_a_build_key_flip_of_the_same_image(
+    tmp_path, monkeypatch, flip
+) -> None:
+    sweep, _, clock, _ = prepare(tmp_path, monkeypatch)
+    expire(sweep, clock)
+    hold = sweep.controller_wait_holds()["vonk-forge/a"]
+    image = hold.identity.runtime_image
+    assert image is not None
+    # The hold was recorded before the catalog moved: the D3 migration republishes
+    # the same image digest under a new build key; a rebuild names a new digest.
+    value = "f" * 64 if flip == "build_key" else "sha256:" + "f" * 64
+    recorded = hold.identity.model_copy(
+        update={"runtime_image": image.model_copy(update={flip: value})}
+    )
+    sweep.state.entry("vonk-forge/a")["controller_wait"] = hold.model_copy(
+        update={"identity": recorded}
+    ).model_dump(mode="json")
+    same_image = flip == "build_key"
+    if same_image:  # the live receipt is re-observed, never replaced by a new load
+        assert "vonk-forge/a" not in {r.key for r in sweep.ready_candidates()}
+    sweep._refresh_controller_waits(clock.now())
+    assert ("vonk-forge/a" in sweep.controller_wait_holds()) == same_image

@@ -26,6 +26,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from typing import Any
 
 from recipe_tooling.qualification.evidence_retention import EVIDENCE_CLASSES
+from recipe_tooling.qualification.identity import execution_key
 from vonk_forge_contracts import RecipeQualificationEvidence
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -47,7 +48,7 @@ def problems(evidence: RecipeQualificationEvidence) -> list[str]:
 
     by_identity: dict[str, list[Any]] = {}
     for record in evidence.records:
-        by_identity.setdefault(record.identity.model_dump_json(), []).append(record)
+        by_identity.setdefault(execution_key(record.identity), []).append(record)
     for records in by_identity.values():
         newest_of_class = {
             id(max((r for r in records if predicate(r)), key=newest))
