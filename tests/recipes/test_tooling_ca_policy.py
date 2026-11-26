@@ -38,12 +38,18 @@ def uv_pin_problems(sources: list[tuple[str, str]], version: str) -> list[str]:
 
 
 def test_uv_has_one_exact_owner() -> None:
-    # CI installs exactly the setup action's uv; local tools accept that
-    # release or newer, so a newer developer uv never blocks a gate.
+    # CI installs exactly the setup action's uv; the project floor is a lower
+    # bound at or below it, so Dependabot's bundled uv can still update deps.
     version = CI_PIN.findall((ROOT / SETUP).read_text())
     assert len(version) == 1
     project = tomllib.loads((ROOT / "pyproject.toml").read_text())
-    assert project["tool"]["uv"]["required-version"] == f">={version[0]}"
+    floor = re.fullmatch(
+        r">=(\d+\.\d+\.\d+)", project["tool"]["uv"]["required-version"]
+    )
+    assert floor is not None
+    assert tuple(map(int, floor[1].split("."))) <= tuple(
+        map(int, version[0].split("."))
+    )
     pin = "==" + version[0]
     paths = subprocess.run(
         ["git", "ls-files", "--cached", "--others", "--exclude-standard"],
