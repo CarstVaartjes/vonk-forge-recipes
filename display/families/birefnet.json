@@ -1,0 +1,21 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "birefnet-hr",
+          "title": "BiRefNet HR"
+        },
+        {
+          "slug": "birefnet-hr-matting",
+          "title": "BiRefNet HR matting"
+        }
+      ],
+      "slug": "birefnet-hr",
+      "title": "BiRefNet HR"
+    }
+  ],
+  "slug": "birefnet",
+  "title": "BiRefNet"
+}

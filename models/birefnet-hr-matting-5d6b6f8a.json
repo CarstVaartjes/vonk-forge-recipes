@@ -1,0 +1,61 @@
+{
+  "dependencies": [],
+  "files": [
+    {
+      "id": "birefnet-config-e7b8c2a74f6c-4bc9953e92",
+      "path": "BiRefNet_config.py",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "e7b8c2a74f6cea6a59553d517f71d47f2c1d90e670a13416af17c25fe2f3dc52",
+      "size_bytes": 298
+    },
+    {
+      "id": "birefnet-2a45b4e0ece7-03db3bd572",
+      "path": "birefnet.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "2a45b4e0ece72d7c4212bca1a988e7d7e52bfe9f98ec59c58b8809c8a8b7a831",
+      "size_bytes": 92134
+    },
+    {
+      "id": "config-d0b779ee9a76-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "d0b779ee9a76bf079673c5852c346f439591f016ca0d778a87bbd1dcbe24398a",
+      "size_bytes": 416
+    },
+    {
+      "id": "model-a5a4de698739-9d75c1098f",
+      "path": "model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "a5a4de698739ea5e0e8bbab28e1b293dde95092b87a442d566cbc585c53cef55",
+      "size_bytes": 444473596
+    }
+  ],
+  "format": {
+    "precision": "fp16",
+    "quantization": "none"
+  },
+  "identity": {
+    "model": {
+      "publisher": "zhengpeng7",
+      "slug": "birefnet-hr-matting"
+    },
+    "publisher": "zhengpeng7",
+    "slug": "birefnet-hr-matting-5d6b6f8a",
+    "variant": "5d6b6f8a",
+    "version": "5d6b6f8a"
+  },
+  "kind": "model",
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/ZhengPeng7/BiRefNet_HR-matting",
+    "revision": "5d6b6f8adcb5b417c871b1d84ceaae9871355b7f"
+  }
+}

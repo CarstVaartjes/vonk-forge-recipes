@@ -1,0 +1,61 @@
+{
+  "dependencies": [],
+  "files": [
+    {
+      "id": "birefnet-config-e7b8c2a74f6c-4bc9953e92",
+      "path": "BiRefNet_config.py",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "e7b8c2a74f6cea6a59553d517f71d47f2c1d90e670a13416af17c25fe2f3dc52",
+      "size_bytes": 298
+    },
+    {
+      "id": "birefnet-2a45b4e0ece7-03db3bd572",
+      "path": "birefnet.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "2a45b4e0ece72d7c4212bca1a988e7d7e52bfe9f98ec59c58b8809c8a8b7a831",
+      "size_bytes": 92134
+    },
+    {
+      "id": "config-9afedeafb325-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "9afedeafb3250180fb7f74a7c7b179e192b20927feedcb10761f26568a86ce4a",
+      "size_bytes": 408
+    },
+    {
+      "id": "model-9d678bafec0b-9d75c1098f",
+      "path": "model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "9d678bafec0b0019fbb073b7fd02f05ede25dc4b15254f23b2fb0be333200c0d",
+      "size_bytes": 444473596
+    }
+  ],
+  "format": {
+    "precision": "fp16",
+    "quantization": "none"
+  },
+  "identity": {
+    "model": {
+      "publisher": "zhengpeng7",
+      "slug": "birefnet-hr"
+    },
+    "publisher": "zhengpeng7",
+    "slug": "birefnet-hr-a7a562f6",
+    "variant": "a7a562f6",
+    "version": "a7a562f6"
+  },
+  "kind": "model",
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/ZhengPeng7/BiRefNet_HR",
+    "revision": "a7a562f6fd16021180f2f4348f4de003a2d3d1e1"
+  }
+}

@@ -1,0 +1,63 @@
+FROM nvcr.io/nvidia/cuda:13.4.1-runtime-ubuntu24.04@sha256:2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962
+
+LABEL org.opencontainers.image.source="https://github.com/Tencent-Hunyuan/bpt" \
+      org.opencontainers.image.revision="4e6510e7ebaac6d21f558252ad7eb573aed0234a" \
+      org.opencontainers.image.licenses="LicenseRef-Tencent-Hunyuan-3D-2.0-Community" \
+      io.vonk.adapter="bpt" \
+      io.vonk.agent-protocol.wheel-sha256="@protocol.sha256@"
+
+# PYTHONPATH is a platform-owned name, so run.py gives the creator's source to the worker itself.
+ENV DEBIAN_FRONTEND=noninteractive \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PYTHONUNBUFFERED=1
+
+COPY requirements.lock /tmp/requirements.lock
+COPY @protocol.wheel@ /tmp/@protocol.wheel@
+# build-essential and python3-dev: Triton JIT needs a compiler and Python.h in every
+# CUDA runtime image that pip-installs torch (tests/recipes/test_job_runtime_toolchain.py).
+# Nothing here compiles CUDA, so the runtime base is enough (the creator's code is pure Python).
+RUN apt-get update \
+    && apt-get install --no-install-recommends --yes \
+        build-essential \
+        python3-dev \
+        ca-certificates \
+        curl \
+        python3 \
+        python3-pip \
+    && rm -rf /var/lib/apt/lists/* \
+    && python3 -m pip install --break-system-packages --no-cache-dir \
+        --require-hashes \
+        --extra-index-url https://download.pytorch.org/whl/cu130 \
+        --requirement /tmp/requirements.lock \
+    && printf '%s  %s\n' @protocol.sha256@ \
+        /tmp/@protocol.wheel@ | sha256sum --check --strict \
+    && python3 -m pip install --break-system-packages --no-cache-dir --no-index --no-deps \
+        /tmp/@protocol.wheel@ \
+    && rm /tmp/requirements.lock /tmp/@protocol.wheel@
+
+# The creator's source at the pinned commit (the model, miche and config packages and utils.py that
+# main.py imports; its README assets, metrics and training-side files are not used), with its
+# licence and notice. The weights are mounted by the recipe.
+RUN curl --fail --location --retry 5 \
+        https://codeload.github.com/Tencent-Hunyuan/bpt/tar.gz/4e6510e7ebaac6d21f558252ad7eb573aed0234a \
+        --output /tmp/bpt.tar.gz \
+    && echo "566634cb937181d861ea13b6ecf9755ffd07a94e061be577bf7a3d1172af3c58  /tmp/bpt.tar.gz" | sha256sum --check --strict \
+    && mkdir /tmp/bpt-source \
+    && tar --extract --gzip --file /tmp/bpt.tar.gz --strip-components=1 --directory /tmp/bpt-source \
+    && install --directory --mode=0755 /opt/bpt \
+    && cp -r /tmp/bpt-source/model /tmp/bpt-source/miche /tmp/bpt-source/config /tmp/bpt-source/utils.py \
+        /tmp/bpt-source/License /tmp/bpt-source/Notice /opt/bpt/ \
+    && rm -rf /tmp/bpt.tar.gz /tmp/bpt-source
+
+COPY run.py worker.py glb_validation.py /opt/vonk/source/
+
+# Build-time import smoke (no GPU, no weights): exactly what main.py imports, and the protocol model.
+RUN PYTHONPATH=/opt/bpt python3 -c "from model.serializaiton import BPT_deserialize; from model.model import MeshTransformer; from utils import joint_filter, apply_normalize, sample_pc; from model.data_utils import to_mesh; from vonk_agent_protocol.job_inputs import RecipeJobInputManifest" \
+    && install --directory --mode=0755 /opt/vonk/bin /inputs /outputs \
+    && printf '%s\n' '#!/bin/sh' 'exec python3 /opt/vonk/source/run.py "$@"' > /opt/vonk/bin/pytorch-pipeline \
+    && chmod 0755 /opt/vonk/bin/pytorch-pipeline \
+    && useradd --uid 10001 --create-home --shell /usr/sbin/nologin vonk \
+    && chown 10001:10001 /outputs
+
+USER 10001:10001
+ENTRYPOINT []

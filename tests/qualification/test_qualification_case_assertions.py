@@ -293,6 +293,7 @@ CREATOR_FIXED_MEDIA = {
 MINIMAL_MEDIA_PARAMETERS = {
     "mova-360p-diffusers-single": {"num-frames": 1, "num-inference-steps": 2},
     "mova-720p-diffusers-single": {"num-frames": 1, "num-inference-steps": 2},
+    "bpt-pytorch-single": {"temperature": 0.5, "seed": 0},
     "hunyuan-video-15-distilled-diffusers-single": {
         "num-frames": 1,
         "num-inference-steps": 2,

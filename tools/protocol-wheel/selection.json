@@ -17,6 +17,10 @@
       "wheel_directory": ""
     },
     {
+      "context": "adapters/image/birefnet-pytorch",
+      "wheel_directory": ""
+    },
+    {
       "context": "adapters/image/marigold-diffusers",
       "wheel_directory": ""
     },
@@ -34,6 +38,10 @@
     },
     {
       "context": "adapters/three-d/anytop",
+      "wheel_directory": ""
+    },
+    {
+      "context": "adapters/three-d/bpt",
       "wheel_directory": ""
     },
     {
