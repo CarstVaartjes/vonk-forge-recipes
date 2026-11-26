@@ -103,7 +103,7 @@ includes it in the normally signed catalog; publication is not hardware proof.
 
 ## Setup and producer gates
 
-Producer tools, contracts and tests use Python **3.14**. The pinned platform's `recipe-image-plan` call in recipe-images.yml runs on 3.15 (passed as `--python`). Adapter sources remain
+Producer tools, contracts and tests use Python **3.14**. The catalog build that recipe-images.yml runs before planning images uses 3.15 (passed as `--python`). Adapter sources remain
 **3.12-compatible** because they overlay upstream images. Everything under
 `adapters/` follows upstream style and is excluded from Ruff and Pyright;
 functional tests still validate its behaviour, pins and executability.
@@ -265,10 +265,31 @@ failed job that never fails or undoes the release (the site's schedule is the ba
 PR validation calls the same image workflow at the PR head, compares base/head
 build keys and builds only changed, unpublished keys (including native checks
 and the remote-code smoke); every key builds in CI, within one 360-minute job
-timeout. Successful builds write `candidate-<key>` tags;
+timeout. Successful builds write `candidate-v2-<key>` tags;
 publication promotes their digests without rebuilding. Keys without a candidate
 use the same build and smoke path at publication; scheduled/manual runs also
 recover historical missing keys.
+**Images and keys (D3).** The build key is recipe-owned: `tools/build-plan`
+(`recipe_tooling.build_plan`) derives it from recipe inputs (source bundle, pinned
+base images, base image, Dockerfile) and `policy/build-policy.json` only, and plans
+both the PR head and base with this checkout's tooling, with no Vonk Forge checkout.
+A Vonk Forge release never changes a key, and no Controller computes one: it runs
+the digest the signed catalog pins for a recipe's content. The pushed image is the
+recipe's own build (no platform layer); the platform sets the run-time user,
+workdir and writable paths when the container starts. A genuinely new platform
+requirement on images is a contract change (an image-interface field or a
+validator rule) that recipes CI then builds against, visibly, as changed keys.
+Tags are `build-v2-<key>`/`candidate-v2-<key>`; legacy `build-<key>` tags are
+never written or deleted. `tools/prebuilt-images select` adopts a recipe whose
+published pin is a legacy image of the same content and source bundle in its own
+package (copies the digest to the new tag, no build), and `resolve` carries a
+published pin by content and source bundle when a lookup finds nothing. Status and
+evidence judge an image by its digest: identities are compared only in
+`recipe_tooling.qualification.identity` (guard `tools/check-identity-compare`).
+To prove the bare-image path for a recipe, dispatch
+`recipe-images.yml -f slugs="<ids>" -f rebuild_adopted=true -f republish=true`: it
+rebuilds only the named recipes whose tag holds an adopted image (never `all`,
+never a v2-built image), and each goes Re-check until the sweep re-proves it.
 Changed images from forks need a trusted repository branch to push candidates.
 `catalog-index.json` is the `CatalogIndex` contract (`vonk_forge_contracts.catalog_index`): the
 build constructs it through the model, consumers read it with `read_catalog`
@@ -395,7 +416,7 @@ tree by `tests/tools/test_package_import_direction.py` (no counts, no exceptions
 `recipe_tooling.kit_pins`, `recipe_tooling.upstream_drift` and `recipe_tooling.refresh_upstream` (modules by topic;
 cross-module calls go through the module, `refresh_<module>.name`, so a test patches the defining module).
 `tools/build-catalog-index`, `tools/build-family-aware-coverage`, `tools/build-qualification-authority`,
-`tools/contract-version`, `tools/generate-contract-examples`, `tools/prebuilt-images` and `tools/prepare-remote-code-smoke` are launchers over
+`tools/build-plan`, `tools/contract-version`, `tools/generate-contract-examples`, `tools/prebuilt-images` and `tools/prepare-remote-code-smoke` are launchers over
 modules of the same names in `src/recipe_tooling/` (underscores); tests import the module, never load the script.
 
 Provider JSON (GitHub, Hugging Face) is read by one client, `recipe_tooling.upstream_clients.ProviderJson`; the
@@ -634,8 +655,8 @@ run's workload has exited (`run_state: failed`) is the recipe's `runtime_exit`, 
 (`verdict.smoke_workload_exit`, `tests/sweep/test_sweep_failures.py`); while the run still runs it keeps
 its class.
 
-Qualification evidence binds recipe content, known image build key/digest and
-Model digests. Requeues and `--retry-failed`
+Qualification evidence binds recipe content, the known image digest (its build
+key is recorded but never compared) and Model digests. Requeues and `--retry-failed`
 use `derive_status` only. Library publication alone is not a content change.
 `--no-revalidate` preserves old passes on content changes.
 Keep prior verdicts visible while retesting. Record deployed API provenance

@@ -8,6 +8,8 @@ serves for that recipe's key.
 
 from __future__ import annotations
 
+import hashlib
+import io
 import json
 import os
 import re
@@ -21,7 +23,8 @@ from typing import Any
 import pytest
 from repo_root import ROOT
 
-from recipe_tooling import catalog_index, prebuilt_images
+from recipe_tooling import build_plan, catalog_index, prebuilt_images
+from recipe_tooling.upstream_http import UpstreamBusy
 
 tool = prebuilt_images
 INDEX = vars(catalog_index)
@@ -37,6 +40,7 @@ def _plan() -> dict[str, Any]:
             "slug": slug,
             "version": "1.0",
             "content_sha256": ({"other": "e", "single": "f"}.get(slug, slug[0])) * 64,
+            "source_bundle_sha256": "5" * 64,
             "source_path": f"recipes/{slug}.json",
             "context": context,
         }
@@ -81,8 +85,8 @@ def test_a_shared_missing_key_is_built_once_for_every_recipe_that_needs_it() -> 
 def test_an_existing_key_is_copied_not_rebuilt_and_present_images_are_skipped() -> None:
     registry = _registry(
         {
-            ("vonk-forge-recipe-single", f"build-{SHARED}"): DIGEST,
-            ("vonk-forge-recipe-other", f"build-{OWN}"): DIGEST,
+            ("vonk-forge-recipe-single", tool.build_tag(SHARED)): DIGEST,
+            ("vonk-forge-recipe-other", tool.build_tag(OWN)): DIGEST,
         }
     )
     selection = tool.select(_plan(), owner=OWNER, candidates=None, lookup=registry)
@@ -90,21 +94,24 @@ def test_an_existing_key_is_copied_not_rebuilt_and_present_images_are_skipped() 
     assert selection["copies"] == [
         {
             "from": f"ghcr.io/carstvaartjes/vonk-forge-recipe-single@{DIGEST}",
-            "to": f"ghcr.io/carstvaartjes/vonk-forge-recipe-dual:build-{SHARED}",
+            "to": f"ghcr.io/carstvaartjes/vonk-forge-recipe-dual:{tool.build_tag(SHARED)}",
             "version_tag": "ghcr.io/carstvaartjes/vonk-forge-recipe-dual:1.0",
         }
     ]
 
 
 def test_pr_candidate_is_promoted_by_digest_without_rebuilding() -> None:
-    registry = _registry({("vonk-forge-recipe-single", f"candidate-{SHARED}"): DIGEST})
+    registry = _registry(
+        {("vonk-forge-recipe-single", tool.candidate_tag(SHARED)): DIGEST}
+    )
     selection = tool.select(_plan(), owner=OWNER, candidates=None, lookup=registry)
     assert [row["build_key"] for row in selection["builds"]] == [OWN]
     assert {row["from"] for row in selection["copies"]} == {
         f"{tool.repository(OWNER, 'single')}@{DIGEST}"
     }
     assert {row["to"] for row in selection["copies"]} == {
-        f"{tool.repository(OWNER, slug)}:build-{SHARED}" for slug in ("single", "dual")
+        f"{tool.repository(OWNER, slug)}:{tool.build_tag(SHARED)}"
+        for slug in ("single", "dual")
     }
 
 
@@ -122,6 +129,8 @@ def test_pr_selection_uses_build_identity_and_ignores_missing_historical_images(
         "copies": [],
         "deferred": [],
         "deferred_slugs": [],
+        "adopted": [],
+        "kept": [],
         "busy": [],
     }
     # A shared context change schedules every affected recipe, one ARM64 build.
@@ -183,9 +192,9 @@ def test_publish_builds_only_the_changed_key_without_a_pr_candidate(
     plan_path.write_text(json.dumps(_plan()))
     # One changed key always has PR proof; inject a missing candidate for
     # the other key (cancelled/expired PR build or a merge-result key change).
-    tags = {(tool.package("single"), f"candidate-{SHARED}"): DIGEST}
+    tags = {(tool.package("single"), tool.candidate_tag(SHARED)): DIGEST}
     if present:
-        tags[(tool.package("other"), f"candidate-{OWN}")] = DIGEST
+        tags[(tool.package("other"), tool.candidate_tag(OWN))] = DIGEST
     select = tool.select
     monkeypatch.setattr(
         tool, "select", lambda plan, **kw: select(plan, **kw, lookup=_registry(tags))
@@ -217,7 +226,7 @@ def test_publish_builds_only_the_changed_key_without_a_pr_candidate(
 
 def _busy_for_shared(owner: str, name: str, tag: str) -> str | None:
     if tag.endswith(SHARED):
-        raise tool.UpstreamBusy("ghcr.io is rate limited")
+        raise UpstreamBusy("ghcr.io is rate limited")
     return None
 
 
@@ -257,7 +266,7 @@ def test_a_pull_request_with_a_busy_image_refuses_instead_of_skipping_its_proof(
 
 
 def test_index_pins_each_recipes_own_digest_and_omits_missing_images() -> None:
-    registry = _registry({("vonk-forge-recipe-other", f"build-{OWN}"): DIGEST})
+    registry = _registry({("vonk-forge-recipe-other", tool.build_tag(OWN)): DIGEST})
     images, missing, _carried = tool.resolve(_plan(), owner=OWNER, lookup=registry)
     assert images == {
         "e" * 64: {
@@ -276,45 +285,56 @@ def test_index_pins_each_recipes_own_digest_and_omits_missing_images() -> None:
     ]
 
 
-def _pin(slug: str, digest: str, key: str) -> dict[str, str]:
+def _pin(
+    slug: str, digest: str, key: str, bundle: str = "5" * 64
+) -> dict[str, str | None]:
     return {
         "reference": f"ghcr.io/carstvaartjes/vonk-forge-recipe-{slug}@{digest}",
         "build_key": key,
+        "source_bundle_sha256": bundle,
     }
 
 
-def test_a_busy_lookup_keeps_the_pin_of_unchanged_content_only() -> None:
+def _image(pin: dict[str, str | None]) -> dict[str, str | None]:
+    return {"reference": pin["reference"], "build_key": pin["build_key"]}
+
+
+def test_a_busy_lookup_keeps_the_pin_of_unchanged_input_whatever_its_key() -> None:
     def busy(owner: str, name: str, tag: str) -> str | None:
         raise OSError("429 too many requests")
 
     previous = "sha256:" + "1" * 64
     published = {
-        "e" * 64: _pin("other", previous, OWN),  # same content and build key
-        "f" * 64: _pin("single", previous, "9" * 64),  # build key moved on
+        "e" * 64: _pin("other", previous, "9" * 64),  # same input, a legacy key
+        "f" * 64: _pin("single", previous, OWN, "6" * 64),  # build context changed
     }
     images, missing, carried = tool.resolve(
         _plan(), owner=OWNER, lookup=busy, published=published
     )
-    assert images == {"e" * 64: published["e" * 64]}
+    assert images == {"e" * 64: _image(published["e" * 64])}
     assert carried == ["other"]
     assert missing == ["dual", "single"]
 
 
 def test_a_successful_lookup_pins_the_new_digest_over_the_published_one() -> None:
     published = {"e" * 64: _pin("other", "sha256:" + "1" * 64, OWN)}
-    registry = _registry({("vonk-forge-recipe-other", f"build-{OWN}"): DIGEST})
+    registry = _registry({("vonk-forge-recipe-other", tool.build_tag(OWN)): DIGEST})
     images, _missing, carried = tool.resolve(
         _plan(), owner=OWNER, lookup=registry, published=published
     )
-    assert images["e" * 64] == _pin("other", DIGEST, OWN)
+    assert images["e" * 64] == _image(_pin("other", DIGEST, OWN))
     assert carried == []
 
 
 def test_the_published_pins_are_read_from_the_release_bundle(tmp_path: Path) -> None:
-    pin = _pin("other", DIGEST, OWN)
+    pin = _image(_pin("other", DIGEST, OWN))
     index = {
         "recipes": [
-            {"content_sha256": "e" * 64, "prebuilt_image": pin},
+            {
+                "content_sha256": "e" * 64,
+                "source_bundle_sha256": "5" * 64,
+                "prebuilt_image": pin,
+            },
             {"content_sha256": "f" * 64},
         ]
     }
@@ -328,7 +348,9 @@ def test_the_published_pins_are_read_from_the_release_bundle(tmp_path: Path) -> 
     def unavailable(arguments: list[str]) -> None:
         raise subprocess.CalledProcessError(1, arguments)
 
-    assert tool.published_pins("o/r", gh=release) == {"e" * 64: pin}
+    assert tool.published_pins("o/r", gh=release) == {
+        "e" * 64: {**pin, "source_bundle_sha256": "5" * 64}
+    }
     assert tool.published_pins("o/r", gh=unavailable) == {}
 
     def not_a_tar(arguments: list[str]) -> None:
@@ -350,6 +372,7 @@ def test_a_pin_naming_a_foreign_package_is_not_carried() -> None:
     foreign = {
         "reference": "evil.example/x/y@sha256:" + "1" * 64,
         "build_key": OWN,
+        "source_bundle_sha256": "5" * 64,
     }
     images, missing, carried = tool.resolve(
         _plan(), owner=OWNER, lookup=none_found, published={"e" * 64: foreign}
@@ -437,7 +460,10 @@ def test_new_contract_publication_reconciles_both_unresolved_tensorfold_keys(
     # On the next publication only registry evidence suppresses builds, even
     # when no recipe file changed or the release tag advanced past this run.
     registry = _registry(
-        {(tool.package(slug), f"build-{key}"): DIGEST for slug, key in keys.items()}
+        {
+            (tool.package(slug), tool.build_tag(key)): DIGEST
+            for slug, key in keys.items()
+        }
     )
     assert select(plan, owner=OWNER, candidates=None, lookup=registry)["builds"] == []
 
@@ -542,3 +568,272 @@ def test_matrix_overflow_continues_after_publication_and_failed_first_batch():
     assert "gh workflow run recipe-images.yml" in workflow
     assert '-f slugs="$DEFERRED"' in workflow
     assert "needs.build.result == 'success'" not in workflow
+
+
+# D3: the recipe-owned key v2. The first run after it adopts every legacy image of
+# unchanged input by copying its digest (no build), and a restart anywhere heals.
+K1 = {"single": "7" * 64, "dual": "8" * 64, "other": "9" * 64}
+LEGACY = {slug: "sha256:" + digit * 64 for slug, digit in zip(K1, "123", strict=True)}
+
+
+class Registry:
+    """A fake GHCR; ``copy`` applies a selection's copies as the copy job does."""
+
+    def __init__(self, busy: bool = False, failing: frozenset[str] = frozenset()):
+        self.tags: dict[tuple[str, str], str] = {}
+        self.busy = busy
+        self.failing = failing
+
+    def lookup(self, owner: str, name: str, tag: str) -> str | None:
+        assert owner == OWNER
+        if self.busy:
+            raise UpstreamBusy("ghcr.io is rate limited")
+        return self.tags.get((name, tag))
+
+    def copy(self, selection: dict[str, Any], limit: int | None = None) -> None:
+        for done, copy in enumerate(selection["copies"]):
+            if done == limit:
+                return  # the copy job was killed here
+            name, tag = copy["to"].rsplit("/", 1)[1].split(":")
+            if name not in self.failing:  # a 5xx leaves the tag absent
+                self.tags[(name, tag)] = copy["from"].split("@", 1)[1]
+
+
+def _published() -> dict[str, dict[str, str | None]]:
+    """The release before the migration: each recipe pins its own adapted image."""
+    return {
+        recipe["content_sha256"]: _pin(
+            recipe["slug"], LEGACY[recipe["slug"]], K1[recipe["slug"]]
+        )
+        for image in _plan()["images"]
+        for recipe in image["recipes"]
+    }
+
+
+def _run(registry: Registry, **kwargs: Any) -> dict[str, Any]:
+    return tool.select(
+        _plan(),
+        owner=OWNER,
+        candidates=kwargs.pop("candidates", None),
+        lookup=registry.lookup,
+        published=kwargs.pop("published", _published()),
+        **kwargs,
+    )
+
+
+def _pins(registry: Registry, published: Any = None) -> dict[str, Any]:
+    images, missing, _carried = tool.resolve(
+        _plan(),
+        owner=OWNER,
+        lookup=registry.lookup,
+        published=_published() if published is None else published,
+    )
+    assert missing == []
+    return images
+
+
+def _digests(images: dict[str, Any]) -> dict[str, str]:
+    return {content: pin["reference"].split("@")[1] for content, pin in images.items()}
+
+
+@pytest.mark.parametrize("requested", [[], ["all"]])  # a main push; the nightly run
+def test_the_first_run_after_the_key_change_adopts_and_builds_nothing(requested):
+    registry = Registry()
+    selection = _run(registry, candidates=tool.candidate_slugs(requested))
+    assert selection["builds"] == []
+    assert selection["adopted"] == ["dual", "other", "single"]
+    # Each recipe keeps its own digest, even where two now share one key.
+    assert {(row["from"], row["to"]) for row in selection["copies"]} == {
+        (
+            f"{tool.repository(OWNER, slug)}@{LEGACY[slug]}",
+            f"{tool.repository(OWNER, slug)}:{tool.build_tag(key)}",
+        )
+        for key, slugs in ((SHARED, ("single", "dual")), (OWN, ("other",)))
+        for slug in slugs
+    }
+    registry.copy(selection)
+    images = _pins(registry)
+    assert {pin["build_key"] for pin in images.values()} == {SHARED, OWN}
+    assert _digests(images) == _digests(_published())
+    after = _run(registry, candidates=tool.candidate_slugs(requested))
+    assert (after["builds"], after["copies"]) == ([], [])
+
+
+def test_a_copy_job_killed_midway_heals_on_the_next_run_without_a_build():
+    registry = Registry()
+    registry.copy(_run(registry), limit=1)
+    # A publish between the two runs pins every recipe, digests unchanged.
+    assert _digests(_pins(registry)) == _digests(_published())
+    second = _run(registry)
+    assert second["builds"] == []
+    assert len(second["copies"]) == 2
+    # The recipe left over adopts its own image, never its key-sibling's.
+    assert all(
+        row["from"].split("@")[0] == row["to"].split(":")[0] for row in second["copies"]
+    )
+    registry.copy(second)
+    assert _digests(_pins(registry)) == _digests(_published())
+
+
+def test_a_failed_copy_carries_the_legacy_pin_by_content_until_the_next_run():
+    registry = Registry(failing=frozenset({tool.package("other")}))
+    registry.copy(_run(registry))
+    images = _pins(registry)
+    assert images["e" * 64] == _image(_published()["e" * 64])  # {X, K1}
+    registry.failing = frozenset()
+    retry = _run(registry)
+    assert (retry["builds"], retry["adopted"]) == ([], ["other"])
+
+
+def test_a_busy_registry_plans_nothing_and_publishes_the_previous_pins():
+    registry = Registry(busy=True)
+    selection = _run(registry)
+    assert (selection["builds"], selection["copies"]) == ([], [])
+    assert sorted(selection["busy"]) == sorted([SHARED, OWN])
+    assert _pins(registry) == {
+        content: _image(pin) for content, pin in _published().items()
+    }
+
+
+def test_adoption_wins_over_a_candidate_of_the_same_input():
+    registry = Registry()
+    candidate = "sha256:" + "4" * 64
+    registry.tags[(tool.package("other"), tool.candidate_tag(OWN))] = candidate
+    selection = _run(registry, candidates={"other"})
+    assert selection["builds"] == []
+    assert [row["from"] for row in selection["copies"]] == [
+        f"{tool.repository(OWNER, 'other')}@{LEGACY['other']}"
+    ]
+    registry.copy(selection)
+    assert (
+        registry.tags[(tool.package("other"), tool.build_tag(OWN))] == (LEGACY["other"])
+    )
+
+
+def test_a_publish_killed_before_its_upload_republishes_the_same_digests():
+    registry = Registry()
+    registry.copy(_run(registry))
+    # The old release (K1 pins) stayed live; the rerun plans nothing new.
+    rerun = _run(registry)
+    assert (rerun["builds"], rerun["copies"]) == ([], [])
+    assert _digests(_pins(registry)) == _digests(_published())
+
+
+@pytest.mark.parametrize("change", ["source-bundle", "v2-built"])
+def test_changed_input_is_built_not_adopted(change: str):
+    registry = Registry()
+    published = _published()
+    if change == "source-bundle":
+        # The content digest names the document only: a context edit is new input.
+        published["e" * 64]["source_bundle_sha256"] = "6" * 64
+    else:
+        # A v2-built pin whose key moved (the build policy changed) is rebuilt.
+        registry.tags[(tool.package("other"), tool.build_tag(K1["other"]))] = DIGEST
+    selection = _run(registry, candidates={"other"}, published=published)
+    assert selection["adopted"] == []
+    assert [row["build_key"] for row in selection["builds"]] == [OWN]
+
+
+@pytest.mark.parametrize(
+    ("labels", "rebuilt"),
+    [
+        ({tool.LEGACY_LABEL: "vonk.runtime-contract.vllm.v1"}, True),
+        ({"org.opencontainers.image.source": "https://github.com/o/r"}, False),
+        (None, False),  # unreadable labels are no evidence: keep the image
+    ],
+)
+def test_rebuild_adopted_replaces_only_an_adopted_image(labels, rebuilt):
+    registry = Registry()
+    registry.tags[(tool.package("other"), tool.build_tag(OWN))] = LEGACY["other"]
+
+    def read(reference: str) -> dict[str, str]:
+        assert reference == f"{tool.repository(OWNER, 'other')}@{LEGACY['other']}"
+        if labels is None:
+            raise subprocess.CalledProcessError(1, ["skopeo"])
+        return labels
+
+    selection = _run(registry, candidates={"other"}, rebuild={"other"}, labels=read)
+    assert [row["build_key"] for row in selection["builds"]] == (
+        [OWN] if rebuilt else []
+    )
+    assert selection["kept"] == ([] if rebuilt else ["other"])
+    assert selection["copies"] == []
+
+
+def test_rebuild_adopted_needs_named_recipes(tmp_path, monkeypatch):
+    plan = tmp_path / "plan.json"
+    plan.write_text(json.dumps(_plan()))
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        ["prebuilt-images", "select", "--plan", str(plan), "--owner", OWNER,
+         "--slugs", "all", "--rebuild-adopted", "--output", str(tmp_path / "s.json")],
+    )  # fmt: skip
+    with pytest.raises(SystemExit, match="needs the recipes named"):
+        tool.main()
+
+
+def _library(root: Path, dockerfile: bytes = b"FROM scratch\n") -> Path:
+    """A built library of one recipe: its index row and its package."""
+    context = "adapters/x/one"
+    files = {f"{context}/Dockerfile": dockerfile, f"{context}/run.sh": b"exec x\n"}
+    manifest = {
+        "build_inputs": [{"kind": "oci-image", "reference": "r@sha256:" + "0" * 64}]
+    }
+    (root / "packages").mkdir(parents=True)
+    with tarfile.open(root / "packages/one.tar.gz", "w:gz") as archive:
+        for name, payload in {
+            "manifest.json": json.dumps(manifest).encode(),
+            **files,
+        }.items():
+            member = tarfile.TarInfo(name)
+            member.size = len(payload)
+            archive.addfile(member, io.BytesIO(payload))
+    document = {
+        "identity": {"publisher": "vonk-forge", "slug": "one"},
+        "release": {"version": "1.0"},
+        "execution": {
+            "build": {
+                "base_image": {"repository": "r", "digest": "0" * 64},
+                "context": {"path": context},
+                "dockerfile": f"{context}/Dockerfile",
+            }
+        },
+    }
+    index = {
+        "source_commit": "c" * 40,
+        "recipes": [
+            {
+                "document": document,
+                "content_sha256": "a" * 64,
+                # The catalog derives it from the context bytes.
+                "source_bundle_sha256": hashlib.sha256(dockerfile).hexdigest(),
+                "source_path": "recipes/one.json",
+                "package": {"path": "packages/one.tar.gz"},
+            }
+        ],
+    }
+    (root / "catalog-index.json").write_text(json.dumps(index))
+    return root
+
+
+def test_a_pull_request_with_unchanged_recipe_inputs_plans_no_build(tmp_path):
+    policy = json.loads(build_plan.POLICY.read_text())
+    base = build_plan.write_library_image_plan(
+        _library(tmp_path / "base"), tmp_path / "base-out", policy
+    )
+    head = build_plan.write_library_image_plan(
+        _library(tmp_path / "head"), tmp_path / "head-out", policy
+    )
+    assert base["skipped"] == []
+    assert tool.changed_candidates(head, base) == set()
+    [image] = head["images"]
+    context = tmp_path / "head-out" / image["build_key"] / "context"
+    assert sorted(path.name for path in context.iterdir()) == ["Dockerfile", "run.sh"]
+    assert "context/Dockerfile" in image["recipe_build_arguments"]
+    changed = build_plan.write_library_image_plan(
+        _library(tmp_path / "changed", b"FROM scratch\nRUN true\n"),
+        tmp_path / "changed-out",
+        policy,
+    )
+    assert tool.changed_candidates(changed, base) == {"one"}

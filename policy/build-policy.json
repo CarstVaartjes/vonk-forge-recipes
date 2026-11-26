@@ -1,0 +1,42 @@
+{
+  "_comment": "The build policy every recipe image is built under, owned by this repository (D3). build_options and build_security are build-key inputs (src/recipe_tooling/build_plan.py); build_resources.processes sets the build's nproc ulimit and is not a key input. Values copied from Vonk Forge's build_policy_projection at 25c4dde1. A change here changes every key: the next run rebuilds every image, and each recipe re-checks on hardware.",
+  "artifact_format": "docker-archive-v1",
+  "build_resources": {
+    "processes": 4096
+  },
+  "build_security": {
+    "capabilities": [
+      "CHOWN",
+      "DAC_OVERRIDE",
+      "FOWNER",
+      "FSETID",
+      "SETFCAP",
+      "SETGID",
+      "SETUID"
+    ]
+  },
+  "build_options": {
+    "additional_contexts": [],
+    "annotations": [],
+    "environment": [],
+    "format": "oci",
+    "identity_label": true,
+    "ignorefile": null,
+    "jobs": 1,
+    "labels": [],
+    "layer_compression": "disabled",
+    "layer_labels": [],
+    "layers": false,
+    "no_hostname": false,
+    "no_hosts": false,
+    "omit_history": false,
+    "os_features": [],
+    "os_version": null,
+    "shm_bytes": 67108864,
+    "skip_unused_stages": true,
+    "squash": "none",
+    "timestamp": null,
+    "unset_environment": [],
+    "unset_labels": []
+  }
+}

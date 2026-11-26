@@ -233,6 +233,48 @@ def test_changes_are_precise_and_prior_proof_visible_in_lane():
     assert view.last_pass is not None
 
 
+def test_status_is_judged_by_image_digest_never_by_build_key():
+    assert A.runtime_image is not None
+    adopted = A.model_copy(
+        update={
+            "runtime_image": A.runtime_image.model_copy(update={"build_key": "9" * 64})
+        }
+    )
+    # Evidence on {K1, X}, current {K2, X}: the same image, still Working.
+    assert published_status(evidence(record()), adopted).status == Status.WORKING
+    # New records under {K2, X} prove the {K1, X} identity just the same.
+    assert published_status(evidence(record(adopted)), A).status == Status.WORKING
+    rebuilt = adopted.model_copy(
+        update={
+            "runtime_image": Image(
+                build_key="9" * 64, image_digest="sha256:" + "f" * 64
+            )
+        }
+    )
+    view = derive_status(evidence(record()), rebuilt, 2, testing_now=False)
+    assert (view.status, view.changed) == (Status.RECHECK, (Change.IMAGE,))
+
+
+def test_a_record_naming_another_digest_never_certifies_by_its_build_key():
+    assert A.runtime_image is not None
+    tampered = A.model_copy(
+        update={
+            "runtime_image": A.runtime_image.model_copy(
+                update={"image_digest": "sha256:" + "f" * 64}
+            )
+        }
+    )
+    assert published_status(evidence(record(tampered)), A).status != Status.WORKING
+
+
+def test_a_record_without_source_bundle_stays_uncertified_after_the_key_change():
+    # Exact publication proof stays strict on every field but the build key.
+    current = A.model_copy(update={"source_bundle_sha256": "5" * 64})
+    view = published_status(evidence(record()), current)
+    assert view.status == Status.NOT_YET_VERIFIED
+    assert view.reason == Reason.INCOMPLETE_PROVENANCE
+
+
 def test_incomplete_history_is_not_published_as_exact_proof():
     unresolved = A.model_copy(update={"runtime_image": None})
     view = published_status(evidence(record(unresolved)), unresolved)
@@ -809,8 +851,9 @@ def test_evidence_identity_drives_requeue(tmp_path, changed, outcome, blame):
         status=RecipeStatus.PASSED if outcome == Outcome.PASSED else RecipeStatus.FAILED
     )
     sweep._reconcile_entry(current, 2)
+    # The image is identified by its digest: a new build key alone is no change.
     assert (entry["status"] == RecipeStatus.PENDING) == (
-        changed not in ("library", "unchanged")
+        changed not in ("library", "unchanged", "build")
     )
     view = sweep.qualification_view(current)
     assert view is not None

@@ -1,33 +1,31 @@
-"""Plan, look up and record the prebuilt runtime images of the recipe library.
+"""Select, look up and record the prebuilt runtime images of the recipe library.
 
 Every distinct recipe image is built on a GitHub-hosted ARM64 runner and pushed
-to GHCR as ``ghcr.io/<owner>/vonk-forge-recipe-<slug>:build-<key>``, where
-``<key>`` is the executable build key Vonk Forge's ``scripts/recipe-image-plan``
-derives (source bundle, Dockerfile, pinned base images, build options and
-capabilities, runtime adapter). The Controller derives the same key for a
-revision and prefers the pinned digest over a Spark build.
+to GHCR as ``ghcr.io/<owner>/vonk-forge-recipe-<slug>:build-v2-<key>``, where
+``<key>`` is the recipe-owned build key ``tools/build-plan`` derives from recipe
+inputs and ``policy/build-policy.json`` only. The signed index pins each recipe's
+digest; the Controller runs that digest and never derives a key.
 
-``select``  considers every recipe (or the slugs asked for) whose ``build-<key>``
-            tag is missing, one build per distinct key. A key
-            another recipe already has is copied instead of rebuilt. Successful
-            PR builds write ``candidate-<key>``; these are promoted by digest.
-            ``--base-plan`` limits PRs to changed executable keys;
-            publication builds keys without a candidate.
-``resolve`` looks up every recipe's ``build-<key>`` digest for the signed index.
+``select``  considers every recipe (or the slugs asked for) whose ``build-v2-<key>``
+            tag is missing. A recipe whose published pin is a legacy image of the
+            same content and source bundle in its own package is adopted: its
+            digest is copied to the new tag, no build, so its evidence (judged by
+            digest) still applies. Otherwise a key another recipe already has is
+            copied, a PR's ``candidate-v2-<key>`` is promoted by digest, or the key
+            is built once. ``--base-plan`` limits PRs to changed keys.
+            ``--rebuild-adopted`` rebuilds the named recipes whose tag holds an
+            adopted (legacy-labelled) image, never a v2-built one.
+``resolve`` looks up every recipe's ``build-v2-<key>`` digest for the signed index.
+            When it finds none, a recipe whose content digest and source bundle
+            equal the current published release's keeps that release's pin
+            (counted in the summary), whatever its key: the pin names the exact
+            bytes that ran, and status is judged on that digest.
 
-``platform-ref`` prints the Vonk Forge commit the library is validated with
-            (``platform_ref`` in publish.yml). The image workflow plans and
-            builds with that same commit, so there is one pin and it cannot
-            drift between validation and images. Selection reconciles every
-            current key on each publication, independently of release tags.
+``platform-ref`` prints the Vonk Forge commit ``publish.yml`` validates the
+            library with; image planning does not use it.
 
 ``resolve`` reports missing images; publication leaves those image pins absent
 and reports them as pending while deferred/scheduled builds reconcile them.
-When a lookup finds nothing (busy, failed or no such tag), a recipe whose content digest and build key equal
-the current published release's keeps that release's pin (counted in the summary).
-It names the reason for every recipe without an image: refused by the
-Controller's source policy (not planned), or no image in the registry (the
-build failed or has not run, or the lookup failed).
 """
 
 from __future__ import annotations
@@ -47,7 +45,7 @@ from pathlib import Path
 from typing import Any
 
 from recipe_tooling.paths import REPO_ROOT
-from recipe_tooling.upstream_http import UpstreamBusy, fetch
+from recipe_tooling.upstream_http import fetch
 
 ROOT = REPO_ROOT
 
@@ -66,6 +64,11 @@ _MANIFEST_TYPES = (
 
 # (owner, package, tag) -> manifest digest or None
 Lookup = Callable[[str, str, str], "str | None"]
+# pinned reference -> the image's config labels
+Labels = Callable[[str], Mapping[str, str]]
+# Set on every image the platform adaptation stage built (before the build key v2):
+# such an image is an adopted one.
+LEGACY_LABEL = "ai.vonkforge.runtime-adapter"
 
 
 def package(slug: str) -> str:
@@ -74,6 +77,14 @@ def package(slug: str) -> str:
 
 def repository(owner: str, slug: str) -> str:
     return f"{REGISTRY}/{owner.lower()}/{package(slug)}"
+
+
+def build_tag(key: str) -> str:
+    return f"build-v2-{key}"
+
+
+def candidate_tag(key: str) -> str:
+    return f"candidate-v2-{key}"
 
 
 def ghcr_digest(owner: str, name: str, tag: str) -> str | None:
@@ -104,10 +115,166 @@ def ghcr_digest(owner: str, name: str, tag: str) -> str | None:
     return digest if isinstance(digest, str) else None
 
 
+def skopeo_labels(reference: str) -> Mapping[str, str]:
+    """The config labels of a pinned image (anonymous, the ARM64 image of an index)."""
+
+    inspected = subprocess.run(
+        ["skopeo", "inspect", "--no-creds", "--override-arch", "arm64",
+         f"docker://{reference}"],
+        capture_output=True, text=True, check=True, timeout=120,
+    )  # fmt: skip
+    return json.loads(inspected.stdout).get("Labels") or {}
+
+
 def _recipes(plan: Mapping[str, Any]) -> Iterable[tuple[str, Mapping[str, Any]]]:
     for image in plan.get("images", []):
         for recipe in image.get("recipes", []):
             yield str(image["build_key"]), recipe
+
+
+def _same_source(
+    owner: str, recipe: Mapping[str, Any], pin: Mapping[str, str | None]
+) -> bool:
+    """A published pin of this exact recipe input, in the recipe's own package.
+
+    The content digest names the recipe document only, so the source bundle must
+    match too. Only our own package counts: the release asset is unverified.
+    """
+
+    bundle = recipe.get("source_bundle_sha256")
+    return (
+        bundle is not None
+        and pin.get("source_bundle_sha256") == bundle
+        and str(pin.get("reference", "")).startswith(
+            f"{repository(owner, str(recipe['slug']))}@"
+        )
+    )
+
+
+def _select_image(
+    image: Mapping[str, Any],
+    *,
+    owner: str,
+    candidates: set[str] | None,
+    lookup: Lookup,
+    published: Mapping[str, Mapping[str, str | None]],
+    rebuild: set[str],
+    labels: Labels,
+) -> dict[str, Any]:
+    key = str(image["build_key"])
+    recipes = list(image.get("recipes", []))
+    selected: dict[str, Any] = {
+        "build": None, "copies": [], "adopted": [], "kept": [], "busy": False,
+    }  # fmt: skip
+    wanted = [
+        recipe
+        for recipe in recipes
+        if candidates is None or str(recipe["slug"]) in candidates
+    ]
+    if not wanted:
+        return selected
+    tag = build_tag(key)
+    try:
+        present = {
+            str(recipe["slug"]): lookup(owner, package(str(recipe["slug"])), tag)
+            for recipe in recipes
+        }
+        build: list[Mapping[str, Any]] = []
+        missing: list[Mapping[str, Any]] = []
+        copies: list[dict[str, str]] = []
+        adopted: list[str] = []
+        kept: list[str] = []
+        for recipe in wanted:
+            slug = str(recipe["slug"])
+            digest = present[slug]
+            if slug in rebuild:
+                # Only an adopted (adaptation-stage) image is replaced; an
+                # unreadable label is no evidence and keeps the image.
+                if digest is None or _is_adopted(
+                    labels, f"{repository(owner, slug)}@{digest}"
+                ):
+                    build.append(recipe)
+                else:
+                    kept.append(slug)
+                continue
+            if digest is not None:
+                continue
+            pin = published.get(str(recipe.get("content_sha256")))
+            if (
+                pin is not None
+                and _same_source(owner, recipe, pin)
+                # A legacy pin: its own key has no v2 tag. A v2-built pin whose
+                # key moved (the build policy changed) is rebuilt instead.
+                and lookup(owner, package(slug), build_tag(str(pin["build_key"])))
+                is None
+            ):
+                copies.append(
+                    {
+                        "from": str(pin["reference"]),
+                        "to": f"{repository(owner, slug)}:{tag}",
+                    }
+                )
+                adopted.append(slug)
+                continue
+            missing.append(recipe)
+        if missing:
+            source = next(
+                (
+                    slug
+                    for slug, digest in present.items()
+                    if digest and slug not in rebuild
+                ),
+                None,
+            )
+            # Only a successful build + smoke run writes a candidate tag. Promote
+            # its immutable digest; recipe versions and commits do not affect reuse.
+            if source is None:
+                for recipe in recipes:
+                    slug = str(recipe["slug"])
+                    digest = lookup(owner, package(slug), candidate_tag(key))
+                    if digest:
+                        source = slug
+                        present[slug] = digest
+                        break
+            if source is None:
+                build.extend(missing)
+            else:
+                copies.extend(
+                    {
+                        "from": f"{repository(owner, source)}@{present[source]}",
+                        "to": f"{repository(owner, str(recipe['slug']))}:{tag}",
+                        "version_tag": f"{repository(owner, str(recipe['slug']))}:"
+                        f"{recipe.get('version') or 'latest'}",
+                    }
+                    for recipe in missing
+                )
+    except (OSError, RuntimeError) as error:  # incl. UpstreamBusy
+        # Not looked up this run: neither built nor copied; the next run asks again.
+        print(f"{key}: registry busy, not planned: {error}", file=sys.stderr)
+        selected["busy"] = True
+        return selected
+    if build:
+        selected["build"] = {
+            "build_key": key,
+            "recipes": [
+                {
+                    "slug": str(recipe["slug"]),
+                    "version": recipe.get("version"),
+                    "repository": repository(owner, str(recipe["slug"])),
+                }
+                for recipe in build
+            ],
+        }
+    selected.update(copies=copies, adopted=adopted, kept=kept)
+    return selected
+
+
+def _is_adopted(labels: Labels, reference: str) -> bool:
+    try:
+        return LEGACY_LABEL in labels(reference)
+    except (OSError, ValueError, subprocess.SubprocessError) as error:
+        print(f"{reference}: labels unreadable, kept: {error}", file=sys.stderr)
+        return False
 
 
 def select(
@@ -116,79 +283,39 @@ def select(
     owner: str,
     candidates: set[str] | None,
     lookup: Lookup = ghcr_digest,
+    published: Mapping[str, Mapping[str, str | None]] | None = None,
+    rebuild: set[str] | None = None,
+    labels: Labels = skopeo_labels,
 ) -> dict[str, Any]:
     """What to build and what to copy for the candidate recipes.
 
-    ``candidates`` of ``None`` means every recipe. A key is built once, into
-    the first candidate recipe that lacks it; recipes sharing a key another
-    package already holds are copied from it.
+    ``candidates`` of ``None`` means every recipe. Per recipe without its
+    ``build-v2-<key>`` tag, in order: adopt its own published legacy image of the
+    same input (``published``, by content digest); copy the key from a recipe that
+    has it; promote a PR candidate; build the key once. ``rebuild`` names recipes
+    whose adopted image is rebuilt from source.
     """
 
-    builds: dict[str, dict[str, Any]] = {}
-    copies: list[dict[str, str]] = []
-    busy: list[str] = []
-    for image in plan.get("images", []):
-        try:
-            key = str(image["build_key"])
-            recipes = list(image.get("recipes", []))
-            wanted = [
-                recipe
-                for recipe in recipes
-                if candidates is None or str(recipe["slug"]) in candidates
-            ]
-            if not wanted:
-                continue
-            tag = f"build-{key}"
-            present = {
-                str(recipe["slug"]): lookup(owner, package(str(recipe["slug"])), tag)
-                for recipe in recipes
-            }
-            source = next((slug for slug, digest in present.items() if digest), None)
-            missing = [recipe for recipe in wanted if not present[str(recipe["slug"])]]
-            if not missing:
-                continue
-            # Only a successful build + smoke run writes a candidate tag. Promote
-            # its immutable digest; recipe versions and commits do not affect reuse.
-            if source is None:
-                for recipe in recipes:
-                    slug = str(recipe["slug"])
-                    digest = lookup(owner, package(slug), f"candidate-{key}")
-                    if digest:
-                        source = slug
-                        present[slug] = digest
-                        break
-            if source is not None:
-                digest = present[source]
-                assert digest is not None
-                copies.extend(
-                    {
-                        "from": f"{repository(owner, source)}@{digest}",
-                        "to": f"{repository(owner, str(recipe['slug']))}:{tag}",
-                        "version_tag": f"{repository(owner, str(recipe['slug']))}:"
-                        f"{recipe.get('version') or 'latest'}",
-                    }
-                    for recipe in missing
-                )
-                continue
-            builds[key] = {
-                "build_key": key,
-                "recipes": [
-                    {
-                        "slug": str(recipe["slug"]),
-                        "version": recipe.get("version"),
-                        "repository": repository(owner, str(recipe["slug"])),
-                    }
-                    for recipe in missing
-                ],
-            }
-        except UpstreamBusy as error:
-            # Not looked up this run: neither built nor copied; the next run asks again.
-            busy.append(str(image["build_key"]))
-            print(
-                f"{image['build_key']}: registry busy, not planned: {error}",
-                file=sys.stderr,
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        selected = list(
+            pool.map(
+                lambda image: _select_image(
+                    image,
+                    owner=owner,
+                    candidates=candidates,
+                    lookup=lookup,
+                    published=published or {},
+                    rebuild=rebuild or set(),
+                    labels=labels,
+                ),
+                plan.get("images", []),
             )
-    ordered = sorted(builds.values(), key=lambda item: item["recipes"][0]["slug"])
+        )
+    images = list(plan.get("images", []))
+    ordered = sorted(
+        (item["build"] for item in selected if item["build"]),
+        key=lambda item: item["recipes"][0]["slug"],
+    )
     return {
         "builds": ordered[:MAX_BUILDS],
         "deferred": [item["build_key"] for item in ordered[MAX_BUILDS:]],
@@ -197,8 +324,14 @@ def select(
             for item in ordered[MAX_BUILDS:]
             for recipe in item["recipes"]
         ],
-        "copies": copies,
-        "busy": busy,
+        "copies": [copy for item in selected for copy in item["copies"]],
+        "adopted": sorted(slug for item in selected for slug in item["adopted"]),
+        "kept": sorted(slug for item in selected for slug in item["kept"]),
+        "busy": [
+            str(image["build_key"])
+            for image, item in zip(images, selected, strict=True)
+            if item["busy"]
+        ],
     }
 
 
@@ -208,11 +341,12 @@ def published_pins(
     gh: Callable[[list[str]], Any] = lambda arguments: subprocess.run(
         ["gh", *arguments], capture_output=True, text=True, check=True, timeout=300
     ),
-) -> dict[str, dict[str, str]]:
+) -> dict[str, dict[str, str | None]]:
     """The pins the current published release holds, by recipe content digest.
 
-    Empty when there is no release or it cannot be read: the caller then
-    behaves as if nothing was published before.
+    Each pin carries its row's source bundle digest. Empty when there is no
+    release or it cannot be read: the caller then behaves as if nothing was
+    published before.
     """
 
     try:
@@ -239,6 +373,7 @@ def published_pins(
             str(row["content_sha256"]): {
                 "reference": str(row["prebuilt_image"]["reference"]),
                 "build_key": str(row["prebuilt_image"]["build_key"]),
+                "source_bundle_sha256": row.get("source_bundle_sha256"),
             }
             for row in index["recipes"]
             if row.get("prebuilt_image")
@@ -261,13 +396,14 @@ def resolve(
     *,
     owner: str,
     lookup: Lookup = ghcr_digest,
-    published: Mapping[str, Mapping[str, str]] | None = None,
+    published: Mapping[str, Mapping[str, str | None]] | None = None,
 ) -> tuple[dict[str, dict[str, str]], list[str], list[str]]:
     """Map each recipe's content digest to its pinned prebuilt image.
 
     A recipe whose lookup found no digest (busy, failed or no such tag) keeps the
-    pin the current release holds for the same content digest and build key: pins are keyed by content,
-    so that digest is still exactly right. Changed content stays unpinned.
+    pin the current release holds for the same content and source bundle, in its
+    own package, whatever that pin's key: the digest names exactly the bytes that
+    ran, and status is judged on it. Changed input stays unpinned.
     Returns the pins, the slugs without one and the slugs whose pin carried over.
     """
 
@@ -278,7 +414,7 @@ def resolve(
         key, recipe = entry
         slug = str(recipe["slug"])
         try:
-            digest = lookup(owner, package(slug), f"build-{key}")
+            digest = lookup(owner, package(slug), build_tag(key))
         except (OSError, RuntimeError) as error:  # incl. UpstreamBusy
             print(f"{slug}: registry lookup failed: {error}", file=sys.stderr)
             digest = None
@@ -298,13 +434,11 @@ def resolve(
             }
             continue
         previous = published.get(content)
-        # Only our own package may be carried: the release asset is unverified.
-        if (
-            previous is not None
-            and previous.get("build_key") == key
-            and previous.get("reference", "").startswith(f"{repository(owner, slug)}@")
-        ):
-            images[content] = dict(previous)
+        if previous is not None and _same_source(owner, recipe, previous):
+            images[content] = {
+                "reference": str(previous["reference"]),
+                "build_key": str(previous["build_key"]),
+            }
             carried.append(slug)
             continue
         missing.append(slug)
@@ -379,6 +513,15 @@ def main() -> int:
     )
     choose.add_argument("--output", type=Path, required=True)
     choose.add_argument("--base-plan", type=Path)
+    choose.add_argument(
+        "--repository",
+        help="owner/name whose current release supplies the legacy pins to adopt",
+    )
+    choose.add_argument(
+        "--rebuild-adopted",
+        action="store_true",
+        help="rebuild the named recipes whose tag holds an adopted image",
+    )
     pin = commands.add_parser("platform-ref")
     pin.add_argument("--workflow", type=Path, default=PLATFORM_WORKFLOW)
     look = commands.add_parser("resolve")
@@ -407,7 +550,18 @@ def main() -> int:
             )
         else:
             candidates = candidate_slugs(arguments.slugs.split())
-        selection = select(plan, owner=arguments.owner, candidates=candidates)
+        if arguments.rebuild_adopted and candidates is None:
+            # A rebuild re-checks every recipe it touches: never fleet-wide.
+            raise SystemExit("--rebuild-adopted needs the recipes named in --slugs")
+        selection = select(
+            plan,
+            owner=arguments.owner,
+            candidates=candidates,
+            published=(
+                published_pins(arguments.repository) if arguments.repository else {}
+            ),
+            rebuild=candidates if arguments.rebuild_adopted else set(),
+        )
         if arguments.base_plan is not None and selection["deferred"]:
             raise SystemExit("PR image matrix exceeds 256 keys; split the change")
         if arguments.base_plan is not None and selection["busy"]:
@@ -417,6 +571,7 @@ def main() -> int:
         print(
             f"{len(selection['builds'])} image build(s), "
             f"{len(selection['copies'])} copy(ies), "
+            f"{len(selection['adopted'])} adopted, "
             f"{len(selection['deferred'])} deferred, "
             f"{len(selection['busy'])} busy (skipped)"
         )

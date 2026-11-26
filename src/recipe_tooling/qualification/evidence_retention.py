@@ -11,6 +11,7 @@ from recipe_tooling.qualification.evidence_store import (
     read_evidence,
     write_evidence,
 )
+from recipe_tooling.qualification.identity import execution_key
 from recipe_tooling.qualification.memory_need.evidence import measured_budgets
 from vonk_forge_contracts import (
     QualificationBlame,
@@ -38,7 +39,9 @@ FILE_CLASSES = ("pass", "failure", "behavioural")
 
 
 def _identity_key(record: QualificationEvidenceRecord) -> str:
-    return record.identity.model_dump_json()
+    # The readers judge an image by its digest, so a record under a new build key
+    # of the same image is the same identity.
+    return execution_key(record.identity)
 
 
 def _newest_of_classes(
