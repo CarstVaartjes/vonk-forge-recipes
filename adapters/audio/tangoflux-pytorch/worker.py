@@ -43,6 +43,7 @@ def main() -> None:
     config = json.loads((args.weights / "config.json").read_text(encoding="utf-8"))
     model = TangoFlux(config, text_encoder_dir=str(args.text_encoder))
     check_load_result(model.load_state_dict(weights, strict=False))
+    del weights
     vae.to(DEVICE)
     model.to(DEVICE)
 

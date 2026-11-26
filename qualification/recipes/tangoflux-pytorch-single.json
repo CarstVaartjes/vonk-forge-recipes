@@ -4,7 +4,7 @@
     "interface": "audio-job",
     "parameters": {
       "duration-seconds": 2.0,
-      "steps": 50,
+      "steps": 10,
       "seed": 0
     },
     "inputs": [
