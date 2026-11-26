@@ -49,7 +49,10 @@ SERVING_KIND_SINCE: Mapping[str, str] = {
     "openai.speech": "4.4.0",
 }
 
-CAPABILITY_SINCE: Mapping[CapabilityName, str] = dict.fromkeys(CapabilityName, ORIGINAL)
+CAPABILITY_SINCE: Mapping[CapabilityName, str] = {
+    **dict.fromkeys(CapabilityName, ORIGINAL),
+    CapabilityName.BACKGROUND_REMOVAL: "5.6.0",
+}
 
 # ``levels`` documents gained their ``kind`` in 4.7.0; older readers ignore it.
 EFFORT_KIND_SINCE: Mapping[str, str] = {

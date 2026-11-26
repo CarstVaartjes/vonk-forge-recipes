@@ -72,6 +72,11 @@ CAPABILITY_TEXT: Mapping[CapabilityName, CapabilityText] = {
     CapabilityName.AUDIO_UNDERSTANDING: CapabilityText(
         "Audio understanding", "Takes audio as input and answers about it.", _C.AUDIO
     ),
+    CapabilityName.BACKGROUND_REMOVAL: CapabilityText(
+        "Background removal",
+        "Separates the foreground subject from the background as an alpha mask.",
+        _C.IMAGE,
+    ),
     CapabilityName.CHAT: CapabilityText(
         "Chat", "Holds a conversation in turns.", _C.LANGUAGE
     ),
