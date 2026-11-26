@@ -1,0 +1,36 @@
+{
+  "capabilities": [
+    "material-estimation"
+  ],
+  "description": "Immutable public snapshot of prs-eth/marigold-iid-appearance-v1-1 at e7280a0a: the fp16 variant (UNet, VAE, text encoder, tokenizer and scheduler, about 2.6 GB) of Marigold intrinsic image decomposition into albedo, roughness and metallic. OpenRAIL++-M; the licence is shown for information and nothing here gates on it.",
+  "family_title": "Marigold",
+  "identity": {
+    "publisher": "prs-eth",
+    "slug": "marigold-iid-appearance-v1-1-e7280a0a"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Photogrammetry and Remote Sensing, ETH Zurich (prs-eth)"
+    ],
+    "spdx": "LicenseRef-CreativeML-Open-RAIL-Plus-Plus-M",
+    "url": "https://huggingface.co/prs-eth/marigold-iid-appearance-v1-1/blob/e7280a0a0fc5a0df0b36050882b3d8b77da22fd9/README.md"
+  },
+  "lineage": {
+    "family": "marigold",
+    "generation": "Marigold v1.1",
+    "line": "marigold-iid-appearance",
+    "model": "marigold-iid-appearance-v1-1",
+    "variant_kind": "base"
+  },
+  "modalities": [
+    "image"
+  ],
+  "model_title": "Marigold IID Appearance v1.1",
+  "tags": [
+    "prs-eth",
+    "marigold",
+    "image",
+    "intrinsics"
+  ]
+}

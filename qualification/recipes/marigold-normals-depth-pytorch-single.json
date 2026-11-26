@@ -1,0 +1,57 @@
+{
+  "id": "vonk-forge/marigold-normals-depth-pytorch-single",
+  "recipes": {
+    "assertions": [
+      {
+        "exact": 2,
+        "kind": "file-count"
+      },
+      {
+        "exact": [
+          "depth.png",
+          "normal.png"
+        ],
+        "kind": "file-names"
+      },
+      {
+        "allowed": [
+          "image/png"
+        ],
+        "kind": "media-type"
+      },
+      {
+        "kind": "minimum-bytes",
+        "value": 1
+      },
+      {
+        "format": "png",
+        "kind": "format"
+      },
+      {
+        "height": 64,
+        "kind": "image-metadata",
+        "media_type": "image/png",
+        "width": 64
+      }
+    ],
+    "inputs": [
+      {
+        "fixture": "generic-image-png",
+        "slot": "image"
+      }
+    ],
+    "interface": "image-job",
+    "output_limits": {
+      "allowed_media_types": [
+        "image/png"
+      ],
+      "max_file_bytes": 268435456,
+      "max_files": 2,
+      "max_total_bytes": 536870912
+    },
+    "parameters": {
+      "seed": 0
+    },
+    "timeout_seconds": 1800
+  }
+}

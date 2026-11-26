@@ -1,0 +1,37 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "marigold-iid-appearance-v1-1",
+          "title": "Marigold IID Appearance v1.1"
+        }
+      ],
+      "slug": "marigold-iid-appearance",
+      "title": "Marigold IID Appearance"
+    },
+    {
+      "models": [
+        {
+          "slug": "marigold-iid-lighting-v1-1",
+          "title": "Marigold IID Lighting v1.1"
+        }
+      ],
+      "slug": "marigold-iid-lighting",
+      "title": "Marigold IID Lighting"
+    },
+    {
+      "models": [
+        {
+          "slug": "marigold-normals-v1-1",
+          "title": "Marigold Normals v1.1"
+        }
+      ],
+      "slug": "marigold-normals",
+      "title": "Marigold Normals"
+    }
+  ],
+  "slug": "marigold",
+  "title": "Marigold"
+}
