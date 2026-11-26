@@ -283,8 +283,9 @@ PROVEN_FIXED_MEDIA = {
     "wan-2-2-t2v-14b-comfyui-single",
     "wan-2-2-ti2v-5b-comfyui-single",
 }
-# Unproven recipes whose creator fixes every cost-setting: no control makes the smoke cheaper
-# (Hunyuan3D 2.1's paint step fixes its views, steps, remesh and seed), and a shape seed is no cost.
+# Unproven recipes with no cost control to shrink the smoke: the paint step is fixed by the creator
+# (views, steps, remesh and seed), and the full recipe runs demo.py's shape defaults, offering only a
+# seed (no cost) and deliberately not the Gradio app's steps and octree controls.
 CREATOR_FIXED_MEDIA = {
     "hunyuan3d-2-1-pytorch-single",
     "hunyuan3d-2-1-paint-pytorch-single",
@@ -397,8 +398,12 @@ def test_every_media_smoke_has_minimal_controls_or_reviewed_identity_boundary():
             assert spec["inputs"] == [
                 {"slot": "mesh", "fixture": "skintokens-rigged-figure"}
             ]
+        elif slug in CREATOR_FIXED_MEDIA:
+            settings = read_recipe(slug).settings
+            assert isinstance(settings, RecipeJobSettings)
+            assert set(settings.knobs) <= {"seed"}
         else:
-            assert slug in PROVEN_FIXED_MEDIA | CREATOR_FIXED_MEDIA, (
+            assert slug in PROVEN_FIXED_MEDIA, (
                 f"review minimal smoke controls for {slug}"
             )
     assert seen == (
