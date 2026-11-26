@@ -44,3 +44,11 @@ Qualification is derived from hardware evidence on an exact identity, never
 an authored label: see
 [Hardware qualification status](docs/recipe-authoring.md#hardware-qualification-status)
 and, for the sweep, [AGENTS.md](AGENTS.md#hardware-sweep-operation).
+
+## Licence
+
+This repository's code and data are MIT licensed ([LICENSE](LICENSE)). Adapters
+under `adapters/` that vendor creator code keep their creators' own upstream
+licences (see the LICENSE and NOTICE files beside them). Models are licensed by
+their creators, as shown on each model's licence line (informational, never a
+gate).
