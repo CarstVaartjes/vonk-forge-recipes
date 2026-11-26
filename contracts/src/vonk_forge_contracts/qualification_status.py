@@ -5,8 +5,7 @@ and codes are closed vocabularies; references identify public fixes or evidence
 bytes, never a host, request, operation or local artifact path.
 """
 
-from enum import StrEnum
-from typing import Annotated, Literal, Self
+from typing import Annotated, Self
 
 from pydantic import (
     AwareDatetime,
@@ -19,6 +18,19 @@ from pydantic import (
 
 from vonk_forge_contracts._schema_version import QualificationEvidenceSchemaVersion
 from vonk_forge_contracts.recipe import Identifier
+from vonk_forge_contracts.shown import (
+    PublishedStatus,
+    QualificationBlame,
+    QualificationCauseCode,
+    QualificationChange,
+    QualificationHardware,
+    QualificationOutcome,
+    QualificationQualityNote,
+    QualificationStatus,
+    QualificationSummary,
+    QualificationTopology,
+    QualificationUnverifiedReason,
+)
 from vonk_forge_contracts.unrecognised import KeepUnrecognised, UnrecognisedWord
 
 Digest = Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
@@ -39,56 +51,6 @@ class PublicQualificationModel(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
 
-class QualificationStatus(StrEnum):
-    WORKING = "Working"
-    RECHECK = "Re-check: worked before"
-    FIX_TO_VERIFY = "Fix to verify"
-    FAILED_RECIPE = "Failed: recipe"
-    BLOCKED_PLATFORM = "Blocked: platform"
-    UNTESTED = "Untested"
-    CANNOT_TEST = "Can't test here"
-    TESTING = "Testing now"
-    NOT_YET_VERIFIED = "Not yet verified"
-
-
-class QualificationOutcome(StrEnum):
-    PASSED = "passed"
-    FAILED = "failed"
-
-
-class QualificationBlame(StrEnum):
-    RECIPE = "recipe"
-    PLATFORM = "platform"
-
-
-class QualificationCauseCode(StrEnum):
-    HARDWARE_PASS = "qualification.hardware_pass"
-    RECIPE_FAILURE = "qualification.recipe_failure"
-    PLATFORM_FAILURE = "qualification.platform_failure"
-    RUNTIME_EXIT = "recipe.runtime_exit"
-    RUNTIME_OOM = "recipe.runtime_oom"
-    MODEL_INTEGRITY = "model.digest_mismatch"
-    RECIPE_INTEGRITY = "recipe.digest_mismatch"
-    INVALID_DEFINITION = "recipe.invalid_definition"
-    INVALID_DOCUMENT = "recipe.invalid_document"
-    INVALID_OPTION = "recipe.invalid_option"
-    BUILD_POLICY = "dockerfile.heredoc_forbidden"
-    SERVING_ASSERTION = "qualification.serving_assertion"
-    JOB_FAILURE = "qualification.job_failure"
-
-
-class QualificationSummary(StrEnum):
-    PASSED = "Hardware checks passed"
-    RECIPE_FAILED = "Recipe checks failed; needs fix"
-    PLATFORM_FAILED = "Platform issue under fix"
-    RUNTIME_EXIT = "Recipe runtime exited; needs fix"
-    RUNTIME_OOM = "Recipe runtime exceeded available memory; needs fix"
-    MODEL_INTEGRITY = "Model content integrity check failed; needs fix"
-    INVALID_RECIPE = "Recipe definition or build policy check failed; needs fix"
-    SERVING_ASSERTION = "Serving checks failed; needs fix"
-    JOB_FAILURE = "Artifact job failed; needs fix"
-
-
 QUALIFICATION_SUMMARIES = {
     QualificationCauseCode.HARDWARE_PASS: QualificationSummary.PASSED,
     QualificationCauseCode.RECIPE_FAILURE: QualificationSummary.RECIPE_FAILED,
@@ -104,40 +66,6 @@ QUALIFICATION_SUMMARIES = {
     QualificationCauseCode.SERVING_ASSERTION: QualificationSummary.SERVING_ASSERTION,
     QualificationCauseCode.JOB_FAILURE: QualificationSummary.JOB_FAILURE,
 }
-
-
-class QualificationQualityNote(StrEnum):
-    ANSWER_VARIANCE = "Model output differed from the expected answer"
-    CARRIED = "Carried from the identical document before the display split"
-    CARRIED_MODEL_FACTS = (
-        "Carried from the identical execution document before the Model facts split"
-    )
-    # A document whose execution bytes did not change, re-digested by a contract
-    # move (only its Model pins differ): its evidence is the old digest's.
-    CARRIED_IDENTICAL_EXECUTION = "Carried from the identical execution document"
-
-
-class QualificationChange(StrEnum):
-    RECIPE = "recipe"
-    IMAGE = "image"
-    SOURCE = "source"
-    MODEL = "model"
-
-
-class QualificationUnverifiedReason(StrEnum):
-    NEVER_TESTED = "never tested"
-    NEEDS_SPARKS = "needs more Sparks"
-    PLATFORM_ISSUE = "platform issue under fix"
-    INCOMPLETE_PROVENANCE = "historical platform or runtime identity unavailable"
-
-
-class QualificationHardware(StrEnum):
-    GB10 = "GB10"
-
-
-class QualificationTopology(StrEnum):
-    SINGLE = "single"
-    MULTI = "multi"
 
 
 class QualificationRuntimeImage(PublicQualificationModel):
@@ -376,15 +304,6 @@ class PublishedMeasuredMemory(PublicQualificationModel):
         if names != sorted(set(names)):
             raise ValueError("measured memory roles must be sorted and unique")
         return self
-
-
-PublishedStatus = Literal[
-    QualificationStatus.WORKING,
-    QualificationStatus.RECHECK,
-    QualificationStatus.FIX_TO_VERIFY,
-    QualificationStatus.FAILED_RECIPE,
-    QualificationStatus.NOT_YET_VERIFIED,
-]
 
 
 class PublishedQualificationStatusView(PublicQualificationModel):

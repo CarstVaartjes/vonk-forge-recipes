@@ -40,11 +40,6 @@ from vonk_forge_contracts.canonical import (
     read_model,
     read_recipe,
 )
-from vonk_forge_contracts.capability import (
-    CAPABILITY_ROLES,
-    CapabilityName,
-    CapabilityRole,
-)
 from vonk_forge_contracts.catalog_index import (
     INDEX_KIND,
     INDEX_SCHEMA_ASSET,
@@ -137,6 +132,11 @@ from vonk_forge_contracts.recipe import (
     RecipeDefinition,
     RecipeJobKnob,
     RecipeOptionError,
+)
+from vonk_forge_contracts.shown import (
+    CAPABILITY_ROLES,
+    CapabilityName,
+    CapabilityRole,
 )
 from vonk_forge_contracts.unrecognised import UnrecognisedWord
 from vonk_forge_contracts.vocabulary import (

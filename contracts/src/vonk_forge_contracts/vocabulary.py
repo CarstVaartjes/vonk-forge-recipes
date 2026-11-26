@@ -16,25 +16,12 @@ an older minor tolerates a name a newer minor adds.
 from __future__ import annotations
 
 from collections.abc import Mapping
-from enum import StrEnum
 from typing import NamedTuple
 
 from pydantic import BaseModel, ConfigDict, StrictBool, StrictStr
 
-from vonk_forge_contracts.capability import CapabilityName
 from vonk_forge_contracts.qualification_status import QualificationStatus
-
-
-class CapabilityCategory(StrEnum):
-    LANGUAGE = "language"
-    CODE = "code"
-    VISION = "vision"
-    IMAGE = "image"
-    VIDEO = "video"
-    AUDIO = "audio"
-    THREE_D = "3d"
-    OTHER = "other"
-
+from vonk_forge_contracts.shown import CapabilityCategory, CapabilityName
 
 CATEGORY_LABEL: Mapping[CapabilityCategory, str] = {
     CapabilityCategory.LANGUAGE: "Language",
