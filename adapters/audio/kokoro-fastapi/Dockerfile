@@ -1,5 +1,8 @@
 FROM ghcr.io/remsky/kokoro-fastapi-gpu@sha256:97a6f3dab7b3a9508f0fc1c08946ae90495344316f77291b1e99b654c14ea015
 
+# The creator's image ends as appuser; the thin layer below installs as root.
+USER root
+
 LABEL org.opencontainers.image.source="https://github.com/remsky/Kokoro-FastAPI" \
       org.opencontainers.image.revision="f2a5270d2ccd9590bc87e2393c774814f23fe7a1" \
       org.opencontainers.image.version="v0.10.0" \
@@ -15,5 +18,8 @@ RUN if ! getent group 10001 >/dev/null; then groupadd --gid 10001 vonk; fi \
     && if ! getent passwd 10001 >/dev/null; then useradd --uid 10001 --gid 10001 --home-dir /state --no-create-home --shell /usr/sbin/nologin vonk; fi
 
 USER 10001:10001
+# The run-time user must read the creator's /app tree and its Python environment.
+RUN /app/.venv/bin/python -c "import fastapi, uvicorn" \
+    && ! find /app /opt/uv-python ! -perm -o+r -print | grep .
 ENTRYPOINT []
 CMD []
