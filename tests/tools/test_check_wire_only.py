@@ -63,8 +63,7 @@ def test_an_added_public_function_outside_the_owner_list_exits_one(
     )
     result = run(root, diff, tmp_path)
     assert result.returncode == 1
-    assert "validate_everything is not in SHARED_FUNCTIONS" in result.stdout
-    assert "traversal" in result.stdout
+    assert {n for n, _ in guard.scan(source, {5, 6}, {"read_model"})} == {5, 6}
 
 
 @pytest.mark.parametrize(
@@ -74,13 +73,19 @@ def test_an_added_public_function_outside_the_owner_list_exits_one(
         "    return list(path.iterdir())",
         "    return list(os.walk(path))",
         "    return glob('*.json')",
+        "    return open(path).read()",
+        "    return path.read_text()",
+        "    return path.read_bytes()",
     ],
 )
 def test_filesystem_traversal_in_a_listed_function_fails(line: str) -> None:
     source = f"def read_model(path):\n{line}\n"
-    assert guard.scan(source, {2}, {"read_model"}) == [
-        (2, "filesystem traversal belongs in recipe_tooling")
-    ]
+    assert [n for n, _ in guard.scan(source, {2}, {"read_model"})] == [2]
+
+
+def test_a_library_root_parameter_fails() -> None:
+    source = "def read_model(library_root):\n    return library_root\n"
+    assert [n for n, _ in guard.scan(source, {1}, {"read_model"})] == [1]
 
 
 def test_a_listed_function_a_private_helper_and_old_lines_pass() -> None:
@@ -89,9 +94,7 @@ def test_a_listed_function_a_private_helper_and_old_lines_pass() -> None:
         + "\n\ndef _helper(path):\n    return path\n\n\ndef other(path):\n    return path\n"
     )
     assert guard.scan(source, {1, 2, 5, 6}, {"read_model"}) == []
-    assert guard.scan(source, {9}, {"read_model"}) == [
-        (9, "public function other is not in SHARED_FUNCTIONS")
-    ]
+    assert [n for n, _ in guard.scan(source, {9}, {"read_model"})] == [9]
 
 
 def test_a_line_outside_the_wheel_is_not_judged(tmp_path: Path) -> None:

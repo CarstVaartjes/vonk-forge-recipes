@@ -7,7 +7,7 @@ producer-side check over a library lives in ``recipe_tooling``. An added line fa
 
 * defines a public top-level function that ``SHARED_FUNCTIONS`` (in the package
   ``__init__.py``, the one owner list) does not name; or
-* adds filesystem traversal: ``glob(``, ``rglob(``, ``.iterdir(``, ``os.walk(`` or a
+* adds filesystem traversal: ``glob(``, ``rglob(``, ``.iterdir(``, ``os.walk(``, ``open(``, ``.read_text(``, ``.read_bytes(`` or a
   parameter named ``library_root`` or ``root: Path``.
 
 Only lines added by the diff given with ``--diff FILE|-`` are checked. There is no
@@ -30,7 +30,8 @@ ROOT = Path(__file__).resolve().parents[1]
 WHEEL = "contracts/src/"
 OWNER_LIST = "contracts/src/vonk_forge_contracts/__init__.py"
 TRAVERSAL = re.compile(
-    r"\bglob\(|\brglob\(|\.iterdir\(|\bos\.walk\(|\blibrary_root\b|\broot\s*:\s*Path\b"
+    r"\bglob\(|\brglob\(|\.iterdir\(|\bos\.walk\(|\bopen\(|\.read_text\(|\.read_bytes\("
+    r"|\blibrary_root\b|\broot\s*:\s*Path\b"
 )
 
 
