@@ -299,9 +299,9 @@ class ModelDefinition(_ModelContract):
 
     kind: Literal["model"] = "model"
     identity: ModelIdentity
-    # A provider account token is needed to download the files (a gated
-    # repository). Public models download anonymously.
-    requires_token: StrictBool
+    # Retired and ignored: nothing reads it. Kept optional so documents that
+    # still carry it keep their bytes (and so their identity).
+    requires_token: StrictBool | None = None
     dependencies: list[ModelReference] = Field(max_length=32)
     source: ModelSource | GitHubReleaseSource | GitHubLfsSource
     format: ModelFormat
@@ -313,20 +313,13 @@ class ModelDefinition(_ModelContract):
         paths = [item.path for item in self.files]
         if len(ids) != len(set(ids)):
             raise ValueError("file IDs must be unique")
-        if isinstance(self.source, GitHubReleaseSource):
-            if self.requires_token:
-                raise ValueError(
-                    "GitHub release sources require public, anonymous model access"
-                )
-            if {asset.file_id for asset in self.source.assets} != set(ids):
-                raise ValueError(
-                    "GitHub release asset file IDs must exactly cover the model files"
-                )
+        if isinstance(self.source, GitHubReleaseSource) and {
+            asset.file_id for asset in self.source.assets
+        } != set(ids):
+            raise ValueError(
+                "GitHub release asset file IDs must exactly cover the model files"
+            )
         if isinstance(self.source, GitHubLfsSource):
-            if self.requires_token:
-                raise ValueError(
-                    "GitHub LFS sources require public, anonymous model access"
-                )
             if any(item.parts is not None for item in self.files):
                 raise ValueError(
                     "GitHub LFS sources publish whole objects; file parts are not allowed"
