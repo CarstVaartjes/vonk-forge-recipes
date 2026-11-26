@@ -12,7 +12,7 @@ name: Publish recipe library release
 # main's, which is every publish that lags a newer workflow change.
 #
 # This is the only workflow that runs on a push to main: it orchestrates the
-# validation jobs (the platform validator, the producer checks reused from
+# validation jobs (each channel's platform validator, the producer checks reused from
 # validate.yml, including the twice-built byte-equal catalog) and the
 # recipe runtime images (recipe-images.yml), and the publish job fans in on
 # all of them. Pull requests run validate.yml directly.
@@ -35,14 +35,13 @@ permissions:
   contents: read
 
 jobs:
+  # The same channel validation as pull requests: each channel's signed
+  # recipe-tools bundle (platform-validate.yml).
   validate:
     permissions:
+      attestations: read
       contents: read
-    uses: CarstVaartjes/vonk-forge/.github/workflows/validate-recipe-library.yml@25c4dde16d1c76c0801ac7fd445d7f5d920f2294
-    with:
-      # Use the same reviewed Forge contract/runtime-policy validator as PR
-      # validation; publication remains independent of Forge release CI.
-      platform_ref: 25c4dde16d1c76c0801ac7fd445d7f5d920f2294
+    uses: ./.github/workflows/platform-validate.yml
 
   # Computed once; every job that builds a published file (the catalog build that
   # coverage reads, the release assets and the wheel) stamps it into its own

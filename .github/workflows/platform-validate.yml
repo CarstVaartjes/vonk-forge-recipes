@@ -1,0 +1,94 @@
+name: Validate with each channel's platform
+
+# The library is validated by the platform each Vonk Forge channel ships, not by
+# a pinned forge commit. Each leg fetches its channel's signed recipe-tools
+# bundle (tools/recipe-tools: pointer, sha256 and keyless attestation by forge's
+# release workflow, checked once at ingress), runs the bundle's own entry point,
+# then refuses a recipe whose executed discriminators the platform lacks
+# (tools/check-platform-contracts on the bundle's platform-features.json).
+# Newest wins; a forge outage falls back only to the newest bundle an earlier
+# run verified (cached by digest). A stable channel without a pointer (404)
+# skips. Called by validate.yml (pull requests) and publish.yml (main).
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  channel:
+    name: Validate with the ${{ matrix.channel }} platform
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      attestations: read
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        channel: [dev, stable]
+    steps:
+      - name: Check out recipes
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # Holds the newest bundle a run verified, one per channel (saved below by
+      # its digest). The primary key never matches; the prefix restores the newest.
+      - name: Restore the last verified bundle
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/recipe-tools-cache
+          key: recipe-tools-${{ matrix.channel }}-newest
+          restore-keys: recipe-tools-${{ matrix.channel }}-
+
+      - name: Fetch and verify the ${{ matrix.channel }} recipe-tools bundle
+        id: tools
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python3 tools/recipe-tools --channel "${{ matrix.channel }}" \
+            --cache "$RUNNER_TEMP/recipe-tools-cache" --dest .vonk-forge >> "$GITHUB_OUTPUT"
+
+      - name: Keep the verified bundle
+        if: steps.tools.outputs.state == 'fresh'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/recipe-tools-cache
+          key: recipe-tools-${{ matrix.channel }}-${{ steps.tools.outputs.sha256 }}
+
+      - name: Set up uv as the bundle pins it
+        if: steps.tools.outputs.state != 'absent'
+        uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
+        with:
+          version-file: .vonk-forge/.tool-versions
+          python-version: "3.15"
+          enable-cache: true
+          save-cache: ${{ github.ref == 'refs/heads/main' }}
+
+      # Builds this checkout's index and packages, then validates source policy,
+      # archives and runtime compilation (every option choice) with the
+      # candidate's own contracts.
+      - name: Validate the library with the bundle's entry point
+        if: steps.tools.outputs.state != 'absent'
+        run: .vonk-forge/scripts/recipes/validate-recipe-checkout "$GITHUB_WORKSPACE"
+
+      - name: Require every recipe to use only what the platform executes
+        if: steps.tools.outputs.state != 'absent'
+        run: tools/check-platform-contracts --platform-features .vonk-forge/platform-features.json
+
+  # The required check: one name that fans in on every channel leg.
+  validate:
+    name: Validate immutable recipe snapshot
+    if: always()
+    needs: [channel]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Require every channel leg to pass
+        env:
+          RESULT: ${{ needs.channel.result }}
+        run: test "$RESULT" = success

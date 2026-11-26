@@ -1,4 +1,4 @@
-# Tooling updates only. Recipe inputs (platform_ref, the protocol wheel, adapter sources,
+# Tooling updates only. Recipe inputs (the protocol wheel, adapter sources,
 # image pins) are never bumped by a bot: they change a proven recipe's identity.
 version: 2
 updates:
@@ -8,9 +8,6 @@ updates:
       - "/.github/actions/setup-tooling"
     schedule:
       interval: weekly
-    ignore:
-      # The SHA-pinned platform workflow moves only by owner decision.
-      - dependency-name: "CarstVaartjes/vonk-forge*"
     groups:
       actions:
         patterns: ["*"]

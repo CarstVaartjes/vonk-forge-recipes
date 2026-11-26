@@ -301,24 +301,26 @@ model is breaking.
   of parsing names. A new capability is a contract minor release: add the name
   and its role in `shown.py` (a `CapabilityName` member and its entry in one of the
   `_UNDERSTANDING`, `_GENERATORS` or `_OTHER` tuples), and its label, description and category as a
-  `CAPABILITY_TEXT` row in `vocabulary.py` (the catalog build fails without it), release it, and let the Controller adopt it before a
-  catalog declares the name. Authoring refuses a name it does not list. A consumer
+  `CAPABILITY_TEXT` row in `vocabulary.py` (the catalog build fails without it), and use it in
+  the same PR: publication computes the minor, the platform's readers keep a capability word
+  they do not know, and forge's lock follows at its next routine refresh. Nothing waits, and
+  `tools/check-platform-contracts` does not gate capabilities. Authoring refuses a name
+  it does not list. A consumer
   reading the index with `read_catalog` (4.9.0 and later) keeps the entry and the
   word as an `UnrecognisedWord`, and so it does with a modality, an alignment, an
   API endpoint, format, tool choice, request placement or reasoning default, or a
   qualification word. An unknown discriminator (`kind`, `mode`) or API token
   `setting` drops the API block instead (the recipe stays); an unknown word in the
   execution document skips the entry. Closed-word lists carry no length cap, so a
-  new word never overflows one. A Controller pinned before 4.9.0 loses what it
-  cannot read, so the adoption order still applies.
+  new word never overflows one.
 - **Breaking (major, for example `3.0.0`, which moved display text out of the documents, `4.0.0`, which moved a Model's modalities, capabilities and licence into its display, and `5.0.0`, which removed `identity.family` from the Model in favour of the display `lineage`):** remove or rename a field, make one required,
   or change a field's meaning. Raise `CONTRACT_MAJOR` in `_version.py` by one in the
   same PR; the change class check fails a breaking change without it. Making a required field optional also needs
   consumer compatibility evidence if producers will stop emitting it: ignoring
   unknown fields does not let an old reader accept a missing required field.
-  Deploy it consumer-first: pin this recipes commit in vonk-forge, deploy it,
-  then move `platform_ref` here (`tools/check-platform-contracts` refuses a
-  major newer than the platform's). Controllers on the previous major keep
+  Deploy it consumer-first: pin this recipes commit in vonk-forge and release
+  it, then merge here (`tools/check-platform-contracts` refuses a major newer
+  than the channel's `contract_major`). Controllers on the previous major keep
   following the previous major's release until then.
 
 ### Model: the exact files and their capabilities
@@ -464,8 +466,8 @@ wrappers, and test fixtures. Model weights and container image bytes stay
 outside the recipe package.
 
 The image must be buildable by the Controller; publication builds the planned
-image on a hosted runner and pins it in the signed index. The PR
-`validate-recipe-library` checks the Controller's static source policy over the
+image on a hosted runner and pins it in the signed index. Each channel's
+`validate-recipe-library` (from its recipe-tools bundle) checks the Controller's static source policy over the
 build context (no Dockerfile heredocs or `ADD`, digest-pinned
 bases, a numeric non-root final user, every URL host in
 `execution.build.network.hosts`, no Compose device, host-namespace or bind
@@ -1481,8 +1483,8 @@ review policies; no static guard can prove upstream completeness or honesty.
 | `tools/check-document-reads`, `src/recipe_tooling/added_lines.py`, `tests/tools/test_check_document_reads.py` | An added line reads a Recipe, Model or display JSON by hand (`json.loads` then `doc["runtime"]`). Read it through `vonk_forge_contracts` (`read_recipe`, `read_model`, `read_recipe_display`, `read_model_display`, `read_recipe_api`) or `src/recipe_tooling/qualification/documents.py`; only added lines are checked. |
 | `tools/check-recipe-api`, `tests/recipes/test_api_contract.py` | A touched OpenAI-interface recipe has no `api/recipes/<slug>.json`, or its facts contradict the runtime (parser, vision, context binding) or the Models. Fix the document, or the recipe if the runtime is what is wrong; a choice that changes a fact carries its own block. |
 | `tools/check-model-modalities`, `tests/recipes/test_model_modalities.py` | A touched Model's display (or the Model a touched recipe serves) disagrees with its modalities (`image` ⇔ `image-understanding`, likewise audio and video) or with a serving recipe's API document: a chat route needs `chat` and `text-generation`, reasoning other than `none` needs `reasoning`, tools other than `none` need `tool-use`. Correct `display/models/<slug>.json`, or the API document if it claims what the launch does not serve. |
-| `tools/check-platform-contracts`, `src/recipe_tooling/qualification/introduced.py`, `tests/qualification/test_introduced_versions.py` | A recipe uses a serving kind, or selects a Model with a capability, newer than the contracts version the pinned platform (`platform_ref` lock) reads. Hold the recipe until the platform pin moves to a vonk-forge commit that pins a newer contracts version; a new kind or capability gets its minimum in `introduced.py`. The row also fires on a contracts major newer than the platform's: pin this commit in vonk-forge, deploy, then move `platform_ref`. |
-| `validate-recipe-library` in `.github/workflows/validate.yml` | Platform source/security/launcher/option compilation. Repair the concrete refusal; producer-only success is insufficient. |
+| `tools/check-platform-contracts`, `tests/qualification/test_platform_contracts.py` | A recipe uses a serving kind, interface adapter, API mode, reasoning-effort kind or Model source provider that a channel's `platform-features.json` (in its recipe-tools bundle) does not list, so that platform cannot execute it. Land the platform support in forge and let its release publish the bundle; there is no version table here. Capabilities are never gated. The row also fires on a contracts major newer than the channel's `contract_major`: pin this commit in vonk-forge and release it first. |
+| `validate-recipe-library` in `.github/workflows/platform-validate.yml` (one leg per channel) | Platform source/security/launcher/option compilation by the channel's own bundle. Repair the concrete refusal; producer-only success is insufficient. A leg that cannot fetch or verify its bundle (`tools/recipe-tools`, `tests/tools/test_recipe_tools.py`) fails that run only; rerun it once the channel answers. Never pin a forge commit or workflow instead. |
 
 Recipe-specific regressions under `tests/test_<family or adapter>*.py` additionally
 pin supported launch, model, cache, protocol and media behaviour. Find them with
