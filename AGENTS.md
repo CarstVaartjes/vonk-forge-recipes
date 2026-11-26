@@ -293,7 +293,8 @@ indexes carry the placeholder and every consumer compares only the major. A PR n
 nothing in `_version.py` otherwise. `tools/contract-version`
 (`src/recipe_tooling/contract_version.py`, standard library only) classifies the schemas,
 the examples and the `SHARED_FUNCTIONS` names in the package `__init__.py` (read, never
-imported; not compared while either tree lacks the list) against the last `v*` tag; `.github/scripts/contract-version` is its git edge,
+imported; not compared while the released tree lacks the list, and a head without it has
+no names, so deleting the list is breaking) against the last `v*` tag; `.github/scripts/contract-version` is its git edge,
 and validate.yml's "Contract change class" step runs it on every PR and prints the class:
 
 - **breaking**: a property, definition, `anyOf`/`oneOf` alternative or file removed;

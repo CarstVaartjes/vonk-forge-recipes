@@ -86,7 +86,8 @@ class Surface:
 
     Each field is one input, compared by its own function in ``findings``.
     ``shared_functions`` is the package's ``SHARED_FUNCTIONS`` names, or None for a
-    tree that has no such list (it is then not compared).
+    tree without the list. A released tree without it is not compared (the list's
+    first release); a head without it has none, so deleting the list is breaking.
     """
 
     schemas: Mapping[str, object] = field(default_factory=dict)
@@ -107,11 +108,14 @@ def shared_functions(package_init: str) -> frozenset[str] | None:
         if isinstance(target, ast.Name) and target.id == "SHARED_FUNCTIONS":
             if not isinstance(value, (ast.Tuple, ast.List)):
                 raise ContractVersionError("SHARED_FUNCTIONS must be a literal tuple")
-            return frozenset(
+            names = [
                 item.value
                 for item in value.elts
                 if isinstance(item, ast.Constant) and isinstance(item.value, str)
-            )
+            ]
+            if len(names) != len(value.elts):
+                raise ContractVersionError("SHARED_FUNCTIONS lists only string names")
+            return frozenset(names)
     return None
 
 
@@ -152,8 +156,9 @@ def findings(base: Surface, head: Surface) -> list[Finding]:
 def _shared(
     base: frozenset[str] | None, head: frozenset[str] | None
 ) -> Iterator[Finding]:
-    if base is None or head is None:
+    if base is None:
         return
+    head = head or frozenset()
     for name in sorted(base - head):
         yield Finding(ChangeClass.BREAKING, "SHARED_FUNCTIONS", f"{name} removed")
     for name in sorted(head - base):

@@ -135,6 +135,12 @@ def test_narrowing_or_removing_is_breaking() -> None:
     assert classify(model({**PROPERTIES, "name": bounded})) is ChangeClass.BREAKING
     kept = {key: value for key, value in PROPERTIES.items() if key != "requires_token"}
     assert classify(model(kept, ["name", "kind"])) is ChangeClass.BREAKING
+    # An old member only partly covered stays removed even when a member is added.
+    wide = {"anyOf": [{"type": "string", "maxLength": 9}]}
+    narrower = {"anyOf": [{"type": "string", "maxLength": 5}, {"type": "null"}]}
+    base = Surface(schemas={"model.json": model({**PROPERTIES, "note": wide})})
+    head = Surface(schemas={"model.json": model({**PROPERTIES, "note": narrower})})
+    assert change_class(findings(base, head), src_changed=True) is ChangeClass.BREAKING
 
 
 def test_vectors_may_only_grow() -> None:
@@ -182,6 +188,11 @@ def test_shared_functions_may_only_grow() -> None:
     assert change_class(removed, src_changed=True) is ChangeClass.BREAKING
     added = findings(base, surface("read_model", "wav_facts", "build_key"))
     assert change_class(added, src_changed=True) is ChangeClass.MINOR
-    # A tree without the list (released before it existed) is not compared.
+    # A released tree without the list (before it existed) is not compared ...
     assert shared_functions("CONTRACT_VERSION = __version__\n") is None
     assert not findings(Surface(), surface("read_model"))
+    # ... but deleting the list removes every name.
+    deleted = findings(base, Surface())
+    assert change_class(deleted, src_changed=True) is ChangeClass.BREAKING
+    with pytest.raises(ContractVersionError):
+        shared_functions("SHARED_FUNCTIONS = (read_model,)\n")
