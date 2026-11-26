@@ -1,0 +1,70 @@
+{
+  "dependencies": [],
+  "files": [
+    {
+      "id": "config-46dd7cb62d29-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "46dd7cb62d29c81fb551e0ef1ea274c24a46ba441eeb948897706252933df033",
+      "size_bytes": 1208
+    },
+    {
+      "id": "generation-config-f5a1c7e2be80-97dd3d578b",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "f5a1c7e2be8092018d8835128987edf0111637dd98e90599cc80310fef75d95a",
+      "size_bytes": 147
+    },
+    {
+      "id": "model-a90903540cc0-9d75c1098f",
+      "path": "model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "a90903540cc02cbeb7ff9f823f1a80eb778c7e22426a0e620b01c77a5ec8f5b4",
+      "size_bytes": 891646390
+    },
+    {
+      "id": "spiece-d60acb128cf7-3009ca8c22",
+      "path": "spiece.model",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "d60acb128cf7b7f2536e8f38a5b18a05535c9e14c7a355904270e15b0945ea86",
+      "size_bytes": 791656
+    },
+    {
+      "id": "tokenizer-d2acde0d8d71-224931eb13",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "d2acde0d8d71dd30a711834b07781b9c89feaac33fd332f60507699282740066",
+      "size_bytes": 1389353
+    }
+  ],
+  "format": {
+    "precision": "fp32",
+    "quantization": "none"
+  },
+  "identity": {
+    "model": {
+      "publisher": "google-t5",
+      "slug": "t5-base"
+    },
+    "publisher": "google-t5",
+    "slug": "t5-base-a9723ea7",
+    "variant": "a9723ea7",
+    "version": "a9723ea7"
+  },
+  "kind": "model",
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/google-t5/t5-base",
+    "revision": "a9723ea7f1b39c1eae772870f3b547bf6ef7e6c1"
+  }
+}

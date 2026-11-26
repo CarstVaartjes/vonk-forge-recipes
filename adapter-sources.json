@@ -206,6 +206,7 @@
         "adapters/image/minimax-h3-image-sglang/vonk_agent_protocol-4.1.0-py3-none-any.whl",
         "adapters/october-2026/flux-3-image-klein-pytorch-single/vonk_agent_protocol-4.1.0-py3-none-any.whl",
         "adapters/october-2026/qwen-image-2-1-turbo-diffusers-single/vonk_agent_protocol-4.1.0-py3-none-any.whl",
+        "adapters/three-d/anytop/vonk_agent_protocol-4.1.0-py3-none-any.whl",
         "adapters/three-d/gem-x-motion/vonk_agent_protocol-4.1.0-py3-none-any.whl",
         "adapters/three-d/hy-motion/vonk_agent_protocol-4.1.0-py3-none-any.whl",
         "adapters/three-d/kimodo/vonk_agent_protocol-4.1.0-py3-none-any.whl",

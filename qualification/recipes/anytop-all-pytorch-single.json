@@ -1,0 +1,71 @@
+{
+  "id": "vonk-forge/anytop-all-pytorch-single",
+  "recipes": {
+    "interface": "artifact-job",
+    "parameters": {
+      "motion-length-seconds": 2.0,
+      "num-repetitions": 1
+    },
+    "inputs": [
+      {
+        "slot": "clips",
+        "fixture": "anytop-rig-walk-a-v1"
+      },
+      {
+        "slot": "clips",
+        "fixture": "anytop-rig-walk-b-v1"
+      },
+      {
+        "slot": "rest-pose",
+        "fixture": "anytop-rig-tpos-v1"
+      }
+    ],
+    "output_limits": {
+      "max_files": 1,
+      "max_file_bytes": 134217728,
+      "max_total_bytes": 134217728,
+      "allowed_media_types": [
+        "application/zip"
+      ]
+    },
+    "timeout_seconds": 1800,
+    "assertions": [
+      {
+        "kind": "file-count",
+        "exact": 1
+      },
+      {
+        "kind": "file-names",
+        "exact": [
+          "motions.zip"
+        ]
+      },
+      {
+        "kind": "media-type",
+        "allowed": [
+          "application/zip"
+        ]
+      },
+      {
+        "kind": "minimum-bytes",
+        "value": 1024
+      },
+      {
+        "kind": "format",
+        "format": "zip"
+      },
+      {
+        "kind": "zip-entries",
+        "media_type": "application/zip",
+        "exact_names": [
+          "motion-000.bvh"
+        ],
+        "allowed_suffixes": [
+          ".bvh"
+        ],
+        "minimum_entries": 1,
+        "nonempty": true
+      }
+    ]
+  }
+}
