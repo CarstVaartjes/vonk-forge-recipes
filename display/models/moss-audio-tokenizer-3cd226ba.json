@@ -1,0 +1,25 @@
+{
+  "capabilities": [],
+  "description": "Exact official MOSS Audio Tokenizer checkpoint: the 24 kHz, 12.5 Hz multi-codebook speech codec MOSS-TTSD encodes reference clips with and decodes its audio codes through.",
+  "family_title": "OpenMOSS MOSS-TTS",
+  "identity": {
+    "publisher": "openmoss",
+    "slug": "moss-audio-tokenizer-3cd226ba"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "OpenMOSS"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/OpenMOSS-Team/MOSS-Audio-Tokenizer/blob/3cd226ba2947efa357ef453bcad111b6eafba782/README.md"
+  },
+  "modalities": [
+    "audio"
+  ],
+  "model_title": "MOSS Audio Tokenizer",
+  "tags": [
+    "openmoss",
+    "moss-audio-tokenizer"
+  ]
+}

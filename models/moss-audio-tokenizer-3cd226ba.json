@@ -1,0 +1,151 @@
+{
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-3153dde53f18-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "3153dde53f1819ad009aa95c7a7b7efa9aec86b952fbb5dd79e4903c8f07ee25",
+      "size_bytes": 1826
+    },
+    {
+      "id": "readme-795c97ec27b3-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "795c97ec27b38994d4bee033dc3f6f0ad56763510deec3e04a5c1de385139223",
+      "size_bytes": 10778
+    },
+    {
+      "id": "file---init---ed0b4910a5e5-8e2c1f7272",
+      "path": "__init__.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "ed0b4910a5e53b1dfc3234cfcf96e2c6890d339f9134a3dfed8481d01b3768fd",
+      "size_bytes": 52
+    },
+    {
+      "id": "config-0f669e288d39-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "0f669e288d39c9c0ffae4e39babe5167b57e89d3132f0785655d1096a8da8e45",
+      "size_bytes": 6601
+    },
+    {
+      "id": "configuration-moss-audio-tokenizer-349b7ff7e1b3-b43a23ee44",
+      "path": "configuration_moss_audio_tokenizer.py",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "349b7ff7e1b3f160f9c80df9a0311672b326b8b73e90459122fb39e6878962bf",
+      "size_bytes": 12933
+    },
+    {
+      "id": "arch-6a7108429fc2-358657ca1b",
+      "path": "images/arch.png",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "6a7108429fc230ead608a22837a27615aae3458f86e5e47d12fd3bd5d95c7058",
+      "size_bytes": 214969
+    },
+    {
+      "id": "pesq-nb-107c2f8fb912-b3d9ee96c6",
+      "path": "images/pesq-nb.png",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "107c2f8fb91247264497b50f0bb42f34390ce4593eed28ce4dfea47b88a36797",
+      "size_bytes": 743304
+    },
+    {
+      "id": "pesq-wb-ae7b264b13e8-610a0eae17",
+      "path": "images/pesq-wb.png",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "ae7b264b13e8570c292d8843ce83fcf21e96360e2900c8e19a8ff837be3c90fd",
+      "size_bytes": 511823
+    },
+    {
+      "id": "sim-79c6340a32e1-4fe5f873f2",
+      "path": "images/sim.png",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "79c6340a32e1229ab89fdc71447aa0addf91f146d250b1c3416707c5aacee75d",
+      "size_bytes": 492914
+    },
+    {
+      "id": "stoi-86d2a427d213-c4791f35e5",
+      "path": "images/stoi.png",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "86d2a427d213fbd8913052d0d16e87c2384a6643f26458314c8771b95eab89c4",
+      "size_bytes": 440051
+    },
+    {
+      "id": "model-00001-of-00002-037f441ed30a-27a6880801",
+      "path": "model-00001-of-00002.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "037f441ed30a0ab59f6049de83b824a1b3bd6feb7dbd46c3fbca41fc2f649f28",
+      "size_bytes": 4998259168
+    },
+    {
+      "id": "model-00002-of-00002-a187d73d2cda-2cca3b5a88",
+      "path": "model-00002-of-00002.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "a187d73d2cda1c2d0676586d9d03c09c0a5813450266af32029c871493fc9582",
+      "size_bytes": 2100202560
+    },
+    {
+      "id": "model-safetensors-index-e107e83fee64-0a05be8238",
+      "path": "model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "e107e83fee64adc3ccdb993975290cecb00fcf7d72cdaa388011abad16bcc82d",
+      "size_bytes": 148113
+    },
+    {
+      "id": "modeling-moss-audio-tokenizer-65cae7744845-6919ea4b0d",
+      "path": "modeling_moss_audio_tokenizer.py",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "65cae7744845f1b8ac65957e918cea508efe331a38e87b882b7530b6c8d7caa5",
+      "size_bytes": 70906
+    }
+  ],
+  "format": {
+    "precision": "fp32",
+    "quantization": "none"
+  },
+  "identity": {
+    "model": {
+      "publisher": "openmoss",
+      "slug": "moss-audio-tokenizer"
+    },
+    "publisher": "openmoss",
+    "slug": "moss-audio-tokenizer-3cd226ba",
+    "variant": "3cd226ba",
+    "version": "3cd226ba"
+  },
+  "kind": "model",
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/OpenMOSS-Team/MOSS-Audio-Tokenizer",
+    "revision": "3cd226ba2947efa357ef453bcad111b6eafba782"
+  }
+}

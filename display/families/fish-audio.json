@@ -1,0 +1,17 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "drama-3",
+          "title": "Fish Audio Drama 3"
+        }
+      ],
+      "slug": "drama-35b-a3b",
+      "title": "Drama 35B-A3B"
+    }
+  ],
+  "slug": "fish-audio",
+  "title": "Fish Audio"
+}

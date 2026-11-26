@@ -1,0 +1,7 @@
+This build context installs the MOSS-TTS runtime stack (Apache-2.0,
+https://github.com/OpenMOSS/MOSS-TTS commit 934d6826b084c46a0d033402174d5f8ac4ed2519) from
+PyPI and the PyTorch cu128 index; the MOSS-TTSD model and audio tokenizer code is the
+pinned Models' own remote code. pipelines/dialogue.py keeps the creator's dialogue text
+functions from clis/moss_ttsd_app.py at that commit, and pipelines/synthesize.py follows
+its inference steps; the rest of pipelines/ is Vonk Forge wrappers for the signed job
+contract.

@@ -1,0 +1,214 @@
+{
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-34448b82c17d-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "34448b82c17d60fec9b65b1f093c115ddbaadc04beb1b0140b6bfed2e012a930",
+      "size_bytes": 1570
+    },
+    {
+      "id": "readme-a8abd4fe44e8-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "a8abd4fe44e83e27a4e24d52e6609719c4e83c2465d6a242d339be98a957209f",
+      "size_bytes": 20667
+    },
+    {
+      "id": "added-tokens-9dfb40d3a3f8-dec41b9537",
+      "path": "added_tokens.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "9dfb40d3a3f8654c8af17771d767a494e973b9a33d5c3aeffa1b21f77db8e6d3",
+      "size_bytes": 704
+    },
+    {
+      "id": "chat-template-894e3ace884e-00824420d1",
+      "path": "chat_template.jinja",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "894e3ace884e212ae34e1f46063686e7ebcc8b2fa0153af4579dfa5685f63184",
+      "size_bytes": 352
+    },
+    {
+      "id": "config-6e5eebd8d1e3-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "6e5eebd8d1e3fbc171c2f25ad6568223f1bc5fe0ed9f8c4e3d110c0da5be8e96",
+      "size_bytes": 2275
+    },
+    {
+      "id": "configuration-moss-tts-56e31e857216-b91e7d37db",
+      "path": "configuration_moss_tts.py",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "56e31e8572164888ab52e3843a3b0eca8b37355d71bf89ea0d92a4595c1ead0c",
+      "size_bytes": 5584
+    },
+    {
+      "id": "generation-config-04e44319786a-97dd3d578b",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "04e44319786ae9eba99bef56b024543dc2e53a5cd030095fb4ec15412c10ecf8",
+      "size_bytes": 132
+    },
+    {
+      "id": "inference-utils-12cdf3260114-68152c3362",
+      "path": "inference_utils.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "12cdf3260114e44c8cba816782f743779ab621e0ba4047e59a3f3579cfcb0e26",
+      "size_bytes": 5092
+    },
+    {
+      "id": "merges-8831e4f1a044-b0d6dcfed4",
+      "path": "merges.txt",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "8831e4f1a044471340f7c0a83d7bd71306a5b867e95fd870f74d0c5308a904d5",
+      "size_bytes": 1671853
+    },
+    {
+      "id": "model-00001-of-00004-ad8bb115b6c8-1913267ec8",
+      "path": "model-00001-of-00004.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "ad8bb115b6c87c902c76e7a4ef90a6eee98041a87f741fcd163fbe81d855d87a",
+      "size_bytes": 4932667368
+    },
+    {
+      "id": "model-00002-of-00004-7cb9641e2f25-60f6088da9",
+      "path": "model-00002-of-00004.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "7cb9641e2f25651a43bc7f681337d79ab57ca50d63355660787712fcee393c40",
+      "size_bytes": 4915961640
+    },
+    {
+      "id": "model-00003-of-00004-646b34580996-fc35f2c4d5",
+      "path": "model-00003-of-00004.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "646b345809967a41308d95afcf5af233ae94de7997befac287017af602c59687",
+      "size_bytes": 4983069760
+    },
+    {
+      "id": "model-00004-of-00004-ab0a0ed173b7-5078e75d62",
+      "path": "model-00004-of-00004.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "ab0a0ed173b7a86a8cb16b82ca981ad0f1866c2c2d0ecb47c97e72b68ccbaba6",
+      "size_bytes": 1879339648
+    },
+    {
+      "id": "model-safetensors-index-9a7229d966d3-0a05be8238",
+      "path": "model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "9a7229d966d323f16b0142cf9ebdc370923b7a2c5823a73eafef6ed3e1dbcc43",
+      "size_bytes": 38448
+    },
+    {
+      "id": "modeling-moss-tts-02b00b7b715f-df55431560",
+      "path": "modeling_moss_tts.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "02b00b7b715f83b5ff658dc8d78fadab9b507edeaa952efdb23c2b998b6c4a4e",
+      "size_bytes": 28563
+    },
+    {
+      "id": "processing-moss-tts-24fb7a5495cb-a889af5a05",
+      "path": "processing_moss_tts.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "24fb7a5495cb92cfd979d15f81fd2554f26a36b4b9f1d089f0436f95c2da14f3",
+      "size_bytes": 35797
+    },
+    {
+      "id": "processor-config-6821d4805f10-27f0cb76af",
+      "path": "processor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "6821d4805f10fb8b5cc743c021215097e03f1a25f7c220dfc4fb0d62b5dc97e0",
+      "size_bytes": 145
+    },
+    {
+      "id": "special-tokens-map-55cbd0665670-c07a9be597",
+      "path": "special_tokens_map.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "55cbd0665670e196ce105db3f0d787e5eb35bce235fcb2bd50acbdd60c1e39c6",
+      "size_bytes": 631
+    },
+    {
+      "id": "tokenizer-cb3c8fa82993-224931eb13",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "cb3c8fa82993d515469c2800cc455bff4aaa3c4fed9da1f2b0c0668c304f335a",
+      "size_bytes": 11422691
+    },
+    {
+      "id": "tokenizer-config-87b1f37a4a73-94d5c6ba8f",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "87b1f37a4a73e4c4b61637a1446763e8bdea274347f0418cd5c68ead488c8ea4",
+      "size_bytes": 5501
+    },
+    {
+      "id": "vocab-ca10d7e9fb3e-ba05d8e2e4",
+      "path": "vocab.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910",
+      "size_bytes": 2776833
+    }
+  ],
+  "format": {
+    "precision": "bf16",
+    "quantization": "none"
+  },
+  "identity": {
+    "model": {
+      "publisher": "openmoss",
+      "slug": "moss-ttsd-v1-0"
+    },
+    "publisher": "openmoss",
+    "slug": "moss-ttsd-v1-0-c7cd852d",
+    "variant": "c7cd852d",
+    "version": "c7cd852d"
+  },
+  "kind": "model",
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/OpenMOSS-Team/MOSS-TTSD-v1.0",
+    "revision": "c7cd852d87aff71cab5bd2b9b05509cedc0ef1ba"
+  }
+}

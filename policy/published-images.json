@@ -10,6 +10,11 @@
       "evidence": "https://github.com/eugr/spark-vllm-docker/blob/main/build-and-copy.sh: PREBUILT_B12X_RUNNER_IMAGE=\"eugr/spark-vllm-b12x:latest\"",
       "source": "eugr/spark-vllm-docker",
       "tag": "latest"
+    },
+    "ghcr.io/remsky/kokoro-fastapi-gpu": {
+      "evidence": "https://github.com/remsky/Kokoro-FastAPI/blob/f2a5270d2ccd9590bc87e2393c774814f23fe7a1/README.md: NVIDIA arm64 (Jetson, GH200; same tag, ships cu129) docker run --gpus all -p 8880:8880 ghcr.io/remsky/kokoro-fastapi-gpu:latest",
+      "source": "remsky/Kokoro-FastAPI",
+      "tag": "latest"
     }
   }
 }

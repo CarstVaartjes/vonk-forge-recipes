@@ -1,0 +1,36 @@
+{
+  "capabilities": [
+    "audio-generation",
+    "text-to-speech",
+    "voice-cloning"
+  ],
+  "description": "Exact official MOSS-TTSD v1.0 checkpoint (8B MossTTSDelay on a Qwen3-8B backbone, 16 audio codebooks at 12.5 Hz, 24 kHz): long-form spoken dialogue for one to five speakers in 20 languages, with zero-shot cloning of each speaker from a 3 to 10 second reference clip and its transcript.",
+  "family_title": "OpenMOSS MOSS-TTS",
+  "identity": {
+    "publisher": "openmoss",
+    "slug": "moss-ttsd-v1-0-c7cd852d"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "OpenMOSS"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/OpenMOSS-Team/MOSS-TTSD-v1.0/blob/c7cd852d87aff71cab5bd2b9b05509cedc0ef1ba/README.md"
+  },
+  "lineage": {
+    "family": "moss",
+    "generation": "MOSS-TTS",
+    "line": "moss-ttsd-8b",
+    "model": "moss-ttsd-v1-0",
+    "variant_kind": "base"
+  },
+  "modalities": [
+    "audio"
+  ],
+  "model_title": "MOSS-TTSD v1.0",
+  "tags": [
+    "openmoss",
+    "moss-ttsd"
+  ]
+}

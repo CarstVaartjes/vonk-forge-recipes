@@ -4,6 +4,16 @@
     {
       "models": [
         {
+          "slug": "moss-ttsd-v1-0",
+          "title": "MOSS-TTSD v1.0"
+        }
+      ],
+      "slug": "moss-ttsd-8b",
+      "title": "MOSS-TTSD 8B"
+    },
+    {
+      "models": [
+        {
           "slug": "moss-vl-realtime-11b-0708",
           "title": "MOSS-VL Realtime 11B 0708"
         }
