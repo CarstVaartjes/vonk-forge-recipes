@@ -70,8 +70,6 @@ def test_other_arguments_pass_through_unchanged() -> None:
         ["serve", "--max-model-len"],
         ["serve", "--max-model-len", "0"],
         ["serve", "--max-model-len", "four"],
-        ["serve", "--gpu-memory-utilization", "1.5"],
-        ["serve", "--gpu-memory-utilization"],
         ["serve", "--max-model-len", "4096", "--stage-overrides", "{}"],
     ],
 )

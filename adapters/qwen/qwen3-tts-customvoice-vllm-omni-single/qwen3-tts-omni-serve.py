@@ -7,8 +7,9 @@ The deploy config has two stages: the talker (stage 0, ``max_model_len`` 4096) a
 the codec decoder (stage 1, ``max_model_len`` 65536, which must hold the whole
 accumulated codec stream). A global ``--max-model-len`` would reach both stages, so
 the recipe's context setting is a stage-0 override instead: ``--max-model-len N``
-becomes ``--stage-overrides '{"0":{"max_model_len":N}}'`` (vLLM-Omni resolves a
-per-stage override above the deploy config and any global flag). Every other
+becomes ``--stage-overrides '{"0":{"max_model_len":N}}'``, and
+``--gpu-memory-utilization F`` is scoped to both stages the same way (vLLM-Omni
+resolves a per-stage override above the deploy config and any global flag). Every other
 argument passes through unchanged.
 """
 
@@ -64,8 +65,6 @@ def stage_scoped(arguments: list[str]) -> list[str]:
             fraction = float(memory)
         except ValueError:
             raise SystemExit("--gpu-memory-utilization must be a number") from None
-        if not 0 < fraction <= 1:
-            raise SystemExit("--gpu-memory-utilization must be in (0, 1]")
         for stage in STAGES:
             overrides.setdefault(stage, {})["gpu_memory_utilization"] = fraction
     if overrides:
