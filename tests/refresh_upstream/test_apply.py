@@ -211,30 +211,50 @@ class MergeGateTests(unittest.TestCase):
                 assert f"main changed {moved}" in summary.deferred[0]
 
     def test_arming_after_a_push_sees_the_pushed_files(self) -> None:
+        assessment = refresh_model.Assessment(
+            "recipe-b", edits={"recipes/b.json": b"new pin\n"}
+        )
         summary = refresh_publish.Summary()
         summary.healthy = True
-        before = [
-            {
-                "number": 419,
-                **OWN,
-                "autoMergeRequest": {"enabledAt": "now"},
-                "files": [{"path": "recipes/a.json"}],
-            },
+        summary.armed = [419]
+        armed = {
+            "number": 419,
+            **OWN,
+            "autoMergeRequest": {"enabledAt": "now"},
+            "files": [{"path": "recipes/a.json"}],
+        }
+        # The listing before the push does not show the overlap; the push added it.
+        summary.open_pulls = [
+            armed,
             {"number": 421, **OWN, "files": [{"path": "recipes/b.json"}]},
         ]
-        after = [before[0], {**before[1], "files": [{"path": "recipes/a.json"}]}]
+        after = [
+            armed,
+            {"number": 421, **OWN, "files": [{"path": "recipes/a.json"}]},
+        ]
+
+        def listing(*arguments: str) -> list[dict[str, Any]]:
+            if "--head" in arguments:
+                return [{"number": 421, "state": "OPEN", "body": "", **OWN}]
+            return after
+
+        calls: list[tuple[str, ...]] = []
         with (
+            tempfile.TemporaryDirectory() as temporary,
             patch(
-                "recipe_tooling.refresh_upstream.github.gh_json",
-                side_effect=[before, after],
+                "recipe_tooling.refresh_upstream.github.gh_json", side_effect=listing
             ),
-            patch("recipe_tooling.refresh_upstream.github.gh"),
+            patch(
+                "recipe_tooling.refresh_upstream.github.gh",
+                side_effect=lambda *a, **k: calls.append(a) or "",
+            ),
+            patch("recipe_tooling.refresh_upstream.github.git", return_value=""),
+            patch("recipe_tooling.refresh_upstream.apply.verify", return_value=None),
         ):
-            summary.armed.append(419)
-            assert refresh_publish.arm_mechanical_pr(421, "recipe-b", summary)
-            summary.armed.remove(421)
-            summary.open_pulls = None  # what a push to the PR's branch does
-            assert not refresh_publish.arm_mechanical_pr(421, "recipe-b", summary)
+            refresh_publish.publish_mechanical(Path(temporary), assessment, summary)
+
+        assert not [c for c in calls if c[:2] == ("pr", "merge")]
+        assert "#419" in summary.deferred[0]
 
     def test_open_pulls_are_listed_once_per_run(self) -> None:
         summary = refresh_publish.Summary()
