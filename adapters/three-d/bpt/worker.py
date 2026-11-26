@@ -30,6 +30,24 @@ PC_NUM = 4096
 FILTER_KWARGS = {"k": 50, "p": 0.95}
 
 
+class _TrainingState:
+    """Inert stand-in for the DeepSpeed objects in the checkpoint's optimizer state."""
+
+    def __init__(self, *args, **kwargs):
+        pass
+
+
+# The checkpoint is the creator's DeepSpeed training save: the weights under "model" beside the
+# optimizer state, which pickles these three DeepSpeed objects. torch 2.6+ loads weights-only by
+# default and refuses them, and DeepSpeed is not installed (inference never imports it), so the
+# stand-in takes their names; load reads only "model".
+TRAINING_STATE_GLOBALS = [
+    (_TrainingState, "deepspeed.runtime.fp16.loss_scaler.LossScaler"),
+    (_TrainingState, "deepspeed.runtime.zero.config.ZeroStageEnum"),
+    (_TrainingState, "deepspeed.utils.tensor_fragment.fragment_address"),
+]
+
+
 def build_model(config_path: Path, checkpoint: Path):
     with open(config_path, "r") as handle:
         config = yaml.load(handle, Loader=yaml.FullLoader)
@@ -47,7 +65,8 @@ def build_model(config_path: Path, checkpoint: Path):
         encoder_name=config["encoder_name"],
         encoder_freeze=config["encoder_freeze"],
     )
-    model.load(str(checkpoint))
+    with torch.serialization.safe_globals(TRAINING_STATE_GLOBALS):
+        model.load(str(checkpoint))
     return model.eval().half().cuda()
 
 
