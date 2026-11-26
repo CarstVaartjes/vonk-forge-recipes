@@ -1,0 +1,27 @@
+{
+  "capabilities": [],
+  "description": "The exact DFN5B-CLIP ViT-H/14 378 open_clip checkpoint MMAudio loads locally for its video and text conditioning.",
+  "family_title": "DFN5B-CLIP",
+  "identity": {
+    "publisher": "apple",
+    "slug": "dfn5b-clip-vit-h-14-378-01b771ed"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "apple"
+    ],
+    "spdx": "LicenseRef-Apple-AMLR",
+    "url": "https://huggingface.co/apple/DFN5B-CLIP-ViT-H-14-378/blob/01b771ed0d1395ca5ffdd279897d665ebe00dfd2/LICENSE"
+  },
+  "modalities": [
+    "image"
+  ],
+  "model_title": "DFN5B-CLIP ViT-H/14 378",
+  "tags": [
+    "apple",
+    "auxiliary",
+    "image",
+    "offline"
+  ]
+}

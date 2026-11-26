@@ -1,0 +1,43 @@
+{
+  "dependencies": [],
+  "files": [
+    {
+      "id": "bigvgan-generator-d9fe7ec6bd0b-1b454570b5",
+      "path": "bigvgan_generator.pt",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "d9fe7ec6bd0b44ed9d66973d5012d8181c1570b01e5c72df51973e241dccd357",
+      "size_bytes": 489041291
+    },
+    {
+      "id": "config-65b7f487bfaf-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "65b7f487bfaf15256056a75f6667ef5f640214c981922a111927873705ea4ddb",
+      "size_bytes": 1403
+    }
+  ],
+  "format": {
+    "precision": "unspecified",
+    "quantization": "none"
+  },
+  "identity": {
+    "model": {
+      "publisher": "nvidia",
+      "slug": "bigvgan-v2-44khz-128band-512x"
+    },
+    "publisher": "nvidia",
+    "slug": "bigvgan-v2-44khz-128band-512x-95a9d1dc",
+    "variant": "BigVGAN v2 44khz 128band 512x 95a9d1dc",
+    "version": "BigVGAN v2 44khz 128band 512x 95a9d1dc"
+  },
+  "kind": "model",
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/nvidia/bigvgan_v2_44khz_128band_512x",
+    "revision": "95a9d1dcb12906c03edd938d77b9333d6ded7dfb"
+  }
+}

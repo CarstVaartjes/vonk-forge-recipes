@@ -300,6 +300,8 @@ MINIMAL_MEDIA_PARAMETERS = {
     "minimax-h3-keys-heretic-drowzeys-comfyui-single": {"num-frames": 124},
     "stable-audio-3-small-sfx-pytorch-single": {"duration-seconds": 2},
     "tangoflux-pytorch-single": {"duration-seconds": 2.0, "steps": 10, "seed": 0},
+    # the 1 second smoke video caps the duration at its own length
+    "mmaudio-large-44k-v2-pytorch-single": {"duration-seconds": 1.0},
     "minimax-h3-diffusers-single": {"num-frames": 124, "num-inference-steps": 4},
     "minimax-h3-fl2va-diffusers-single": {"num-frames": 124, "num-inference-steps": 4},
     "minimax-h3-fl2va-knapcio-vllm-omni-dual": {"num-inference-steps": 2},
