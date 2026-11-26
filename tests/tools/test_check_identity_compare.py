@@ -34,6 +34,10 @@ def run(root: Path, files: dict[str, str]) -> subprocess.CompletedProcess[str]:
         "moved = pin.build_key != plan_key\n",
         'moved = previous.get("build_key") == key\n',
         'moved = row["runtime_image"] != image\n',
+        "same = content_identity(accepted) == content_identity(recipe)\n",
+        "known = {r.identity.model_dump_json() for r in records}\n",
+        "groups.setdefault(record.identity, []).append(record)\n",
+        "latest = {r.identity: r for r in records}\n",
     ],
 )
 def test_an_added_comparison_outside_the_identity_module_exits_one(
@@ -44,19 +48,19 @@ def test_an_added_comparison_outside_the_identity_module_exits_one(
     assert f"{STATUS}:1:" in result.stdout
 
 
-@pytest.mark.parametrize(
-    "name",
-    ["src/recipe_tooling/qualification/identity.py", "spark_sweep/qualification.py"],
-)
-def test_the_identity_module_and_the_sweep_are_out_of_scope(
-    tmp_path: Path, name: str
+def test_the_sweep_is_in_scope_and_the_identity_module_owns_the_comparison(
+    tmp_path: Path,
 ) -> None:
-    assert run(tmp_path, {name: "same = record.identity == current\n"}).returncode == 0
+    line = "same = record.identity == current\n"
+    assert run(tmp_path, {"spark_sweep/sweep_schedule.py": line}).returncode == 1
+    owner = "src/recipe_tooling/qualification/identity.py"
+    assert run(tmp_path, {owner: line}).returncode == 0
 
 
 def test_digest_comparisons_and_presence_checks_pass(tmp_path: Path) -> None:
     source = (
         "a = image_digest(previous) != image_digest(current)\n"
         "b = previous.runtime_image is None\n"
+        "c = execution_key(previous.identity) == execution_key(current)\n"
     )
     assert run(tmp_path, {STATUS: source}).returncode == 0

@@ -7,6 +7,7 @@ from collections.abc import Mapping
 from dataclasses import replace
 from typing import TYPE_CHECKING, Any
 
+from recipe_tooling.qualification.identity import execution_key
 from recipe_tooling.qualification.tolerant import InputReason, read_optional
 from vonk_forge_contracts import (
     QualificationCauseCode,
@@ -663,9 +664,9 @@ class SweepFailure:
         recipe = accepted.recipe
         download = self.state.downloads.get(key, {})
         downloaded = AcceptedRequest.read(download)
-        if downloaded is None or content_identity(
-            downloaded.recipe
-        ) != content_identity(recipe):
+        if downloaded is None or execution_key(
+            content_identity(downloaded.recipe)
+        ) != execution_key(content_identity(recipe)):
             download = {}
         timings = {
             "download_s": round(

@@ -64,7 +64,8 @@ def test_pr_and_publish_share_planner_build_and_smokes():
 def test_workflow_plan_files_exclude_catalog_progress(tmp_path: Path, event: str):
     workspace = tmp_path / "workspace"
     (workspace / "tools").mkdir(parents=True)
-    shutil.copyfile(ROOT / "tools" / "build-plan", workspace / "tools" / "build-plan")
+    for tool in ("build-plan", "prepare-remote-code-smoke"):
+        shutil.copyfile(ROOT / "tools" / tool, workspace / "tools" / tool)
     for tree in ("src", "policy"):
         shutil.copytree(
             ROOT / tree, workspace / tree, ignore=shutil.ignore_patterns("__pycache__")
@@ -91,8 +92,7 @@ if args[script].endswith('/tools/build-catalog-index'):
     print('wrote catalog-index.json for', root)
 else:
     raise SystemExit(subprocess.run(
-        [sys.executable, os.environ['SMOKE_TOOL'], *args[script + 1:]],
-        check=False, timeout=10,
+        [sys.executable, *args[script:]], check=False, timeout=10
     ).returncode)
 """
     )
@@ -106,7 +106,6 @@ else:
             "GITHUB_WORKSPACE": str(workspace),
             "RUNNER_TEMP": str(tmp_path),
             "EVENT_NAME": event,
-            "SMOKE_TOOL": str(ROOT / "tools/prepare-remote-code-smoke"),
         },
         check=False,
         capture_output=True,

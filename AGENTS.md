@@ -271,7 +271,8 @@ use the same build and smoke path at publication; scheduled/manual runs also
 recover historical missing keys.
 **Images and keys (D3).** The build key is recipe-owned: `tools/build-plan`
 (`recipe_tooling.build_plan`) derives it from recipe inputs (source bundle, pinned
-base images, base image, Dockerfile) and `policy/build-policy.json` only, and plans
+base images, base image, Dockerfile) and `policy/build-policy.json` only (the strict
+`BuildPolicy` model validates it once at load: a typo refuses), and plans
 both the PR head and base with this checkout's tooling, with no Vonk Forge checkout.
 A Vonk Forge release never changes a key, and no Controller computes one: it runs
 the digest the signed catalog pins for a recipe's content. The pushed image is the
@@ -287,7 +288,8 @@ published pin by content and source bundle when a lookup finds nothing. Both end
 the run when the published release is unreadable (the live release stays; the next
 run reads it again): without it they cannot tell a legacy image from a missing one. Status and
 evidence judge an image by its digest: identities are compared only in
-`recipe_tooling.qualification.identity` (guard `tools/check-identity-compare`).
+`recipe_tooling.qualification.identity`, in `src/`, `tools/` and the sweep alike
+(guard `tools/check-identity-compare`).
 To prove the bare-image path for a recipe, dispatch
 `recipe-images.yml -f slugs="<ids>" -f rebuild_adopted=true -f republish=true`: it
 rebuilds only the named recipes whose tag holds an adopted image (never `all`,

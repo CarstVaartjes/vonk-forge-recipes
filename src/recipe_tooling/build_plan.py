@@ -7,7 +7,8 @@ the recipe's build context exactly as its package carries it, and returns the
 
 The key names the inputs that produce the image bytes: the source bundle, the
 pinned base images, the base image and Dockerfile the recipe declares, and this
-repository's build policy (``policy/build-policy.json``). It has no platform input:
+repository's build policy (``policy/build-policy.json``, ``BuildPolicy``). It has
+no platform input:
 a Vonk Forge release never changes it, and no consumer computes it. The Controller
 runs the digest the signed catalog pins for a recipe's content; the key is only
 this repository's handle for finding or skipping a build.
@@ -22,7 +23,9 @@ import sys
 import tarfile
 from collections.abc import Mapping
 from pathlib import Path, PurePosixPath
-from typing import Any
+from typing import Any, Literal
+
+from pydantic import BaseModel, ConfigDict, Field
 
 from recipe_tooling.paths import REPO_ROOT
 
@@ -30,12 +33,88 @@ KEY_SCHEMA_VERSION = 2
 POLICY = REPO_ROOT / "policy" / "build-policy.json"
 
 
+class _Policy(BaseModel):
+    # A typo refuses: an unknown or mistyped field would silently change every key.
+    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
+
+
+class BuildMetadata(_Policy):
+    name: str = Field(min_length=1)
+    value: str
+
+
+class BuildContext(_Policy):
+    name: str = Field(min_length=1)
+    path: str = Field(min_length=1)
+
+
+class BuildEnvironment(_Policy):
+    name: str = Field(min_length=1)
+    value: str | int | bool
+
+
+class BuildOptions(_Policy):
+    """The Spark builder's ``podman build`` options (Vonk Forge ``RecipeBuildOptions``)."""
+
+    additional_contexts: list[BuildContext]
+    annotations: list[BuildMetadata]
+    environment: list[BuildEnvironment]
+    format: Literal["oci", "docker"]
+    identity_label: bool
+    ignorefile: str | None
+    jobs: int = Field(ge=1, le=32)
+    labels: list[BuildMetadata]
+    layer_compression: Literal["disabled", "gzip"]
+    layer_labels: list[BuildMetadata]
+    layers: bool
+    no_hostname: bool
+    no_hosts: bool
+    omit_history: bool
+    os_features: list[str]
+    os_version: str | None
+    shm_bytes: int = Field(ge=65_536)
+    skip_unused_stages: bool
+    squash: Literal["none", "new", "all"]
+    timestamp: int | None = Field(ge=0)
+    unset_environment: list[str]
+    unset_labels: list[str]
+
+
+class BuildSecurity(_Policy):
+    capabilities: list[str] = Field(min_length=1)
+
+
+class BuildResources(_Policy):
+    processes: int = Field(ge=1)
+
+
+class BuildPolicy(_Policy):
+    """``policy/build-policy.json``: the policy every recipe image is built under.
+
+    ``build_options`` and ``build_security`` are key inputs; a change rebuilds every
+    image and re-checks each recipe on hardware. ``build_resources.processes`` sets
+    the build's nproc ulimit and is not a key input. The values were copied from
+    Vonk Forge's ``build_policy_projection`` at 25c4dde1.
+    """
+
+    artifact_format: Literal["docker-archive-v1"]
+    build_resources: BuildResources
+    build_security: BuildSecurity
+    build_options: BuildOptions
+
+
+def load_policy(path: Path = POLICY) -> BuildPolicy:
+    """Read and validate the build policy once, where it enters."""
+
+    return BuildPolicy.model_validate_json(path.read_bytes())
+
+
 def _canonical(document: object) -> bytes:
     return json.dumps(document, sort_keys=True, separators=(",", ":")).encode()
 
 
 def build_key(
-    policy: Mapping[str, Any],
+    policy: BuildPolicy,
     *,
     source_bundle_sha256: str,
     base_images: list[Mapping[str, Any]],
@@ -48,13 +127,13 @@ def build_key(
         _canonical(
             {
                 "schema_version": KEY_SCHEMA_VERSION,
-                "artifact_format": policy["artifact_format"],
+                "artifact_format": policy.artifact_format,
                 "source_bundle_sha256": source_bundle_sha256,
                 "base_images": base_images,
                 "base_image": base_image,
                 "dockerfile": dockerfile,
-                "options": policy["build_options"],
-                "security": policy["build_security"],
+                "options": policy.build_options.model_dump(mode="json"),
+                "security": policy.build_security.model_dump(mode="json"),
             }
         )
     ).hexdigest()
@@ -71,12 +150,12 @@ def _scalar(value: object) -> str:
 
 
 def podman_build_arguments(
-    policy: Mapping[str, Any], *, dockerfile: str, context: str
+    policy: BuildPolicy, *, dockerfile: str, context: str
 ) -> list[str]:
     """The ``podman build`` arguments of the policy (the Spark builder's flags)."""
 
-    options = policy["build_options"]
-    processes = int(policy["build_resources"]["processes"])
+    options = policy.build_options
+    processes = policy.build_resources.processes
     arguments = [
         "--no-cache",
         "--pull=never",
@@ -87,47 +166,46 @@ def podman_build_arguments(
         "--cap-drop=all",
         "--security-opt=no-new-privileges",
         f"--ulimit=nproc={processes}:{processes}",
-        f"--format={options['format']}",
-        f"--identity-label={_scalar(options['identity_label'])}",
-        f"--jobs={options['jobs']}",
-        "--disable-compression=" + _scalar(options["layer_compression"] == "disabled"),
-        f"--layers={_scalar(options['layers'])}",
-        f"--no-hostname={_scalar(options['no_hostname'])}",
-        f"--no-hosts={_scalar(options['no_hosts'])}",
-        f"--omit-history={_scalar(options['omit_history'])}",
-        f"--shm-size={options['shm_bytes']}",
-        f"--skip-unused-stages={_scalar(options['skip_unused_stages'])}",
+        f"--format={options.format}",
+        f"--identity-label={_scalar(options.identity_label)}",
+        f"--jobs={options.jobs}",
+        f"--disable-compression={_scalar(options.layer_compression == 'disabled')}",
+        f"--layers={_scalar(options.layers)}",
+        f"--no-hostname={_scalar(options.no_hostname)}",
+        f"--no-hosts={_scalar(options.no_hosts)}",
+        f"--omit-history={_scalar(options.omit_history)}",
+        f"--shm-size={options.shm_bytes}",
+        f"--skip-unused-stages={_scalar(options.skip_unused_stages)}",
     ]
-    for item in options["additional_contexts"]:
-        arguments += ["--build-context", f"{item['name']}={context}/{item['path']}"]
+    for item in options.additional_contexts:
+        arguments += ["--build-context", f"{item.name}={context}/{item.path}"]
     for flag, entries in (
-        ("--annotation", options["annotations"]),
-        ("--label", options["labels"]),
-        ("--layer-label", options["layer_labels"]),
+        ("--annotation", options.annotations),
+        ("--label", options.labels),
+        ("--layer-label", options.layer_labels),
     ):
         for entry in entries:
-            arguments += [flag, f"{entry['name']}={entry['value']}"]
-    for variable in options["environment"]:
-        arguments += ["--env", f"{variable['name']}={_scalar(variable['value'])}"]
-    if options["ignorefile"] is not None:
-        arguments += ["--ignorefile", f"{context}/{options['ignorefile']}"]
-    for feature in options["os_features"]:
-        arguments += ["--os-feature", str(feature)]
-    if options["os_version"] is not None:
-        arguments += ["--os-version", str(options["os_version"])]
-    if options["squash"] == "new":
+            arguments += [flag, f"{entry.name}={entry.value}"]
+    for variable in options.environment:
+        arguments += ["--env", f"{variable.name}={_scalar(variable.value)}"]
+    if options.ignorefile is not None:
+        arguments += ["--ignorefile", f"{context}/{options.ignorefile}"]
+    for feature in options.os_features:
+        arguments += ["--os-feature", feature]
+    if options.os_version is not None:
+        arguments += ["--os-version", options.os_version]
+    if options.squash == "new":
         arguments.append("--squash")
-    elif options["squash"] == "all":
+    elif options.squash == "all":
         arguments.append("--squash-all")
-    if options["timestamp"] is not None:
-        arguments.append(f"--timestamp={options['timestamp']}")
-    for name in options["unset_environment"]:
-        arguments += ["--unsetenv", str(name)]
-    for name in options["unset_labels"]:
-        arguments += ["--unsetlabel", str(name)]
+    if options.timestamp is not None:
+        arguments.append(f"--timestamp={options.timestamp}")
+    for name in options.unset_environment:
+        arguments += ["--unsetenv", name]
+    for name in options.unset_labels:
+        arguments += ["--unsetlabel", name]
     arguments += [
-        f"--cap-add={capability}"
-        for capability in policy["build_security"]["capabilities"]
+        f"--cap-add={capability}" for capability in policy.build_security.capabilities
     ]
     return arguments
 
@@ -157,7 +235,7 @@ def _package(path: Path, context: str) -> tuple[dict[str, Any], dict[str, bytes]
 
 
 def write_library_image_plan(
-    library_root: Path, output: Path, policy: Mapping[str, Any]
+    library_root: Path, output: Path, policy: BuildPolicy
 ) -> dict[str, Any]:
     """Plan one image per distinct build key for a built recipe library.
 
@@ -237,7 +315,7 @@ def main() -> int:
     plan = write_library_image_plan(
         arguments.library_root.resolve(),
         arguments.output_dir.resolve(),
-        json.loads(POLICY.read_text(encoding="utf-8")),
+        load_policy(),
     )
     json.dump(plan, sys.stdout, indent=2, sort_keys=True)
     sys.stdout.write("\n")

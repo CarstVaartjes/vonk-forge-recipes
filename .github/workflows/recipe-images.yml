@@ -108,7 +108,8 @@ jobs:
             uv run --python 3.15 --no-project --with-editable "$root/contracts" \
               python "$root/tools/build-catalog-index" \
               --source-commit "$commit" --source-date-epoch "$epoch"
-            python3 tools/build-plan --library-root "$root" --output-dir "$2" > "$3"
+            uv run --python 3.14 --no-project --with-editable contracts \
+              python tools/build-plan --library-root "$root" --output-dir "$2" > "$3"
           }
           plan_library "$GITHUB_WORKSPACE" "$RUNNER_TEMP/images" "$RUNNER_TEMP/plan.json"
           if [ "$EVENT_NAME" = pull_request ]; then
@@ -218,7 +219,7 @@ jobs:
           # shellcheck disable=SC2016 # $0/$1 expand in the copy's own shell
           jq -r '.copies[] | .from as $from | (.to, (.version_tag // empty)) | "\($from) \(.)"' \
             "$RUNNER_TEMP/plan/selection.json" \
-            | xargs -P 8 -L 1 sh -c 'skopeo copy --retry-times 3 --preserve-digests "docker://$0" "docker://$1" \
+            | xargs -P 8 -L 1 sh -c 'timeout 900 skopeo copy --retry-times 3 --preserve-digests "docker://$0" "docker://$1" \
                 || echo "::warning::copy to $1 failed; the next run copies again"'
 
   build:

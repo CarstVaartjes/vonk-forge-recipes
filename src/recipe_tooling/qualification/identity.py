@@ -9,6 +9,8 @@ digest under a new key, and its evidence still applies).
 
 from __future__ import annotations
 
+from pydantic import BaseModel
+
 from vonk_forge_contracts import QualificationIdentity
 
 
@@ -44,7 +46,11 @@ def same_execution(
     )
 
 
-def execution_key(identity: QualificationIdentity) -> str:
-    """Every field of the identity, the image by its digest only: equal keys are exact."""
+def execution_key(identity: BaseModel) -> str:
+    """Every field of the identity, the image by its digest only: equal keys are exact.
+
+    Any identity model with a ``runtime_image`` (the qualification identity, the
+    sweep's verdict identity) keys the same way.
+    """
 
     return identity.model_dump_json(exclude={"runtime_image": {"build_key"}})

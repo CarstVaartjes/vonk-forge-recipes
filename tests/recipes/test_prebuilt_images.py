@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from pydantic import ValidationError
 from repo_root import ROOT
 
 from recipe_tooling import build_plan, catalog_index, prebuilt_images
@@ -655,8 +656,11 @@ def test_the_first_run_after_the_key_change_adopts_and_builds_nothing(requested)
     images = _pins(registry)
     assert {pin["build_key"] for pin in images.values()} == {SHARED, OWN}
     assert _digests(images) == _digests(_published())
+    # A rerun (also after a publish killed before its upload, the K1 release
+    # still live) plans nothing new and pins the same digests.
     after = _run(registry, candidates=tool.candidate_slugs(requested))
     assert (after["builds"], after["copies"]) == ([], [])
+    assert _digests(_pins(registry)) == _digests(_published())
 
 
 def test_a_copy_job_killed_midway_heals_on_the_next_run_without_a_build():
@@ -708,15 +712,6 @@ def test_adoption_wins_over_a_candidate_of_the_same_input():
     assert (
         registry.tags[(tool.package("other"), tool.build_tag(OWN))] == (LEGACY["other"])
     )
-
-
-def test_a_publish_killed_before_its_upload_republishes_the_same_digests():
-    registry = Registry()
-    registry.copy(_run(registry))
-    # The old release (K1 pins) stayed live; the rerun plans nothing new.
-    rerun = _run(registry)
-    assert (rerun["builds"], rerun["copies"]) == ([], [])
-    assert _digests(_pins(registry)) == _digests(_published())
 
 
 @pytest.mark.parametrize("change", ["source-bundle", "v2-built"])
@@ -818,7 +813,7 @@ def _library(root: Path, dockerfile: bytes = b"FROM scratch\n") -> Path:
 
 
 def test_a_pull_request_with_unchanged_recipe_inputs_plans_no_build(tmp_path):
-    policy = json.loads(build_plan.POLICY.read_text())
+    policy = build_plan.load_policy()
     base = build_plan.write_library_image_plan(
         _library(tmp_path / "base"), tmp_path / "base-out", policy
     )
@@ -856,3 +851,25 @@ def test_an_unreadable_release_plans_and_pins_nothing(tmp_path, monkeypatch, com
     with pytest.raises(SystemExit, match="not readable"):
         tool.main()
     assert not output.exists()
+
+
+@pytest.mark.parametrize(
+    "damage",
+    [
+        {"build_options": {"squash": "al"}},  # a typo in a closed set
+        {"build_options": {"jobs": "1"}},  # a number written as text
+        {"build_options": {"shm_byte": 1}},  # a misspelt field
+        {"_comment": "free text"},
+    ],
+)
+def test_a_malformed_build_policy_is_refused(tmp_path: Path, damage):
+    policy = json.loads(build_plan.POLICY.read_text())
+    for section, value in damage.items():
+        if isinstance(value, dict):
+            policy[section] = {**policy[section], **value}
+        else:
+            policy[section] = value
+    path = tmp_path / "build-policy.json"
+    path.write_text(json.dumps(policy))
+    with pytest.raises(ValidationError):
+        build_plan.load_policy(path)

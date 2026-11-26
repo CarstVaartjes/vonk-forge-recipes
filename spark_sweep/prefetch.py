@@ -31,6 +31,8 @@ from dataclasses import dataclass
 from functools import partial
 from typing import Any, Protocol
 
+from recipe_tooling.qualification.identity import execution_key
+
 from .catalog import Model, Recipe
 from .fanout import DaemonExecutor, gather
 from .identity import AcceptedRequest, content_identity, verdict_matches
@@ -448,9 +450,9 @@ class Prefetcher:
             elif record is not None and record.get("state") == "external":
                 if recipe.local == "cached":
                     accepted = AcceptedRequest.read(record)
-                    if accepted is not None and content_identity(
-                        accepted.recipe
-                    ) == content_identity(recipe):
+                    if accepted is not None and execution_key(
+                        content_identity(accepted.recipe)
+                    ) == execution_key(content_identity(recipe)):
                         record.update(state=LifecycleState.SUCCEEDED, done_at=now)
                         self.on_done(key)
                     else:
@@ -529,9 +531,9 @@ class Prefetcher:
             else None
         )
         accepted = AcceptedRequest.read(record)
-        same_content = accepted is not None and content_identity(
-            accepted.recipe
-        ) == content_identity(recipe)
+        same_content = accepted is not None and execution_key(
+            content_identity(accepted.recipe)
+        ) == execution_key(content_identity(recipe))
         retry_of = (
             record.get("operation_id")
             if record.get("state") == LifecycleState.FAILED and same_content
@@ -862,7 +864,8 @@ class Prefetcher:
                 record.get("rejection_verified_at") is not None
                 and accepted is not None
                 and (
-                    content_identity(accepted.recipe) != content_identity(recipe)
+                    execution_key(content_identity(accepted.recipe))
+                    != execution_key(content_identity(recipe))
                     # A refusal is the Controller's word on that release; a new
                     # release may answer differently. The new request records its
                     # own release, so an unchanged refusal settles again.
@@ -886,9 +889,9 @@ class Prefetcher:
         if active(record.get("state")) and record.get("state") != DOWNLOAD_RETIRED:
             return False
         accepted = AcceptedRequest.read(record)
-        if accepted is not None and content_identity(
-            accepted.recipe
-        ) != content_identity(recipe):
+        if accepted is not None and execution_key(
+            content_identity(accepted.recipe)
+        ) != execution_key(content_identity(recipe)):
             # A new document needs a new selector request, never a retry of the old parent.
             if record.get("state") == LifecycleState.SUCCEEDED:
                 return True
