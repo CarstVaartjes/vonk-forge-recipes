@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/partcrafter-pytorch-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "502940d14ac5295bc6cec60c07deb27612a39dc2a724cb6a86c37b787b415600",
+        "source_bundle_sha256": "5a38a777182ccf18fec529864cda09d1f817b55d4e8d9f466efd8eea9a0fc4ef",
+        "runtime_image": {
+          "build_key": "528f8bfbd6fe5922453180c814968059eb405c36724dcdf38fa513f30c2baa76",
+          "image_digest": "sha256:fa2c34a4c5d995ca6052f57a998c9927ccd6435c6053c3e95e4a1bd3c55e88bc"
+        },
+        "model_digests": [
+          "a299e63e04996bf7c5ecf040f119a1d01aad3198e7e5ad6adb33e0572f2b0146",
+          "d967cdb20ce7412e5119f9a262fbe1c6ad11ad554f2d85bd5b626600a7db64f6"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "7ef9a51a7b24bd53ce01ffaaddf6842be16f9e61a0e7b8daeb0294ddd5b114fa"
+      ],
+      "tested_at": "2026-11-26T15:44:35.853913Z",
+      "platform": {
+        "controller_source_sha": "090996346f05bd21b329ca6532e111eac5a556e1",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}
