@@ -6,6 +6,9 @@ import unittest
 from pathlib import Path
 from typing import Any
 
+from repo_root import ROOT
+
+from recipe_tooling import hf_build_fetches
 from recipe_tooling import vendored_upstream as checker
 
 COMMIT = "a" * 40
@@ -208,6 +211,56 @@ class VendoredUpstreamTest(unittest.TestCase):
                 assert len(report.problems) == 1
                 assert expected in report.problems[0]
                 assert "vendored-upstream.json also" in report.problems[0]
+
+
+class HfBuildFetchesTest(unittest.TestCase):
+    REPO = "o/config"
+    REVISION = "c" * 40
+
+    def _problems(
+        self, dockerfile: str, manifest: object = None, lock: object = None
+    ) -> list[str]:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            adapter = root / "adapters/x"
+            adapter.mkdir(parents=True)
+            (adapter / "Dockerfile").write_text(dockerfile)
+            if manifest is not None:
+                (adapter / "vendored-upstream.json").write_text(json.dumps(manifest))
+            if lock is not None:
+                (adapter / "kit-lock.json").write_text(json.dumps(lock))
+            return hf_build_fetches.problems(root)
+
+    def _fetch(self, revision: str) -> str:
+        return (
+            "FROM scratch\nRUN curl -fsSL "
+            f"https://huggingface.co/{self.REPO}/resolve/{revision}/config.json\n"
+        )
+
+    def test_the_catalog_declares_every_hf_build_fetch(self) -> None:
+        assert hf_build_fetches.problems(ROOT) == []
+
+    def test_an_undeclared_pinned_fetch_fails(self) -> None:
+        found = self._problems(self._fetch(self.REVISION))
+        assert len(found) == 1
+        assert self.REPO in found[0]
+
+    def test_a_manifest_or_kit_lock_declaration_passes(self) -> None:
+        entry = {"repo": "O/Config", "revision": self.REVISION}
+        assert (
+            self._problems(self._fetch(self.REVISION), {"huggingface": [entry]}) == []
+        )
+        lock = {"dependencies": {"d": {**entry, "datasource": "hf-revision"}}}
+        assert self._problems(self._fetch(self.REVISION), None, lock) == []
+
+    def test_a_declaration_for_another_revision_fails(self) -> None:
+        other = {"repo": self.REPO, "revision": "d" * 40}
+        assert self._problems(self._fetch(self.REVISION), {"huggingface": [other]})
+
+    def test_an_arg_revision_resolves_and_one_without_default_is_skipped(self) -> None:
+        arg = f"ARG REV={self.REVISION}\n" + self._fetch("${REV}")
+        assert len(self._problems(arg)) == 1
+        assert self._problems("ARG REV\n" + self._fetch("${REV}")) == []
 
 
 if __name__ == "__main__":

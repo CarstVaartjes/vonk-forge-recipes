@@ -1,0 +1,8 @@
+{
+  "huggingface": [
+    {
+      "repo": "AngelSlim/Hy4-flash-GGUF",
+      "revision": "c50d4dd30be42f2b91138e5731de0e2f32ad56b2"
+    }
+  ]
+}
