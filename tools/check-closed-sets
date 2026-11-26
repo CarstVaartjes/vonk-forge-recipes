@@ -26,8 +26,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PACKAGE = "contracts/src/vonk_forge_contracts"
-HOMES = ("executed.py", "shown.py")
-ENUM_BASES = {"StrEnum", "Enum"}
+EXECUTED = f"{PACKAGE}/executed.py"
+SHOWN = f"{PACKAGE}/shown.py"
 
 
 def _name(node: ast.expr) -> str | None:
@@ -38,7 +38,7 @@ def _name(node: ast.expr) -> str | None:
     return None
 
 
-def _multi_literal(node: ast.expr | None) -> bool:
+def _multi_literal(node: ast.AST | None) -> bool:
     """Whether ``node`` is ``Literal[...]`` with more than one value."""
     return (
         isinstance(node, ast.Subscript)
@@ -48,9 +48,10 @@ def _multi_literal(node: ast.expr | None) -> bool:
     )
 
 
-def _is_enum(node: ast.stmt) -> bool:
+def _is_enum(node: ast.AST) -> bool:
+    """A class with a base named ``...Enum`` or ``...Flag`` (``StrEnum``, ``IntFlag``)."""
     return isinstance(node, ast.ClassDef) and any(
-        _name(base) in ENUM_BASES for base in node.bases
+        (_name(base) or "").endswith(("Enum", "Flag")) for base in node.bases
     )
 
 
@@ -81,7 +82,9 @@ def _contains(node: ast.AST, name: str) -> bool:
     return any(_name(n) == name for n in ast.walk(node) if isinstance(n, ast.Name))
 
 
-def _unwrapped(node: ast.AST, shown: set[str], *, wrapped: bool) -> list[ast.Name]:
+def _unwrapped(
+    node: ast.AST, shown: set[str], *, wrapped: bool
+) -> list[ast.Name | ast.Attribute]:
     """Each use of a shown set that is not inside ``Annotated[X | UnrecognisedWord, KeepUnrecognised]``."""
     if (
         isinstance(node, ast.Subscript)
@@ -96,6 +99,8 @@ def _unwrapped(node: ast.AST, shown: set[str], *, wrapped: bool) -> list[ast.Nam
         return _unwrapped(first, shown, wrapped=wrapped or keeps)
     if isinstance(node, ast.Name):
         return [] if wrapped or node.id not in shown else [node]
+    if isinstance(node, ast.Attribute):
+        return [] if wrapped or node.attr not in shown else [node]
     return [
         hit
         for child in ast.iter_child_nodes(node)
@@ -110,27 +115,28 @@ def _producer(klass: ast.ClassDef, twins: set[str]) -> bool:
 
 def scan(path: str, source: str, shown: set[str]) -> list[str]:
     """The problems of one module of the wheel."""
-    home = path.endswith(HOMES)
+    home = path in (EXECUTED, SHOWN)
     problems: list[str] = []
     tree = ast.parse(source)
+    problems.extend(
+        f"{path}:{node.lineno}: enum {node.name} belongs in executed.py or shown.py"
+        for node in ast.walk(tree)
+        if not home and isinstance(node, ast.ClassDef) and _is_enum(node)
+    )
     for node in tree.body:
-        if not home and _is_enum(node):
-            assert isinstance(node, ast.ClassDef)
-            problems.append(
-                f"{path}:{node.lineno}: enum {node.name} belongs in executed.py or shown.py"
-            )
         alias = _alias(node)
         if alias is None:
             continue
-        if not home and _multi_literal(alias[1]):
+        if not home and any(_multi_literal(n) for n in ast.walk(alias[1] or node)):
             problems.append(
                 f"{path}:{node.lineno}: set {alias[0]} belongs in executed.py or shown.py"
             )
-        if isinstance(alias[1], (ast.Subscript, ast.BinOp)) and not path.endswith(
-            "shown.py"
+        if (
+            isinstance(alias[1], (ast.Subscript, ast.BinOp, ast.Name, ast.Attribute))
+            and path != SHOWN
         ):
             problems.extend(
-                f"{path}:{hit.lineno}: {hit.id} must be wrapped as "
+                f"{path}:{hit.lineno}: {_name(hit)} must be wrapped as "
                 "Annotated[... | UnrecognisedWord, KeepUnrecognised]"
                 for hit in _unwrapped(alias[1], shown, wrapped=False)
             )
@@ -146,9 +152,9 @@ def scan(path: str, source: str, shown: set[str]) -> list[str]:
                     for sub in ast.walk(field.annotation)
                     if isinstance(sub, ast.expr) and _multi_literal(sub)
                 )
-            if not path.endswith("shown.py") and not _producer(klass, twins):
+            if path != SHOWN and not _producer(klass, twins):
                 problems.extend(
-                    f"{path}:{hit.lineno}: {hit.id} must be wrapped as "
+                    f"{path}:{hit.lineno}: {_name(hit)} must be wrapped as "
                     "Annotated[... | UnrecognisedWord, KeepUnrecognised]"
                     for hit in _unwrapped(field.annotation, shown, wrapped=False)
                 )
@@ -172,7 +178,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=(__doc__ or "").splitlines()[0])
     parser.add_argument("--root", type=Path, default=ROOT)
     problems = check(parser.parse_args().root)
-    print("\n".join(problems))
+    if problems:
+        print("\n".join(problems))
     return 1 if problems else 0
 
 

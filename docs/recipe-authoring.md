@@ -299,8 +299,9 @@ model is breaking.
   `CapabilityName` set (`vonk_forge_contracts/shown.py`), each with one
   `CapabilityRole` (understanding, generator or other) that guards read instead
   of parsing names. A new capability is a contract minor release: add the name
-  and its role there (a `shown.py` member and a `CAPABILITY_TEXT` row, nothing else), and its label, description and category to `CAPABILITY_TEXT`
-  in `vocabulary.py` (the catalog build fails without it), release it, and let the Controller adopt it before a
+  and its role in `shown.py` (a `CapabilityName` member and its entry in one of the
+  `_UNDERSTANDING`, `_GENERATORS` or `_OTHER` tuples), and its label, description and category as a
+  `CAPABILITY_TEXT` row in `vocabulary.py` (the catalog build fails without it), release it, and let the Controller adopt it before a
   catalog declares the name. Authoring refuses a name it does not list. A consumer
   reading the index with `read_catalog` (4.9.0 and later) keeps the entry and the
   word as an `UnrecognisedWord`, and so it does with a modality, an alignment, an

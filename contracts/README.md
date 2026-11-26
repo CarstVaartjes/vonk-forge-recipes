@@ -46,7 +46,7 @@ model's fields reach it, and `SHARED_FUNCTIONS` in `__init__.py` is the one owne
 its public functions. Every closed set lives in
 [`executed.py`](src/vonk_forge_contracts/executed.py) (sets the platform executes) or
 [`shown.py`](src/vonk_forge_contracts/shown.py) (sets a reader keeps unknown words of; a new
-capability is a member there plus a `CAPABILITY_TEXT` row), and `tools/check-closed-sets`
+capability is a member and a role-tuple entry there plus a `CAPABILITY_TEXT` row), and `tools/check-closed-sets`
 fails a set defined elsewhere. `tools/check-wire-only` rejects an added public function outside
 that list and any added filesystem traversal.
 

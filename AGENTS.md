@@ -328,8 +328,8 @@ public functions. Every closed set the wheel defines lives in one of two modules
 (the sets the platform executes: serving kinds and assertions, adapters, change effects, the catalog
 reader's report enums) or `shown.py` (the sets a reader keeps unknown words of with `KeepUnrecognised`:
 `CapabilityName`, `CapabilityRole`, `CapabilityCategory`, modalities, alignments, the qualification
-enums and the API's shown words). A new capability is a `shown.py` member plus a `CAPABILITY_TEXT`
-row and nothing else; the defining modules import their sets from there and keep resolving
+enums and the API's shown words). A new capability is a `CapabilityName` member in `shown.py`, its entry in one of the role
+tuples (`_UNDERSTANDING`, `_GENERATORS`, `_OTHER`) and a `CAPABILITY_TEXT` row; the defining modules import their sets from there and keep resolving
 `vonk_forge_contracts.api.AudioInputFormat` and the like. `tools/check-closed-sets` (validate.yml,
 structural) fails a set defined elsewhere, an inline multi-value `Literal` on a field, and a shown
 set used without `Annotated[X | UnrecognisedWord, KeepUnrecognised]`. `tools/check-wire-only` (validate.yml) rejects an added public

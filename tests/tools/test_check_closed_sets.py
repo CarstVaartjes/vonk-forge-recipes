@@ -22,6 +22,7 @@ def run(tmp_path: Path, **modules: str) -> subprocess.CompletedProcess[str]:
     package.mkdir(parents=True)
     (package / "shown.py").write_text(SHOWN)
     for name, source in modules.items():
+        (package / f"{name}.py").parent.mkdir(exist_ok=True)
         (package / f"{name}.py").write_text(source)
     return subprocess.run(
         [
@@ -71,3 +72,25 @@ def test_a_shown_set_must_be_kept_as_an_unrecognised_word(tmp_path: Path) -> Non
         + "class PublishedPaint(Base):\n    color: ColorWord\n",
     )
     assert (bare.returncode, kept.returncode, twin.returncode) == (1, 0, 0)
+
+
+def test_the_less_obvious_shapes_exit_one(tmp_path: Path) -> None:
+    shapes = {
+        "annotated-literal": 'Kind = Annotated[Literal["a", "b"], Field()]\n',
+        "optional-literal": 'Kind = Literal["a", "b"] | None\n',
+        "flag-base": "class Bits(IntFlag):\n    A = 1\n",
+        "nested-enum": "def make():\n    class Inner(Enum):\n        A = 1\n",
+        "name-alias": "Shade = Color\n",
+        "attribute-field": "class Paint(Base):\n    color: shown.Color\n",
+    }
+    codes = {
+        name: run(tmp_path / name, recipe=source).returncode
+        for name, source in shapes.items()
+    }
+    assert codes == dict.fromkeys(shapes, 1)
+
+
+def test_a_file_named_like_a_home_is_not_a_home(tmp_path: Path) -> None:
+    done = run(tmp_path, **{"sub/shown": SHOWN.replace("Color", "Shade")})
+    assert done.returncode == 1
+    assert done.stdout.strip().endswith("belongs in executed.py or shown.py")

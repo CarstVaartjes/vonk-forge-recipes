@@ -3,7 +3,8 @@
 The contract owns these words. A producer refuses a word this release does not
 list; a consumer reader keeps it as an ``UnrecognisedWord`` and does not act on
 it, so a newer minor may add a member. A new capability is a member of
-:class:`CapabilityName` plus a ``CAPABILITY_TEXT`` row, and nothing else. The
+:class:`CapabilityName`, its entry in one of the role tuples (``_UNDERSTANDING``,
+``_GENERATORS``, ``_OTHER``) and a ``CAPABILITY_TEXT`` row. The
 sets the platform executes live in :mod:`vonk_forge_contracts.executed`.
 ``tools/check-closed-sets`` keeps every closed set in one of the two modules.
 """

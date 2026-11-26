@@ -46,105 +46,128 @@ class StatusText(NamedTuple):
     verified: bool
 
 
-_C = CapabilityCategory
 CAPABILITY_TEXT: Mapping[CapabilityName, CapabilityText] = {
     CapabilityName.THREE_D_GENERATION: CapabilityText(
         "3D generation",
         "Creates 3D assets such as meshes from text or images.",
-        _C.THREE_D,
+        CapabilityCategory.THREE_D,
     ),
     CapabilityName.AUDIO_GENERATION: CapabilityText(
-        "Audio generation", "Creates music or sound.", _C.AUDIO
+        "Audio generation", "Creates music or sound.", CapabilityCategory.AUDIO
     ),
     CapabilityName.AUDIO_UNDERSTANDING: CapabilityText(
-        "Audio understanding", "Takes audio as input and answers about it.", _C.AUDIO
+        "Audio understanding",
+        "Takes audio as input and answers about it.",
+        CapabilityCategory.AUDIO,
     ),
     CapabilityName.BACKGROUND_REMOVAL: CapabilityText(
         "Background removal",
         "Separates the foreground subject from the background as an alpha mask.",
-        _C.IMAGE,
+        CapabilityCategory.IMAGE,
     ),
     CapabilityName.CHAT: CapabilityText(
-        "Chat", "Holds a conversation in turns.", _C.LANGUAGE
+        "Chat", "Holds a conversation in turns.", CapabilityCategory.LANGUAGE
     ),
     CapabilityName.CODE_GENERATION: CapabilityText(
-        "Code generation", "Writes and edits program code.", _C.CODE
+        "Code generation", "Writes and edits program code.", CapabilityCategory.CODE
     ),
     CapabilityName.DECISION: CapabilityText(
-        "Decision", "Chooses between options and returns the choice.", _C.OTHER
+        "Decision",
+        "Chooses between options and returns the choice.",
+        CapabilityCategory.OTHER,
     ),
     CapabilityName.IMAGE_EDITING: CapabilityText(
-        "Image editing", "Changes an existing image from an instruction.", _C.IMAGE
+        "Image editing",
+        "Changes an existing image from an instruction.",
+        CapabilityCategory.IMAGE,
     ),
     CapabilityName.IMAGE_GENERATION: CapabilityText(
-        "Image generation", "Creates images from text.", _C.IMAGE
+        "Image generation", "Creates images from text.", CapabilityCategory.IMAGE
     ),
     CapabilityName.IMAGE_UNDERSTANDING: CapabilityText(
         "Image understanding",
         "Takes images as input and answers about them.",
-        _C.VISION,
+        CapabilityCategory.VISION,
     ),
     CapabilityName.IMAGE_UPSCALING: CapabilityText(
-        "Image upscaling", "Raises the resolution of an image.", _C.IMAGE
+        "Image upscaling",
+        "Raises the resolution of an image.",
+        CapabilityCategory.IMAGE,
     ),
     CapabilityName.MATERIAL_ESTIMATION: CapabilityText(
         "Material estimation",
         "Estimates surface materials of a 3D asset or image.",
-        _C.THREE_D,
+        CapabilityCategory.THREE_D,
     ),
     CapabilityName.MOTION_CAPTURE: CapabilityText(
-        "Motion capture", "Recovers body motion from video.", _C.THREE_D
+        "Motion capture", "Recovers body motion from video.", CapabilityCategory.THREE_D
     ),
     CapabilityName.MOTION_GENERATION: CapabilityText(
-        "Motion generation", "Creates character motion from text.", _C.THREE_D
+        "Motion generation",
+        "Creates character motion from text.",
+        CapabilityCategory.THREE_D,
     ),
     CapabilityName.OCR: CapabilityText(
-        "OCR", "Reads text from images and documents.", _C.VISION
+        "OCR", "Reads text from images and documents.", CapabilityCategory.VISION
     ),
     CapabilityName.PARAMETRIC_BODY_MODEL: CapabilityText(
         "Parametric body model",
         "Represents a human body by shape and pose parameters.",
-        _C.THREE_D,
+        CapabilityCategory.THREE_D,
     ),
     CapabilityName.PERSON_DETECTION: CapabilityText(
-        "Person detection", "Finds people in images or video.", _C.VISION
+        "Person detection",
+        "Finds people in images or video.",
+        CapabilityCategory.VISION,
     ),
     CapabilityName.REASONING: CapabilityText(
-        "Reasoning", "Works through a problem in steps before answering.", _C.LANGUAGE
+        "Reasoning",
+        "Works through a problem in steps before answering.",
+        CapabilityCategory.LANGUAGE,
     ),
     CapabilityName.RETOPOLOGY: CapabilityText(
         "Retopology",
         "Rebuilds an existing mesh with a new, cleaner face layout.",
-        _C.THREE_D,
+        CapabilityCategory.THREE_D,
     ),
     CapabilityName.SPECULATIVE_DECODING: CapabilityText(
         "Speculative decoding",
         "A draft model that speeds up another model's text generation.",
-        _C.LANGUAGE,
+        CapabilityCategory.LANGUAGE,
     ),
     CapabilityName.SPEECH_RECOGNITION: CapabilityText(
-        "Speech recognition", "Turns speech into text.", _C.AUDIO
+        "Speech recognition", "Turns speech into text.", CapabilityCategory.AUDIO
     ),
     CapabilityName.TEXT_GENERATION: CapabilityText(
-        "Text generation", "Continues or writes text from a prompt.", _C.LANGUAGE
+        "Text generation",
+        "Continues or writes text from a prompt.",
+        CapabilityCategory.LANGUAGE,
     ),
     CapabilityName.TEXT_TO_SPEECH: CapabilityText(
-        "Text to speech", "Speaks text aloud.", _C.AUDIO
+        "Text to speech", "Speaks text aloud.", CapabilityCategory.AUDIO
     ),
     CapabilityName.TOOL_USE: CapabilityText(
-        "Tool use", "Calls functions or tools you describe.", _C.LANGUAGE
+        "Tool use",
+        "Calls functions or tools you describe.",
+        CapabilityCategory.LANGUAGE,
     ),
     CapabilityName.VIDEO_GENERATION: CapabilityText(
-        "Video generation", "Creates video clips.", _C.VIDEO
+        "Video generation", "Creates video clips.", CapabilityCategory.VIDEO
     ),
     CapabilityName.VIDEO_UNDERSTANDING: CapabilityText(
-        "Video understanding", "Takes video as input and answers about it.", _C.VISION
+        "Video understanding",
+        "Takes video as input and answers about it.",
+        CapabilityCategory.VISION,
     ),
     CapabilityName.VOICE_CLONING: CapabilityText(
-        "Voice cloning", "Speaks in the voice of a reference recording.", _C.AUDIO
+        "Voice cloning",
+        "Speaks in the voice of a reference recording.",
+        CapabilityCategory.AUDIO,
     ),
     CapabilityName.VOICE_DESIGN: CapabilityText(
-        "Voice design", "Creates a new voice from a description.", _C.AUDIO
+        "Voice design",
+        "Creates a new voice from a description.",
+        CapabilityCategory.AUDIO,
     ),
 }
 
