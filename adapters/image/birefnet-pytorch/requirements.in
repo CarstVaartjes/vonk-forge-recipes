@@ -22,3 +22,8 @@ safetensors==0.8.0
 Pillow==12.3.0
 # The creator wants numpy below 2 (its torch 2.5.1 era); 1.26.4 is the newest of that line.
 numpy==1.26.4
+
+# vonk-agent-protocol 4.1.0 requirements (jsonschema>=4.26.0, pydantic>=2.13.5): the wheel is
+# installed with --no-deps, so the hash lock carries them (as in adapters/three-d/kimodo).
+pydantic==2.13.5
+jsonschema==4.26.0
