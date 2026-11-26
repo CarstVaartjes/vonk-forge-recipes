@@ -1,10 +1,9 @@
 {
   "capabilities": [
     "audio-generation",
-    "text-to-speech",
-    "voice-cloning"
+    "text-to-speech"
   ],
-  "description": "Exact official Fish Audio Drama 3 checkpoint (35B-total / 3B-active Qwen3.5 MoE backbone with block-FP8 routed experts and BF16 elsewhere, a 10-codebook audio tower and the bundled 44.1 kHz DAC codec): expressive speech in 83 languages, up to 16 speakers per request through speaker tags, inline event tags such as [sighs] or [laughs], and zero-shot voice cloning from a reference clip with its transcript.",
+  "description": "Exact official Fish Audio Drama 3 checkpoint (35B-total / 3B-active Qwen3.5 MoE backbone with block-FP8 routed experts and BF16 elsewhere, a 10-codebook audio tower and the bundled 44.1 kHz DAC codec): expressive speech in 83 languages, up to 16 speakers per request through speaker tags, inline event tags such as [sighs] or [laughs] (the checkpoint also clones a voice from a reference clip and its transcript).",
   "family_title": "Fish Audio",
   "identity": {
     "publisher": "fishaudio",
