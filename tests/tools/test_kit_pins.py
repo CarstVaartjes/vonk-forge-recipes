@@ -846,6 +846,19 @@ class AssessmentTests(unittest.TestCase):
         assert not result.drifted
         assert any("v0.6.2" in e and "information" in e for e in result.evidence)
 
+    def test_a_busy_provider_for_release_information_is_not_a_failure(self) -> None:
+        routed = FakeApi.__call__
+
+        def busy_tags(api: FakeApi, path: str) -> Any:
+            if path.split("?", maxsplit=1)[0].endswith("/tags"):
+                raise UpstreamBusy("provider returned HTTP 429")
+            return routed(api, path)
+
+        with patch.object(FakeApi, "__call__", busy_tags):
+            result = self.assess(KIT_NEW, KIT_NEW, base=("v0.6.0", BASE_060))
+        assert not result.drifted
+        assert not result.unreachable
+
     def test_the_v050_to_v060_move_is_a_review_naming_the_declared_base(self) -> None:
         result = self.assess(
             KIT_OLD, KIT_NEW, base=("v0.5.0", BASE_050), files=("patches/0002.patch",)

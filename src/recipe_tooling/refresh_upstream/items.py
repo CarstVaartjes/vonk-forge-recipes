@@ -92,12 +92,16 @@ def check_kit_dependencies(
     declared = {d.name: d for d in wanted}
     for pin in pins:
         locked = lock.get("dependencies", {}).get(pin.name) or {}
-        newest = kit_resolve.newest_information(kit_source, pin)
-        info = (
-            f"{newest} is shown for information; the pin follows the kit's declaration"
-            if newest
-            else f"{pin.repo}: no release information"
-        )
+        try:
+            newest = kit_resolve.newest_information(kit_source, pin)
+        except UpstreamBusy:  # information only: a busy provider is not a failure
+            info = f"{pin.repo}: release information unavailable (provider busy)"
+        else:
+            info = (
+                f"{newest} is shown for information; the pin follows the kit's declaration"
+                if newest
+                else f"{pin.repo}: no release information"
+            )
         if pin.overridden:
             result.evidence.append(
                 f"### Kit dependency `{pin.name}` is overridden\n\n- {pin.repo} is "
