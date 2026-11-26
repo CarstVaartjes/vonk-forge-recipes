@@ -295,6 +295,7 @@ MINIMAL_MEDIA_PARAMETERS = {
         "num-inference-steps": 2,
     },
     "hunyuan-video-15-i2v-step-distilled-diffusers-single": {"num-frames": 1},
+    "partcrafter-pytorch-single": {"num-parts": 2, "seed": 0},
     "ltx-2-19b-dev-fp4-pytorch-single": {"num-frames": 1, "num-inference-steps": 2},
     "fasth3-8step-v2-drowzeys-tensorfold-single": {"num-frames": 124},
     "minimax-h3-keys-heretic-drowzeys-comfyui-single": {"num-frames": 124},

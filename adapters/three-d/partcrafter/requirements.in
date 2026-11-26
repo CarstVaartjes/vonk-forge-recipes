@@ -1,0 +1,28 @@
+--extra-index-url https://download.pytorch.org/whl/cu132
+
+# The creator's environment is torch 2.5.1 + CUDA 12.4 (README); no cu12x aarch64 sm_121 build of
+# it exists, so the stack is the GB10-proven TripoSG image's (the same code family: PartCrafter's
+# src/ is TripoSG's model with a part-aware transformer): torch 2.14.0 and torchvision 0.29.0 on cu132.
+torch==2.14.0
+torchvision==0.29.0
+diffusers==0.40.0
+transformers==5.17.0
+huggingface-hub==1.33.0
+einops==0.8.2
+trimesh==5.1.0
+omegaconf==2.3.1
+scikit-image==0.26.0
+peft==0.21.0
+jaxtyping==0.3.11
+typeguard==4.6.0
+pillow==12.3.0
+safetensors==0.8.0
+accelerate==1.15.0
+scipy
+# The creator's own pin (requirements.txt). It forces opencv-python-headless 4.10.0.84, because
+# TripoSG's 5.0.0.93 requires numpy 2 or newer.
+numpy==1.26.4
+opencv-python-headless==4.10.0.84
+# Left out: torch-cluster (no aarch64 wheel; its one import is the encoder-only fps, patched out by
+# prepare_upstream.py), and the training, rendering and Gemini requirements (deepspeed, wandb,
+# pyrender, google-genai, gpustat), which inference never imports.

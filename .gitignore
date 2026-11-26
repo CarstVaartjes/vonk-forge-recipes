@@ -65,6 +65,7 @@ secrets/
 /adapters/three-d/kimodo/kimodo/assets/skeletons/somaskel77/skin_standard.npz
 /adapters/three-d/kimodo/vonk_agent_protocol-4.1.0-py3-none-any.whl
 /adapters/three-d/motionbricks/vonk_agent_protocol-4.1.0-py3-none-any.whl
+/adapters/three-d/partcrafter/vonk_agent_protocol-4.1.0-py3-none-any.whl
 /adapters/video/drowzeys-fasth3-tensorfold/vonk_agent_protocol-4.1.0-py3-none-any.whl
 /adapters/video/drowzeys-keys-heretic-h3/vonk_agent_protocol-4.1.0-py3-none-any.whl
 /adapters/video/ltx2-pytorch/wheels/vonk_agent_protocol-4.1.0-py3-none-any.whl

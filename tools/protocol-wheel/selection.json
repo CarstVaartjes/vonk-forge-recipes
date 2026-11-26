@@ -45,6 +45,10 @@
       "wheel_directory": ""
     },
     {
+      "context": "adapters/three-d/partcrafter",
+      "wheel_directory": ""
+    },
+    {
       "context": "adapters/video/drowzeys-fasth3-tensorfold",
       "wheel_directory": ""
     },
