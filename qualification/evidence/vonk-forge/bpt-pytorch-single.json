@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/bpt-pytorch-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "70d3d298c9f19e97fefbbe9e18070a9c60616d0e8674fdcc24ca728695703bc4",
+        "source_bundle_sha256": "6577c7927eae3f42916662251a24c0858abf2b885ede46523a9f4a16e6fbd5e0",
+        "runtime_image": {
+          "build_key": "e85e697464a35df149491483b7b8dd44a7382d62fc40053e40076ba491685fff",
+          "image_digest": "sha256:fb59197d3f0bdf0f2003b74efbd6ed8d2ee292ff7757c2612e8384168f2c580c"
+        },
+        "model_digests": [
+          "1404e3479d844d6c620cc72853ddbc8e7ac9dce7ada6c9523913a8969f652aff"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.job_failure",
+      "cause_summary": "Artifact job failed; needs fix",
+      "evidence_refs": [
+        "af1dd6ee978bc9ee6d061b376a443e456ebfc8404740d05c5fa0f017f159a3d7"
+      ],
+      "tested_at": "2026-11-26T18:55:13.778181Z",
+      "platform": {
+        "controller_source_sha": "06f372ac341b9e4083cdda704c181c85f2d9db70",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}

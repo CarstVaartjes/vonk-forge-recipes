@@ -110,7 +110,7 @@ class CatalogGithubLfsModelTests(unittest.TestCase):
             "repository": REPOSITORY,
             "revision": REVISION,
         }
-        assert not document["requires_token"]
+        assert "requires_token" not in document
         (item,) = document["files"]
         assert (item["path"], item["sha256"], item["size_bytes"], item["roles"]) == (
             PATH,

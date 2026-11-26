@@ -106,7 +106,7 @@ class CatalogHfModelSafetyTests(unittest.TestCase):
             assert namespace["main"]() == 0
             model = load(Path(directory) / "models/test-version.json")
             assert len(model["files"]) == 419
-            assert not model["requires_token"]
+            assert "requires_token" not in model
             assert "capabilities" not in model
             display = load(Path(directory) / "display/models/test-version.json")
             assert display["capabilities"] == ["text-generation"]

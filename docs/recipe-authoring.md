@@ -378,7 +378,7 @@ LFS SHA-256 and size (downloading and hashing small non-LFS files, and refusing
 non-LFS files over 16 MiB), and writes a validated
 `models/<--version-slug>.json`. It prints the pinned revision, the Model's
 `document_sha256` to use in recipe model references, and the total bytes. You
-still supply identity, license, `--requires-token` for a gated repository and
+still supply identity, license and
 `--capability` names through its flags (these are written to the Model's display file, not the Model). Review the file list and roles, drop
 files the model does not need, and list only capabilities the model supports
 before you use the Model in a recipe.
@@ -404,7 +404,7 @@ downloads and verifies the parts, assembles the file and installs it as one
 ordinary file, so recipes select `<name>` like any other file.
 
 Provider-gated checkpoints may be included. `requires_token` is a retired, optional,
-ignored Model field (writers still write it for now): preserve the provider's license and access requirements. The Controller keeps
+ignored Model field (no writer writes it; a refresh or kit-lock rewrite sheds it, and other documents keep it until rewritten for another reason): preserve the provider's license and access requirements. The Controller keeps
 the token in its existing secret store; never embed it in a Model, Recipe,
 build context or publication. A configured token does not prove that the account
 has accepted terms or received model-specific approval. Verify access separately

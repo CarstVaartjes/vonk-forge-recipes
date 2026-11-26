@@ -73,11 +73,6 @@ def _arguments() -> argparse.Namespace:
         "--revision", help="40-character commit; defaults to the repository head"
     )
     parser.add_argument(
-        "--requires-token",
-        action="store_true",
-        help="the repository is gated: downloading needs a provider token",
-    )
-    parser.add_argument(
         "--assembled-sha256",
         action="append",
         default=[],
@@ -364,7 +359,6 @@ def main() -> int:
             }
             for item in artifacts
         ],
-        requires_token=args.requires_token,
     )
     print(
         json.dumps(
