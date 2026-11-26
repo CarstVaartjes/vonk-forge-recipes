@@ -19,6 +19,7 @@ from recipe_tooling.protocol_wheel import (
     materialize,
     projections,
     selection,
+    template_edits,
 )
 from recipe_tooling.single_source_values import check
 
@@ -194,3 +195,13 @@ def test_check_needs_a_materialized_tree(
         materialize(root, check=True)
     place(root)
     materialize(root, check=True)
+
+
+def test_an_edit_to_a_generated_dockerfile_becomes_an_edit_of_its_template() -> None:
+    generated = "adapters/video/ltx2-pytorch/Dockerfile"
+    template = "tools/protocol-wheel/ltx2-pytorch.Dockerfile.in"
+    edited = (ROOT / generated).read_bytes() + b"# moved\n"
+    assert template_edits(ROOT, {generated: edited}) == {
+        template: (ROOT / template).read_bytes() + b"# moved\n"
+    }
+    assert template_edits(ROOT, {"recipes/x.json": b"{}"}) == {}

@@ -1166,6 +1166,11 @@ A mechanical result over the per-run limit refreshes its existing review issue (
 with that reason, so the issue does not keep an old one.
 The vendored-file check the refresher runs at the new commit names that commit in its
 messages (`check_adapter(..., at=)`), not the manifest's old pin.
+A changed `pyproject.toml` whose diff is only `version = ...` lines is no launch or
+configuration change. An adapter whose Dockerfile or manifest is generated from
+`tools/protocol-wheel/<name>.<file>.in` has the refresher's edit written to that source too
+(`protocol_wheel.template_edits`), so `tools/materialize-protocol-wheel --check` still
+passes; never run it without `--check`.
 Every refresh PR body carries a `## Principles` section that states only what the
 move did: pins moved (and any held), proven bytes followed when the fixture changed,
 peaks raised when they were, and the sweep re-check only when a recipe document changed.

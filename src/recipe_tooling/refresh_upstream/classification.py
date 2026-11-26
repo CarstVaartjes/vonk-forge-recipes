@@ -287,6 +287,23 @@ def upstream_blob(http: refresh_http.Http, repo: str, sha: str) -> bytes:
     return data
 
 
+VERSION_LINE = re.compile(r'^[+-]\s*version\s*=\s*"[^"]*"\s*$')
+
+
+def version_only_bump(entry: dict[str, Any]) -> bool:
+    """Whether a changed ``pyproject.toml`` differs only in its ``version`` lines."""
+    changed = [
+        line
+        for line in str(entry.get("patch") or "").splitlines()
+        if line[:1] in "+-" and not line.startswith(("+++", "---"))
+    ]
+    return (
+        PurePosixPath(entry["filename"]).name == "pyproject.toml"
+        and bool(changed)
+        and all(VERSION_LINE.match(line) for line in changed)
+    )
+
+
 def classify_changes(
     comparison: refresh_model.Comparison,
     *,
@@ -353,10 +370,12 @@ def classify_changes(
     changed |= {
         f["previous_filename"] for f in comparison.files if "previous_filename" in f
     }
+    bumps = {f["filename"] for f in comparison.files if version_only_bump(f)}
     blocking = sorted(
         name
         for name in changed
-        if refresh_model.is_blocking(name, harmless) or name in mirrored
+        if (refresh_model.is_blocking(name, harmless) and name not in bumps)
+        or name in mirrored
     )
     if blocking:
         reasons.append(

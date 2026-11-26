@@ -14,6 +14,7 @@ from urllib.parse import quote
 from recipe_tooling import base_image_holds as base_holds
 from recipe_tooling import catalog_hf_model as catalog
 from recipe_tooling import model_revision_holds as model_holds
+from recipe_tooling import protocol_wheel
 from recipe_tooling import vendored_upstream as vendored
 from recipe_tooling.kit_pins import consumers as kit_consumers
 from recipe_tooling.kit_pins import lock as kit_lock
@@ -184,6 +185,7 @@ class Assessor:
                 edits[f"recipes/{recipe_id}.json"] = refresh_pinning.canonical(
                     new_recipe
                 )
+            edits.update(protocol_wheel.template_edits(self.catalog.root, edits))
             result.edits = edits
         return result
 
