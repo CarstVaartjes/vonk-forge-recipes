@@ -32,8 +32,7 @@ def main() -> None:
     # Download links are written here; the image's /app is read-only at run time.
     os.environ["TEMP_FILE_DIR"] = os.path.join(tempfile.gettempdir(), "kokoro-fastapi")
     os.chdir(APP_ROOT)
-    # The image's PYTHONPATH (/app:/app/api), which the platform's environment may not carry.
-    sys.path[:0] = [APP_ROOT, os.path.join(APP_ROOT, "api")]
+    sys.path.insert(0, APP_ROOT)
 
     import uvicorn
     from api.src.main import app
