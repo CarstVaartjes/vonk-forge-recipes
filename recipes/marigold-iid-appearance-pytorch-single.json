@@ -243,6 +243,11 @@
         "value": "intrinsics-appearance"
       },
       {
+        "name": "primary-model",
+        "setting": null,
+        "value": "/models/target"
+      },
+      {
         "name": "seed",
         "setting": "seed",
         "value": null

@@ -118,26 +118,12 @@ def adapter(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Any:
     module = _load()
     inputs = tmp_path / "inputs"
     inputs.mkdir()
-    mounts = {name: tmp_path / name for name in ("target", "normals", "depth")}
-    for mount in mounts.values():
-        mount.mkdir()
+    for name in ("primary", "depth"):
+        (tmp_path / name).mkdir()
     module.calls = []
     module.properties = APPEARANCE_PROPERTIES
     monkeypatch.setattr(module, "_INPUT_ROOT", inputs)
-    for name, mount in mounts.items():
-        monkeypatch.setattr(module, f"_{name.upper()}", mount)
     monkeypatch.setattr(module, "_generator", lambda seed: seed)
-    monkeypatch.setattr(
-        module,
-        "_TASKS",
-        {
-            task: tuple(
-                module.Stage(stage.kind, mounts[stage.mount.name], stage.render)
-                for stage in stages
-            )
-            for task, stages in module._TASKS.items()
-        },
-    )
     monkeypatch.setenv("VONK_JOB_TIMEOUT_SECONDS", "600")
     return module
 
@@ -193,6 +179,13 @@ def _run(
             task,
             "--seed",
             str(seed),
+            "--primary-model",
+            str(tmp_path / "primary"),
+            *(
+                ["--depth-model", str(tmp_path / "depth")]
+                if task == "normals-depth"
+                else []
+            ),
             "--output-dir",
             str(outputs),
         ],

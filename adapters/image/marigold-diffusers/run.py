@@ -27,9 +27,6 @@ from vonk_agent_protocol.job_inputs import RecipeJobInputManifest
 
 _ENTRYPOINT = "/opt/vonk/source/run.py"
 _INPUT_ROOT = Path("/inputs")
-_TARGET = Path("/models/target")
-_NORMALS = Path("/models/normals")
-_DEPTH = Path("/models/depth")
 _FORMATS = {
     ".png": ("PNG", "image/png"),
     ".jpg": ("JPEG", "image/jpeg"),
@@ -47,13 +44,13 @@ Render = Callable[[Any, Any], dict[str, Image.Image]]
 
 @dataclass(frozen=True)
 class Stage:
-    """One pipeline run: the diffusers pipeline kind, its mounted Model and how its maps render.
+    """One pipeline run: the diffusers pipeline kind, which mounted Model it loads and how its maps render.
 
     ``render`` returns the maps by file stem (``albedo`` for ``albedo.png``).
     """
 
     kind: str
-    mount: Path
+    model: str  # "primary" or "depth": the recipe passes each mount as an argument
     render: Render
 
 
@@ -121,11 +118,11 @@ def _render_depth(pipeline: Any, output: Any) -> dict[str, Image.Image]:
 
 
 _TASKS: dict[str, tuple[Stage, ...]] = {
-    "intrinsics-appearance": (Stage("intrinsics", _TARGET, _render_appearance),),
-    "intrinsics-lighting": (Stage("intrinsics", _TARGET, _render_lighting),),
+    "intrinsics-appearance": (Stage("intrinsics", "primary", _render_appearance),),
+    "intrinsics-lighting": (Stage("intrinsics", "primary", _render_lighting),),
     "normals-depth": (
-        Stage("normals", _NORMALS, _render_normals),
-        Stage("depth", _DEPTH, _render_depth),
+        Stage("normals", "primary", _render_normals),
+        Stage("depth", "depth", _render_depth),
     ),
 }
 # The files each task writes: (PNG bit depth, colour type); 2 is RGB, 0 is grayscale.
@@ -151,6 +148,8 @@ def _arguments() -> argparse.Namespace:
     parser.add_argument("--output-mime", required=True)
     parser.add_argument("--task", required=True, choices=sorted(_TASKS))
     parser.add_argument("--seed", type=int, required=True)
+    parser.add_argument("--primary-model", type=Path, required=True)
+    parser.add_argument("--depth-model", type=Path)
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args()
     if args.entrypoint != _ENTRYPOINT:
@@ -268,9 +267,11 @@ def _load_pipeline(kind: str, mount: Path) -> Any:
     ).to("cuda")
 
 
-def _run_stage(stage: Stage, image: Image.Image, seed: int) -> dict[str, Image.Image]:
+def _run_stage(
+    stage: Stage, mount: Path, image: Image.Image, seed: int
+) -> dict[str, Image.Image]:
     """Load, run with the model's own defaults and render one stage; the pipeline is freed."""
-    pipeline = _load_pipeline(stage.kind, stage.mount)
+    pipeline = _load_pipeline(stage.kind, mount)
     output = pipeline(image, generator=_generator(seed))
     return stage.render(pipeline, output)
 
@@ -290,11 +291,13 @@ def main() -> None:
     args = _arguments()
     image, alpha = _read_image(_input_path())
     maps: dict[str, Image.Image] = {}
+    mounts = {"primary": args.primary_model, "depth": args.depth_model}
     for stage in _TASKS[args.task]:
-        if not stage.mount.is_dir():
-            raise SystemExit(f"the pinned Model is missing at {stage.mount}")
+        mount = mounts[stage.model]
+        if mount is None or not mount.is_dir():
+            raise SystemExit(f"the pinned {stage.model} Model is missing at {mount}")
         _check_deadline(deadline)
-        maps |= _run_stage(stage, image, args.seed)
+        maps |= _run_stage(stage, mount, image, args.seed)
     contract = dict(_OUTPUTS[args.task])
     maps = {f"{stem}.png": picture for stem, picture in maps.items()}
     if alpha is not None and args.task.startswith("intrinsics"):

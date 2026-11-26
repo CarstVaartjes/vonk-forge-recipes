@@ -374,6 +374,16 @@
         "value": "normals-depth"
       },
       {
+        "name": "primary-model",
+        "setting": null,
+        "value": "/models/normals"
+      },
+      {
+        "name": "depth-model",
+        "setting": null,
+        "value": "/models/depth"
+      },
+      {
         "name": "seed",
         "setting": "seed",
         "value": null
