@@ -57,11 +57,11 @@
     },
     {
       "identity": {
-        "content_sha256": "4afe419d3e02a39bad0b741eae2c39c08fc1542c0738b3b35cb7db4b777a0bc5",
-        "source_bundle_sha256": "ec40b7568728d130793c77d7b4e83a4ac74a93a12a00cd826ddace2a8d924a07",
+        "content_sha256": "e90bbb4735c208e4f03f63c63339a5b7533d2bb6246dd9ecae1ec89590cce189",
+        "source_bundle_sha256": "5a4a6188084c977f8df3ad6c0a66cbc2463a1ffc0776e81091a4422808f37118",
         "runtime_image": {
-          "build_key": "009a6cf77ccdd3924667127e02ed8556b98206f18a37247a7729e5ea48c0e148",
-          "image_digest": "sha256:7b64e97f396cfebf5d20aa87093980f813f454e4d719798dd4857c37c7e112b3"
+          "build_key": "cc4d08fd98a0cf56834f672a53ba1dfba7f18228d50f332a5b26c6dccf78f2f3",
+          "image_digest": "sha256:c811d0722b2414e3705a741c98b6a080d7d84b52ce3b914d8e68647be9d2931b"
         },
         "model_digests": [
           "3c682958bfe88f165e70e9d178bbfb81631b606d6820c06379a8a3ea2c3e665e"
@@ -73,11 +73,11 @@
       "cause_code": "qualification.hardware_pass",
       "cause_summary": "Hardware checks passed",
       "evidence_refs": [
-        "8eb752be4e71db3a13f1f6ca36afbd7020e935aae99bbfc8fbb54bc307d547cc"
+        "82c1d71712cb39d30973cbe6b37a8278ea47cfb58404993c6687b48d14917814"
       ],
-      "tested_at": "2026-11-26T02:46:29.398265Z",
+      "tested_at": "2026-11-26T23:10:03.279404Z",
       "platform": {
-        "controller_source_sha": "3d098499f782de10b9019ab81cf384bbf33d99fa",
+        "controller_source_sha": "45f348e7fcaf76d307c687bd8524ccf964d8675a",
         "hardware_class": "GB10",
         "spark_count": 2,
         "topology": "multi"
@@ -86,18 +86,6 @@
     }
   ],
   "measured_memory": [
-    {
-      "content_sha256": "4afe419d3e02a39bad0b741eae2c39c08fc1542c0738b3b35cb7db4b777a0bc5",
-      "role": "entrypoint",
-      "steady_bytes": 63886974976,
-      "budget_bytes": 52265292596
-    },
-    {
-      "content_sha256": "4afe419d3e02a39bad0b741eae2c39c08fc1542c0738b3b35cb7db4b777a0bc5",
-      "role": "worker",
-      "steady_bytes": 61637918720,
-      "budget_bytes": 52265292596
-    },
     {
       "content_sha256": "869a4287d0b6489c4821b1bbc950967414077cceafff36832c745f5bc6ebd120",
       "role": "entrypoint",
@@ -108,6 +96,18 @@
       "content_sha256": "869a4287d0b6489c4821b1bbc950967414077cceafff36832c745f5bc6ebd120",
       "role": "worker",
       "steady_bytes": 61532835840,
+      "budget_bytes": 52265292596
+    },
+    {
+      "content_sha256": "e90bbb4735c208e4f03f63c63339a5b7533d2bb6246dd9ecae1ec89590cce189",
+      "role": "entrypoint",
+      "steady_bytes": 64356827136,
+      "budget_bytes": 52265292596
+    },
+    {
+      "content_sha256": "e90bbb4735c208e4f03f63c63339a5b7533d2bb6246dd9ecae1ec89590cce189",
+      "role": "worker",
+      "steady_bytes": 62106148864,
       "budget_bytes": 52265292596
     }
   ]

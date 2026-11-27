@@ -33,11 +33,11 @@
     },
     {
       "identity": {
-        "content_sha256": "200fa54ecadf413608ae897bf70cdaa1ca5fef44eeb1927c508986c78b15755e",
-        "source_bundle_sha256": "0b6edcaf6185c23960d1745dafe5838f9c1c8384f98bf9412d74f1d674690044",
+        "content_sha256": "2880a77819146a66872fe4d8352d72f21a8009f306fe4b0f1f6865ee0adbb737",
+        "source_bundle_sha256": "b5568cbfd0a313bfd1c95007942168e2c92a4a49ba7b52a15e172beee7c7f760",
         "runtime_image": {
-          "build_key": "87e14d6219d630f53ee01006eb2f66f9f788f8a383c3928d7bafc0b86122fc1a",
-          "image_digest": "sha256:166ea2febc372ff7a1c9c0cd2c7b98669c626c75abdff67f466617d41cb8118c"
+          "build_key": "8d6ec234060843dbb356a24f66648206267345a4eb772193cadbac507d056f78",
+          "image_digest": "sha256:dd1ceba6e0bd0741d04dd22ec53c069a458b2bb2ef5b21c049129c9f6784d557"
         },
         "model_digests": [
           "80ffb197571db6a4abae6b749d4d7c7b7d8d8a1e1c083f21e051ac60a0f03155"
@@ -49,11 +49,11 @@
       "cause_code": "qualification.hardware_pass",
       "cause_summary": "Hardware checks passed",
       "evidence_refs": [
-        "fc15186c60332a03fdbe184f267d97298f3943f0da3d3dfa8b41782b109f577f"
+        "f04dfd4d15bf619dedc28fef0a67ef4264c03f54f7c9e2043ef4f9a088bdd106"
       ],
-      "tested_at": "2026-11-26T04:17:32.876677Z",
+      "tested_at": "2026-11-27T00:30:12.716433Z",
       "platform": {
-        "controller_source_sha": "3d098499f782de10b9019ab81cf384bbf33d99fa",
+        "controller_source_sha": "45f348e7fcaf76d307c687bd8524ccf964d8675a",
         "hardware_class": "GB10",
         "spark_count": 2,
         "topology": "multi"
@@ -63,15 +63,15 @@
   ],
   "measured_memory": [
     {
-      "content_sha256": "200fa54ecadf413608ae897bf70cdaa1ca5fef44eeb1927c508986c78b15755e",
+      "content_sha256": "2880a77819146a66872fe4d8352d72f21a8009f306fe4b0f1f6865ee0adbb737",
       "role": "entrypoint",
-      "steady_bytes": 114915569664,
+      "steady_bytes": 115075461120,
       "budget_bytes": 104530585191
     },
     {
-      "content_sha256": "200fa54ecadf413608ae897bf70cdaa1ca5fef44eeb1927c508986c78b15755e",
+      "content_sha256": "2880a77819146a66872fe4d8352d72f21a8009f306fe4b0f1f6865ee0adbb737",
       "role": "worker",
-      "steady_bytes": 113831559168,
+      "steady_bytes": 113802760192,
       "budget_bytes": 104530585191
     },
     {
