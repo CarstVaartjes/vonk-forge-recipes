@@ -85,7 +85,7 @@ def assert_memory_fit(recipe: RecipeDefinition) -> None:
         )
 
 
-# The incident recipe at 0.85 measured 122_005_303_296 bytes on spark-3542
+# The incident recipe at 0.85 measured 122_005_303_296 bytes on one Spark
 # (2026-10-15/16): its overhead beside the utilization share, and the idle
 # available memory of that Spark, which the peak and the OS floor must fit.
 INCIDENT_MEASURED_OVERHEAD_BYTES = 122_005_303_296 - int(

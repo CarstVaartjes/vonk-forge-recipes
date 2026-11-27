@@ -729,7 +729,7 @@ The informative workload estimator (not declaration admission) uses
 108,470,788,096 bytes**. The 16 GiB headroom is this estimator's own planning
 rule, a leftover of the host memory guard's removed per-sample MemAvailable bar;
 the runtime backstop is the swap-aware guard (vonk-forge
-`host_memory_guard_policy.rs`, rules R1–R5). Idle use is from spark-3542
+`host_memory_guard_policy.rs`, rules R1–R5). Idle use is from one Spark's
 2026-10-15/16 incident telemetry, **125,650,657,280 bytes idle MemAvailable**,
 retained in the calculator's historical source. Runtime
 overhead currently uses an **8,000,000,000-byte estimate**, not a measurement. A vLLM
@@ -784,7 +784,7 @@ implementation and constants live in `src/recipe_tooling/qualification/vllm_memo
 **130,663,231,488 bytes** + **8 GB** runtime overhead must fit the declared
 per-node peak; peak + the **2 GiB platform floor** must fit
 the **126,600,000,000-byte idle-available floor**. The 2 GiB floor follows the creators' measured 2-3 GiB of steady free memory; the swap-aware host memory guard (vonk-forge #1936, R1) is the runtime backstop. The 2026-10-15/16 incident also
-retains its measured overhead and the lower spark-3542 idle-available value above.
+retains its measured overhead and the lower single-Spark idle-available value above.
 
 [src/recipe_tooling/qualification/memory_need/](../src/recipe_tooling/qualification/memory_need/), exercised by
 `tests/qualification/test_single_spark_memory_headroom.py`, shares those constants; its
@@ -867,7 +867,7 @@ expansion may require more. Use source-backed `calculate_need` where its
 geometry is available; keep unknown full-workload terms visible.
 
 Calibration separates physical feasibility from planning headroom. The lower
-observed idle MemAvailable is **125,650,657,280 bytes** (spark-3542, 2026-10-15/16,
+observed idle MemAvailable is **125,650,657,280 bytes** (one Spark, 2026-10-15/16,
 retained in `src/recipe_tooling/qualification/vllm_memory_fit.py`). Subtracting the host pressure
 floor leaves **108,470,788,096 bytes** for conservative new-document planning;
 that policy margin is not proof that an existing recipe cannot execute.
