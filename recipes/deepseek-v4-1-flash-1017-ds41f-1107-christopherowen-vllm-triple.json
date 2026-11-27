@@ -970,11 +970,11 @@
       "DeepSeek AI",
       "vLLM contributors"
     ],
-    "source_reference": "https://github.com/christopherowen/spark-ds41f/tree/d3d40d941f2752fea95aa770eb10d41b5ad5aa1a"
+    "source_reference": "https://github.com/christopherowen/spark-ds41f/tree/890f8654bb484cb4b5006f7e9c26d50cb60c3610"
   },
   "release": {
-    "released_at": "2026-11-20",
-    "version": "spark-ds41f-1120"
+    "released_at": "2026-11-26",
+    "version": "spark-ds41f-1126"
   },
   "runtime": {
     "arguments": [
@@ -1167,6 +1167,11 @@
         "name": "prefill-yield-limit-s",
         "setting": null,
         "value": 10
+      },
+      {
+        "name": "renderer-num-workers",
+        "setting": null,
+        "value": 8
       }
     ],
     "engine": "vllm",
