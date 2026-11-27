@@ -463,6 +463,26 @@ class ArchiveLabelTests(unittest.TestCase):
         assert moved.count(self.NEW_DIGEST) == 2
         assert self.OTHER in moved
 
+    def test_arg_only_digest_moves_with_the_pin(self) -> None:
+        # ComfyUI/DS4 adapters pin the archive in an ARG (or a label that only
+        # references it); the revision moved but the sha256sum check kept the old one.
+        text = (
+            f"ARG COMFY_ARCHIVE_SHA256={self.OLD_DIGEST}\n"
+            'RUN echo "${COMFY_ARCHIVE_SHA256}  a.tar.gz" | sha256sum -c -\n'
+            'LABEL io.vonk.source-archive-sha256="${COMFY_ARCHIVE_SHA256}"\n'
+            f"ARG OTHER_SHA256={self.OTHER}\n"
+        )
+        with patch(
+            "recipe_tooling.refresh_upstream.classification.archive_sha256", self.digest
+        ):
+            moved, changed = refresh_classification.retarget_archive_labels(
+                text, self.item()
+            )
+        assert changed
+        assert f"ARCHIVE_SHA256={self.NEW_DIGEST}" in moved
+        assert self.OLD_DIGEST not in moved
+        assert f"OTHER_SHA256={self.OTHER}" in moved
+
     def test_unrelated_archive_labels_are_left_alone(self) -> None:
         text = f'LABEL b.archive-sha256="{self.OTHER}"\n'
         with patch(
