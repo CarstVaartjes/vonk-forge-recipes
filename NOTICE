@@ -17,18 +17,10 @@ Licence not yet beside the copied files
 These upstreams are licensed, and the licence text is in the upstream
 repository at the pinned commit. The adapter does not carry a copy yet.
 
-  MIT         0xSero/Step-5-Preview-Four-Sparks
-              adapters/october-2026/step-5-preview-exl3-vllm-four
-  Apache-2.0  ashhart/TensorFold
-              adapters/llm/ashhart-tensorfold-single
   Apache-2.0  Blackwellboy/DeepSeek-V4.1-Flash-1017-BLACKFOLD-TP2
               adapters/deepseek/blackfold-1017-tensorfold-tp2
   Apache-2.0  drowzeys/Imagination-Studio-by-keys-Wasserman
               adapters/video/drowzeys-fasth3-tensorfold
-  Apache-2.0  drowzeys/keys-heretic-MiniMax-H3-sol-engine-more-speed-upgrades-upscaler-finish-Single-DGX-Spark
-              adapters/video/drowzeys-keys-heretic-h3
-  Apache-2.0  Lightricks/LTX-2
-              adapters/video/ltx2-pytorch
   Apache-2.0  NVIDIA/TensorRT-LLM
               adapters/nvidia/nemotron-3-nano-30b-a3b-nvfp4-nvidia-trtllm-single
   Tencent HY-Motion 1.0 Community License  Tencent-Hunyuan/HY-Motion-1.0
@@ -52,8 +44,6 @@ their files can say so in an issue, and the recipe will change.
 
   0xSero/deepseek-spark
       adapters/deepseek/0xsero-reap-single
-  0xSero/glm-5.3-flash-sglang-sm121
-      adapters/glm/0xsero-nvfp4-sglang-dual
   drowzeys/keys-1M-CTX-Inkling-Small-NVFP4-Dspark-NVFP4-KV-Cache-SGlang-SM121-optimized-on-Two-DGX-Sparks
       adapters/inkling/drowzeys-kvquant-dual
   drowzeys/keys-vLLm.0.27-Qwen3.8-27B-ADay777Ablit-NVFP4-A4Q-NVFP4-KV-4M-KV-token-pool-MTP3-Single-DGX-Spark
@@ -76,8 +66,6 @@ their files can say so in an issue, and the recipe will change.
       adapters/deepseek/r0b0tlab-vllm-vision-dual
   r0b0tlab/laguna-m1-nvfp4-sm121-vllm
       adapters/llm/r0b0tlab-laguna-m1-vllm-dual
-  r0b0tlab/nemotron3-super-120b-a12b-nvfp4-gb10-native-mtp
-      adapters/nvidia/r0b0tlab-super120-sglang-single
   r0b0tlab/qwen36-35b-a3b-nvfp4-gb10-native-mtp
       adapters/nvidia/r0b0tlab-qwen36-redhat-sglang-single
   r0b0tlab/step37-flash-nvfp4-sm121-vllm-docker
@@ -88,8 +76,6 @@ their files can say so in an issue, and the recipe will change.
       adapters/hunyuan/tonyd2wild-hy3-dual
   tonyd2wild/Minimax-M3-NVFP-3x-DGX-Sparks-TP-3
       adapters/minimax/tonyd2wild-m3-nvfp4-triple
-  vcruz305/Nemotron-3.5-Bolt-74B-A9B-24GB-vLLM-recipe
-      adapters/nvidia/nemotron-3-5-bolt-lilicorr-vcruz-vllm-single
 
 AGPL-licensed images: Corresponding Source
 ==========================================
