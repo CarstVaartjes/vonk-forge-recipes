@@ -132,6 +132,18 @@ def test_run_refuses_to_start_without_a_client_key_for_the_gateway(
     assert fleet.calls == []
 
 
+def test_a_recheck_name_that_is_no_recipe_stops_before_the_fleet_changes(
+    tmp_path: Path,
+) -> None:
+    recipes = [FakeRecipe("a")]
+    fleet = _fleet(recipes, [FakeModel("m1")])
+    state = ["--state-dir", str(tmp_path), "--recheck", "a"]
+    assert _run(["run", "--yes", *state, "--recheck", "typo"], fleet, recipes) == 2
+    assert fleet.calls == []
+    assert _run(["plan", *state, "--recheck", "typo"], fleet, recipes) == 2
+    assert _run(["plan", *state], fleet, recipes) == 0  # a known name passes
+
+
 def test_without_ffprobe_the_sweep_warns_once_at_startup(
     tmp_path: Path, capsys, monkeypatch
 ) -> None:

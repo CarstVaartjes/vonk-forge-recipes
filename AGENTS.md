@@ -57,7 +57,13 @@ dropped is treated like new content and re-tested (Re-check after a pass, Fix to
 verify after a recipe failure), never restored from old evidence. Only
 hardware recipe failures count against recipes; platform faults remain separate.
 Schedule Fix to verify, Untested, platform-blocked work after its fix is observed,
-and Re-check last. `--retry-failed` never requeues Working.
+and Re-check last. `--retry-failed` never requeues Working. `--recheck SLUG`
+(repeatable, exact slug or key) runs a named recipe once on the deployed
+Controller release whatever its status, for a release proof. Any record of the
+current content on that release settles it, as `rerun_settled` does; a try that
+ended deferred stays deferred while the flag names it (investigate it). A pending
+recheck survives a restart without the flag (`STICKY_REQUEUES`), and a name that
+is no recipe stops `plan` and `run`.
 
 Evidence files keep only what the readers consult (`retained()` in
 `src/recipe_tooling/qualification/evidence_retention.py`): per identity of the current content the newest pass,
@@ -511,7 +517,7 @@ run has no cold start).
 `plan` reads the catalog/fleet and estimates unique bytes/order. `run` accepts
 `--only`, `--limit`, `--spark`, `--seed-list` (JSON slugs), `--boost`,
 `--authority-id`,
-`--retry-failed`, `--watch` and `--no-revalidate`.
+`--retry-failed`, `--recheck`, `--watch` and `--no-revalidate`.
 Job recipes are always tested (one artifact job each); there is no flag.
 Read `--help` for current defaults. Each default has one owner, `policy/sweep.json`
 (read by `recipe_tooling/qualification/sweep_settings.py`, used by the sweep and the authority build): the authority id (the catalog build derives the same
