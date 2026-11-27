@@ -19,11 +19,13 @@ recipe or its image. Licences are informative; they never gate a recipe.
 Upstreams without a licence (licence requested)
 -----------------------------------------------
 
-These upstream repositories grant no licence. The project has asked each
-creator to add one (MIT or Apache-2.0 suggested). Until a creator answers, the
-recipes keep shipping these files with credit to the creator, and all rights
-in them stay with the creator. A creator who would rather we did not ship
-their files can say so in the issue, and the recipe will change.
+These upstream repositories grant no licence. The project has opened one
+licence request per creator (MIT or Apache-2.0 suggested), linked below. Each
+request names some of that creator's repositories; the others listed under it
+are not named in the request yet. Until a creator answers, the recipes keep
+shipping these files with credit to the creator, and all rights in them stay
+with the creator. A creator who would rather we did not ship their files can
+say so in the issue, and the recipe will change.
 
   Request: https://github.com/0xSero/deepseek-spark/issues/6
     0xSero/deepseek-spark

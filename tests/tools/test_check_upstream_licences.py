@@ -6,24 +6,24 @@ from pathlib import Path
 from recipe_tooling import upstream_licences as guard
 
 COMMIT = "a" * 40
+ADAPTER = "llm/creator-single"
 
 
-def _repo(tmp_path: Path, entries: dict[str, object]) -> Path:
-    adapter = tmp_path / "adapters" / "llm" / "creator-single"
+def _repo(
+    tmp_path: Path, entries: dict[str, object], repo: str = "creator/recipe"
+) -> Path:
+    adapter = tmp_path / "adapters" / ADAPTER
     adapter.mkdir(parents=True)
     (adapter / "Dockerfile").write_text("FROM scratch\n")
     (adapter / "start.sh").write_text("echo creator\n")  # vendored
     (adapter / "wrapper").write_text("echo ours\n")
-    manifest = {
-        "source": {"repo": "creator/recipe", "commit": COMMIT},
-        "ours": ["wrapper"],
-    }
+    manifest = {"source": {"repo": repo, "commit": COMMIT}, "ours": ["wrapper"]}
     (adapter / "vendored-upstream.json").write_text(json.dumps(manifest))
-    kit_only = tmp_path / "adapters" / "llm" / "wrapper-only"
-    kit_only.mkdir(parents=True)
-    (kit_only / "Dockerfile").write_text("FROM scratch\n")
-    (kit_only / "wrapper").write_text("echo ours\n")
-    (kit_only / "vendored-upstream.json").write_text(
+    wrapper_only = tmp_path / "adapters" / "llm" / "wrapper-only"
+    wrapper_only.mkdir(parents=True)
+    (wrapper_only / "Dockerfile").write_text("FROM scratch\n")
+    (wrapper_only / "wrapper").write_text("echo ours\n")
+    (wrapper_only / "vendored-upstream.json").write_text(
         json.dumps(
             {"source": {"repo": "other/kit", "commit": COMMIT}, "ours": ["wrapper"]}
         )
@@ -32,28 +32,34 @@ def _repo(tmp_path: Path, entries: dict[str, object]) -> Path:
     return tmp_path
 
 
-def test_a_vendored_upstream_needs_an_entry_and_a_wrapper_does_not(
-    tmp_path: Path,
-) -> None:
-    problems = guard.problems(_repo(tmp_path, {}))
+def test_an_added_adapter_needs_an_entry_and_a_wrapper_does_not(tmp_path: Path) -> None:
+    problems, notes = guard.check(
+        _repo(tmp_path, {}), added={ADAPTER, "llm/wrapper-only"}
+    )
     assert len(problems) == 1
     assert problems[0].startswith("creator/recipe:")
+    assert notes == []
 
 
-def test_licence_text_or_request_satisfies_the_guard(tmp_path: Path) -> None:
-    text = "licenses/creator/recipe/LICENSE"
-    root = _repo(tmp_path, {"creator/recipe": {"license": "MIT", "texts": [text]}})
-    missing = guard.problems(root)
-    assert len(missing) == 1
-    assert text in missing[0]
-    (root / text).parent.mkdir(parents=True)
-    (root / text).write_text("MIT License\n")
-    assert guard.problems(root) == []
-    request = {
+def test_a_refresh_that_moves_an_existing_adapter_upstream_is_not_blocked(
+    tmp_path: Path,
+) -> None:
+    entry = {
         "license": "unlicensed-upstream",
         "request": "https://github.com/creator/recipe/issues/1",
     }
-    (root / guard.LICENCES).write_text(
-        json.dumps({"upstreams": {"creator/recipe": request}})
-    )
-    assert guard.problems(root) == []
+    root = _repo(tmp_path, {"creator/recipe": entry}, repo="creator/renamed-recipe")
+    problems, notes = guard.check(root, added=set())
+    assert problems == []
+    assert len(notes) == 1
+
+
+def test_a_licensed_entry_needs_its_text(tmp_path: Path) -> None:
+    text = "licenses/creator/recipe/LICENSE"
+    root = _repo(tmp_path, {"creator/recipe": {"license": "MIT", "texts": [text]}})
+    problems, _ = guard.check(root, added=set())
+    assert len(problems) == 1
+    assert text in problems[0]
+    (root / text).parent.mkdir(parents=True)
+    (root / text).write_text("MIT License\n")
+    assert guard.check(root, added={ADAPTER}) == ([], [])

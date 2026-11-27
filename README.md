@@ -53,7 +53,7 @@ licences (see the LICENSE and NOTICE files beside them, or the upstream named in
 `vendored-upstream.json`). [upstream-licences.json](upstream-licences.json)
 records each upstream's licence and the path of its text (often under
 [licenses/](licenses/)), outside every build context. [NOTICE](NOTICE) lists the
-upstreams with no licence (the project has asked their creators for one; the
-files keep shipping with credit meanwhile) and where the Corresponding Source of
+upstreams with no licence and the licence requests opened with their creators
+(the files keep shipping with credit meanwhile) and where the Corresponding Source of
 the AGPL-licensed recipe images lives. Models are licensed by their creators, as shown on each model's
 licence line (informational, never a gate).

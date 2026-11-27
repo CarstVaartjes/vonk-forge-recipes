@@ -58,7 +58,7 @@ import re
 import subprocess
 import sys
 from collections import defaultdict
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
 from pathlib import Path, PurePosixPath
 from typing import Any
@@ -280,6 +280,36 @@ def _local_files(adapter: Path) -> list[str]:
     return files
 
 
+def is_ours(rel: str, ours: Iterable[str]) -> bool:
+    """Whether ``rel`` is a platform file listed (or under a ``dir/``) in ``ours``."""
+    return any(rel == o or (o.endswith("/") and rel.startswith(o)) for o in ours)
+
+
+def upstream_files(adapter: Path) -> dict[str, list[str]]:
+    """Upstream repository -> the adapter files this checker compares with it.
+
+    Only an adapter with a manifest and a source compares files: those under an
+    ``also`` prefix with that upstream, every other file that is not ours with the
+    source. Nothing is fetched.
+    """
+    path = adapter / MANIFEST
+    if not path.is_file():
+        return {}
+    manifest = VendoredManifest.model_validate_json(path.read_text(encoding="utf-8"))
+    source = _source(adapter, manifest)
+    if source is None:
+        return {}
+    found: dict[str, list[str]] = {}
+    for rel in _local_files(adapter):
+        if is_ours(rel, manifest.ours):
+            continue
+        second = next(
+            (e for e in manifest.also if rel.startswith(tuple(e.files))), None
+        )
+        found.setdefault(second.repo if second else source[0], []).append(rel)
+    return found
+
+
 def changed_paths(root: Path, base: str) -> set[str]:
     """Paths this change touches against ``base`` (``base...HEAD``)."""
     completed = subprocess.run(
@@ -385,7 +415,7 @@ def check_adapter(
     unclassified: list[str] = []
     weak_problems: list[str] = []
     for rel in files:
-        if rel in ours or any(o.endswith("/") and rel.startswith(o) for o in ours):
+        if is_ours(rel, ours):
             continue
         local_sha = git_blob_sha((adapter / rel).read_bytes())
         second = next(((e, t) for e, t in also if rel.startswith(e.files)), None)
