@@ -325,7 +325,8 @@ To prove the bare-image path for a recipe, dispatch
 `recipe-images.yml -f slugs="<ids>" -f rebuild_adopted=true -f republish=true`: it
 rebuilds only the named recipes whose tag holds an adopted image (never `all`,
 never a v2-built image), and each goes Re-check until the sweep re-proves it.
-Changed images from forks need a trusted repository branch to push candidates.
+Changed images from forks need a trusted repository branch to push candidates
+([Pull requests from a fork](docs/recipe-authoring.md#pull-requests-from-a-fork)).
 `catalog-index.json` is the `CatalogIndex` contract (`vonk_forge_contracts.catalog_index`): the
 build constructs it through the model, consumers read it with `read_catalog`
 (`vonk_forge_contracts.catalog_reader`), and the release ships its generated schema

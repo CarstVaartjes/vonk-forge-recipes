@@ -25,6 +25,8 @@ recipes). This page only points to them.
 7. Open a PR against `main`. CI runs the whole suite and every gate on each pull request
    ([CI and publication](AGENTS.md#ci-and-publication)). Do not commit generated
    outputs ([section 6](docs/recipe-authoring.md#6-generate-publish-and-report)).
+   From a fork, a changed runtime image or a file over 1 MiB needs a maintainer
+   ([Pull requests from a fork](docs/recipe-authoring.md#pull-requests-from-a-fork)).
 
 ## Local checks
 

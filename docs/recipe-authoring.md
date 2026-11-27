@@ -1567,7 +1567,8 @@ The canary package changes with every contract major: rebuild it, then run
 `tools/adapter-sources add` on its path. `tools/check-added-file-size` fails validate.yml and
 the pre-commit hook on any added or changed file over 1 MiB, anywhere in the repository, and
 its message names `tools/adapter-sources add`; there is no waiver, and files already in the
-tree are not re-flagged. A declared path is ignored, not tracked: a fresh
+tree are not re-flagged. From a fork, a maintainer runs `add`
+([Pull requests from a fork](#pull-requests-from-a-fork)). A declared path is ignored, not tracked: a fresh
 clone lacks it, and a pull of the commit that stopped tracking a file deletes your copy.
 The tools that read those paths place them again first, from the local cache or the
 mirror (network): `tools/build-catalog-index`, `tools/check-build-context-sources`,
@@ -1693,6 +1694,24 @@ Every PR runs the whole `tests/` suite and every static gate; CI never selects t
 For CI, signing, release bundle verification and integration procedure, follow
 [AGENTS.md](../AGENTS.md#ci-and-publication). Build assets are not release evidence
 until that procedure verifies the published bytes.
+
+### Pull requests from a fork
+
+A fork's pull request runs the same required checks with a read-only token, and
+passes them when it changes no runtime image (a first-time contributor's runs wait
+for a maintainer's approval). Two changes need write access a fork does not have:
+
+- **A changed runtime image** (a new build key for a recipe: its Dockerfile, build
+  context or pinned base images). The PR must build and push a GHCR candidate, which a
+  fork cannot, so `recipe-images.yml` fails the required "Verify catalog index" with
+  "Changed images need candidate push permission".
+- **A file over 1 MiB** (see [Build-context files kept out of Git](#build-context-files-kept-out-of-git)).
+  Leave it out of the commit and say in the PR where its bytes come from (an upstream
+  URL); only a maintainer can run `tools/adapter-sources add`. Until that manifest entry
+  lands, the checks that read the file stay red.
+
+In both cases a maintainer pushes your branch to this repository (adding the manifest
+entry if needed) and opens the PR from there; CI then completes.
 
 ### Prebuilt runtime images
 
