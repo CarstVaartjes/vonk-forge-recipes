@@ -285,6 +285,13 @@ jobs:
           set -euo pipefail
           "$RECIPE_TEST_PYTHON" tools/check-vendored-upstream
 
+      # Informative licence status, kept outside every build context.
+      - name: Require a licence entry for every vendored upstream
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$RECIPE_TEST_PYTHON" tools/check-upstream-licences
+
       # A kit-built recipe pins only its kit; the base is what the kit declares
       # at that commit. Re-reads the declaring file and fails when the committed
       # kit-lock.json (or what consumes it) differs, so generated pins are never
