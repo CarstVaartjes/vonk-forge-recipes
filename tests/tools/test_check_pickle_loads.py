@@ -59,7 +59,9 @@ def test_an_added_line_inside_an_old_call_is_judged() -> None:
 def test_only_added_lines_of_our_own_python_are_judged(tmp_path: Path) -> None:
     adapter = tmp_path / "adapters/a/b"
     adapter.mkdir(parents=True)
-    (adapter / "vendored-upstream.json").write_text(json.dumps({"ours": ["ours.py"]}))
+    source = {"repo": "creator/recipe", "commit": "a" * 40}
+    manifest = {"source": source, "ours": ["ours.py"]}
+    (adapter / "vendored-upstream.json").write_text(json.dumps(manifest))
     (adapter / "ours.py").write_text("old = torch.load(a)\nnew = torch.load(b)\n")
     (adapter / "creator.py").write_text("x = torch.load(a)\n")
     (adapter / "NOTES.md").write_text("torch.load(a)\n")
@@ -70,3 +72,25 @@ def test_only_added_lines_of_our_own_python_are_judged(tmp_path: Path) -> None:
     )
     problems = guard.check(tmp_path, diff)
     assert [p.split(":")[:2] for p in problems] == [["adapters/a/b/ours.py", "2"]]
+
+
+@pytest.mark.parametrize(
+    "manifest",
+    [
+        {"ours": ["ours.py"]},
+        {
+            "source": {"repo": "c/r", "commit": "a" * 40, "unverified": "gone"},
+            "ours": ["ours.py"],
+        },
+    ],
+)
+def test_a_file_without_a_pinned_upstream_is_judged(
+    tmp_path: Path, manifest: dict[str, object]
+) -> None:
+    adapter = tmp_path / "adapters/a/b"
+    adapter.mkdir(parents=True)
+    (adapter / "vendored-upstream.json").write_text(json.dumps(manifest))
+    (adapter / "creator.py").write_text("x = torch.load(a)\n")
+    diff = "+++ b/adapters/a/b/creator.py\n@@ -0,0 +1 @@\n+x = torch.load(a)\n"
+    problems = guard.check(tmp_path, diff)
+    assert [p.split(":")[:2] for p in problems] == [["adapters/a/b/creator.py", "1"]]
