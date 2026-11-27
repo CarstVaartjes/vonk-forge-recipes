@@ -84,11 +84,12 @@ def check(root: Path, added: set[str]) -> tuple[list[str], list[str]]:
             )
             (problems if added.intersection(adapters) else notes).append(missing)
         elif isinstance(entry, LicensedUpstream):
-            problems.extend(
+            missing_texts = [
                 f"{repo}: licence text {text} is missing"
                 for text in entry.texts
                 if not (root / text).is_file()
-            )
+            ]
+            (problems if added.intersection(adapters) else notes).extend(missing_texts)
     return problems, notes
 
 

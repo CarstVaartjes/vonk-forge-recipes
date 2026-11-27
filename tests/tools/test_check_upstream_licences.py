@@ -54,12 +54,15 @@ def test_a_refresh_that_moves_an_existing_adapter_upstream_is_not_blocked(
     assert len(notes) == 1
 
 
-def test_a_licensed_entry_needs_its_text(tmp_path: Path) -> None:
+def test_a_missing_text_fails_only_for_an_added_adapter(tmp_path: Path) -> None:
     text = "licenses/creator/recipe/LICENSE"
     root = _repo(tmp_path, {"creator/recipe": {"license": "MIT", "texts": [text]}})
-    problems, _ = guard.check(root, added=set())
+    problems, notes = guard.check(root, added=set())
+    assert problems == []
+    assert len(notes) == 1
+    assert text in notes[0]
+    problems, _ = guard.check(root, added={ADAPTER})
     assert len(problems) == 1
-    assert text in problems[0]
     (root / text).parent.mkdir(parents=True)
     (root / text).write_text("MIT License\n")
     assert guard.check(root, added={ADAPTER}) == ([], [])
