@@ -24,7 +24,7 @@
     "vllm-wrapper.py"
   ],
   "source": {
-    "commit": "d3d40d941f2752fea95aa770eb10d41b5ad5aa1a",
+    "commit": "890f8654bb484cb4b5006f7e9c26d50cb60c3610",
     "repo": "christopherowen/spark-ds41f"
   }
 }

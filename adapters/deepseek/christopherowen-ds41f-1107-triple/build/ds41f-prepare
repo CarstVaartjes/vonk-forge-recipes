@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """ds41f-prepare --check-pins | --only PART | --all | --directory | --smoke | --versions | --export SRC DEST
 
-Drives spark-ds41f's own build preparation (spark_ds41f.build, release 1120) against its own lock. It substitutes only
+Drives spark-ds41f's own build preparation (spark_ds41f.build, release 1126) against its own lock. It substitutes only
 the configuration: the site node map is not needed, the lock is the repository's upstreams.lock.json, and the cluster is
 the release's shape tp3-triangle-4k, so the release's own label and note checks run in `--all`.
 """

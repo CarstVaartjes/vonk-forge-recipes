@@ -1,4 +1,4 @@
-# christopherowen/spark-ds41f release spark-ds41f-1120 (d3d40d941f2752fea95aa770eb10d41b5ad5aa1a) on three DGX Sparks.
+# christopherowen/spark-ds41f release spark-ds41f-1126 (890f8654bb484cb4b5006f7e9c26d50cb60c3610) on three DGX Sparks.
 # The creator publishes no image: `bin/spark build prepare` clones and patches every upstream on the host and `bin/spark build image` hands
 # docker/Dockerfile the exported contexts. This file is that build, from source, converted to the platform's static build policy and otherwise
 # the release's Dockerfile:
@@ -22,7 +22,7 @@
 
 ARG BASE_IMAGE=docker.io/vllm/vllm-openai@sha256:3cf14c52765a0f0c2f09035e05fa79e1e4b2f9788b64afa90fa41c1ff12d29cf
 ARG SPARK_DS41F_UPSTREAM=https://github.com/christopherowen/spark-ds41f
-ARG SPARK_DS41F_REVISION=d3d40d941f2752fea95aa770eb10d41b5ad5aa1a
+ARG SPARK_DS41F_REVISION=890f8654bb484cb4b5006f7e9c26d50cb60c3610
 # Compile parallelism: the release sizes jobs from MemAvailable (8 GiB per job; 8 vLLM jobs on a GB10). The hosted builder has 4 vCPUs
 # and 15 GiB of RAM plus swap, so 2.
 ARG VLLM_COMPILE_JOBS=2
@@ -216,9 +216,9 @@ RUN set -eux; \
         /workspace/tile_kernels; \
     ls /opt/tilelang/tilelang-*.whl /opt/tilelang/tile_kernels-*.whl
 
-# sparknet (christopherowen/dgx-spark-networking): the one-shot RoCE
-# collectives vendored from B12X with spark's patches 0001-0011, used by the
-# TileLang family instead of b12x.comm.roce. Pure Python plus a C proxy.
+# sparknet (christopherowen/dgx-spark-networking) 0.6.0, with no local patches: the
+# one-shot RoCE collectives, used by the TileLang family instead of
+# b12x.comm.roce. Pure Python plus a C proxy.
 FROM docker.io/vllm/vllm-openai@sha256:3cf14c52765a0f0c2f09035e05fa79e1e4b2f9788b64afa90fa41c1ff12d29cf AS sparknet-builder
 USER root
 
@@ -365,7 +365,7 @@ RUN . /tmp/versions.env \
  && rm /tmp/check-sparknet.py /tmp/versions.env
 
 LABEL org.opencontainers.image.source="https://github.com/christopherowen/spark-ds41f" \
-      org.opencontainers.image.revision="d3d40d941f2752fea95aa770eb10d41b5ad5aa1a" \
+      org.opencontainers.image.revision="890f8654bb484cb4b5006f7e9c26d50cb60c3610" \
       org.opencontainers.image.licenses="Apache-2.0" \
       ai.vonkforge.runtime-interface="v1"
 
