@@ -17,7 +17,7 @@
       "MiniMax",
       "Sebesky"
     ],
-    "spdx": "LicenseRef-MiniMax-M3-Community-License",
+    "spdx": "LicenseRef-MiniMax-Community",
     "url": "https://huggingface.co/Sebesky/MiniMax-M3-W4A16-GPTQ/blob/6696ce6fed67de2c5027320fdfbc83f3fd3abb4e/LICENSE"
   },
   "lineage": {

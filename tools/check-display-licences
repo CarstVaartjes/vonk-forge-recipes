@@ -1,0 +1,88 @@
+#!/usr/bin/env python3
+"""Reject an added Model display licence id that is not SPDX-shaped.
+
+A Model's licence (``"spdx"`` in ``display/models/*.json``) is shown verbatim on the
+site, in the Controller and by vonkctl, for information only: it never gates a
+download or a run. One spelling per licence keeps those views consistent, so an added
+value is an SPDX licence list id or expression in its canonical spelling (``MIT``,
+``Apache-2.0``, ``A AND B``), ``LicenseRef-<Name>`` with ``[A-Za-z0-9.-]`` only for a
+licence the list lacks, or ``NOASSERTION``. The list is the one ``packaging.licenses``
+ships (uv.lock pins it); an id newer than that list is written as ``LicenseRef-<Name>``
+or the ``packaging`` pin is bumped.
+
+Only lines added by the diff given with ``--diff FILE|-`` are checked. There is no count
+and no allowlist.
+"""
+
+from __future__ import annotations
+
+import argparse
+import re
+import sys
+from pathlib import Path
+
+from packaging.licenses import InvalidLicenseExpression, canonicalize_license_expression
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+from recipe_tooling.added_lines import parse_added, read_diff
+
+ROOT = Path(__file__).resolve().parents[1]
+SPDX_LINE = re.compile(r'^\s*"spdx"\s*:\s*"(?P<value>[^"]*)"')
+ADVICE = (
+    "use an SPDX list id in its canonical spelling, LicenseRef-<Name> "
+    "([A-Za-z0-9.-] only) or NOASSERTION; keep the licence url"
+)
+
+
+def valid(value: str) -> bool:
+    if value == "NOASSERTION":
+        return True
+    try:
+        return canonicalize_license_expression(value) == value
+    except InvalidLicenseExpression:
+        return False
+
+
+def scan(source: str, added: set[int]) -> list[tuple[int, str]]:
+    """Added lines that carry a licence id which is not SPDX-shaped."""
+    hits: list[tuple[int, str]] = []
+    for number, line in enumerate(source.splitlines(), 1):
+        match = SPDX_LINE.match(line) if number in added else None
+        if match and not valid(match["value"]):
+            hits.append((number, match["value"]))
+    return hits
+
+
+def judged(name: str) -> bool:
+    return name.startswith("display/models/") and name.endswith(".json")
+
+
+def check(root: Path, diff: str) -> list[str]:
+    problems: list[str] = []
+    for name, lines in sorted(parse_added(diff, judged).items()):
+        if not judged(name):
+            continue
+        source = (root / name).read_text(encoding="utf-8")
+        problems.extend(
+            f"{name}:{number}: licence {value!r} is not SPDX-shaped; {ADVICE}"
+            for number, value in scan(source, lines)
+        )
+    return problems
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=(__doc__ or "").splitlines()[0])
+    parser.add_argument(
+        "--diff",
+        required=True,
+        help="unified -U0 diff to judge: a file, or - for stdin",
+    )
+    parser.add_argument("--root", type=Path, default=ROOT)
+    arguments = parser.parse_args()
+    problems = check(arguments.root, read_diff(arguments.diff))
+    print("\n".join(problems))
+    return 1 if problems else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
