@@ -1,5 +1,5 @@
 #!/bin/sh
-# The body of the release's cuda-13-5 stage RUN (docker/Dockerfile at d3d40d94), byte for byte: install the lock's CUDA 13.5
+# The body of the release's cuda-13-5 stage RUN (docker/Dockerfile at 890f8654), byte for byte: install the lock's CUDA 13.5
 # packages, mounted at /tmp/cuda-toolkit-debs, then write and run spark-wire-cuda-13-5.
     set -eux; \
     DEBIAN_FRONTEND=noninteractive dpkg -i /tmp/cuda-toolkit-debs/*.deb; \
