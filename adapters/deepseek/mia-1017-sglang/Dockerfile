@@ -39,5 +39,7 @@ ENV PYTHONPATH=/opt/dsv41/adapter HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
     STATE_PATH=/outputs/cache/deepseek-1017-sglang \
     B12X_COMPILE_CACHE_DIR=/outputs/cache/deepseek-1017-sglang/b12x \
     HOME=/outputs/cache/home XDG_CACHE_HOME=/outputs/cache TMPDIR=/outputs/cache/tmp
+# Licence texts of the code this image ships (AGPL Corresponding Source: see NOTICE).
+COPY LICENSE /opt/vonk/licenses/LICENSE
 USER 10001:10001
 ENTRYPOINT []

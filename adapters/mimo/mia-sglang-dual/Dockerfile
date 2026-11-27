@@ -38,5 +38,7 @@ ENV MODEL_PATH=/models/target \
     TRITON_CACHE_DIR=/outputs/cache/triton
 
 WORKDIR /outputs/cache
+# Licence texts of the code this image ships (AGPL Corresponding Source: see NOTICE).
+COPY LICENSE.upstream NOTICE.upstream /opt/vonk/licenses/
 USER 10001:10001
 ENTRYPOINT []

@@ -52,6 +52,9 @@ RUN set -eux; \
     cd /opt/vllm-exl3-local; \
     python3 -m pip install --no-cache-dir --no-build-isolation --no-deps .; \
     python3 -c "import torch, exllamav3_ext, vllm_exl3; print('exl3 extensions import')"; \
+    install -D -m 0644 -t /opt/vonk/licenses/vllm-exl3 /opt/vllm-exl3-local/LICENSE \
+        /opt/vllm-exl3-local/LICENSE.APACHE-2.0 /opt/vllm-exl3-local/NOTICE \
+        /opt/vllm-exl3-local/THIRD_PARTY_NOTICES.md; \
     rm -rf /opt/exllamav3-local /opt/vllm-exl3-local /opt/m31-patches /root/.cache/pip
 
 # Build-time sm_121 kernel scan (scan-sm121.py: cubins sm_121[af] / sm_120[f], PTX not arch-specific and <= 121, or
@@ -82,5 +85,7 @@ ENV HF_HUB_OFFLINE=1 \
     CUDA_CACHE_PATH=/outputs/cache/nv-compute
 
 WORKDIR /state
+# Licence texts of the code this image ships (AGPL Corresponding Source: see NOTICE).
+COPY LICENSE /opt/vonk/licenses/LICENSE
 USER 10001:10001
 ENTRYPOINT []

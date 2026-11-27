@@ -80,5 +80,7 @@ ENV VLLM_NO_USAGE_STATS=1 \
     CUDA_CACHE_PATH=/outputs/cache/cuda
 
 WORKDIR /tmp
+# Licence texts of the code this image ships (AGPL Corresponding Source: see NOTICE).
+COPY LICENSE /opt/vonk/licenses/LICENSE
 USER 10001:10001
 ENTRYPOINT []

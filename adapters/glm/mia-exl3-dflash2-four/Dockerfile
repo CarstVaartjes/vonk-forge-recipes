@@ -348,5 +348,8 @@ ENV HF_HUB_OFFLINE=1 \
     VONK_GLM53_RECIPE_REVISION=1.0.1
 
 WORKDIR /state
+# Licence texts of the code this image ships (AGPL Corresponding Source: see NOTICE).
+COPY upstream-LICENSE /opt/vonk/licenses/LICENSE
+COPY upstream-LICENSE-MIT /opt/vonk/licenses/LICENSE.MIT
 USER 10001:10001
 ENTRYPOINT []

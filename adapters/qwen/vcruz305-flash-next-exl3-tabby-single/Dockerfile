@@ -84,5 +84,7 @@ ENV HF_HUB_OFFLINE=1 \
     CUDA_CACHE_PATH=/outputs/cache/cuda
 
 WORKDIR /opt/tabbyAPI
+# Licence texts of the code this image ships (AGPL Corresponding Source: see NOTICE).
+COPY LICENSE /opt/vonk/licenses/LICENSE
 USER 10001:10001
 ENTRYPOINT []
