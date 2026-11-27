@@ -94,3 +94,17 @@ def test_a_file_without_a_pinned_upstream_is_judged(
     diff = "+++ b/adapters/a/b/creator.py\n@@ -0,0 +1 @@\n+x = torch.load(a)\n"
     problems = guard.check(tmp_path, diff)
     assert [p.split(":")[:2] for p in problems] == [["adapters/a/b/creator.py", "1"]]
+
+
+def test_a_dockerfile_label_pin_marks_creator_copies(tmp_path: Path) -> None:
+    adapter = tmp_path / "adapters/a/b"
+    adapter.mkdir(parents=True)
+    (adapter / "Dockerfile").write_text(
+        "FROM scratch\n"
+        'LABEL org.opencontainers.image.source="https://github.com/c/r" \\\n'
+        f'      org.opencontainers.image.revision="{"a" * 40}"\n'
+    )
+    (adapter / "vendored-upstream.json").write_text(json.dumps({"ours": ["ours.py"]}))
+    (adapter / "creator.py").write_text("x = torch.load(a)\n")
+    diff = "+++ b/adapters/a/b/creator.py\n@@ -0,0 +1 @@\n+x = torch.load(a)\n"
+    assert guard.check(tmp_path, diff) == []

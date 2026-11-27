@@ -5,7 +5,8 @@ hook. A file is a verbatim creator copy, which ``recipe_tooling.vendored_upstrea
 compares byte for byte with its upstream, when it sits under an ``also`` prefix of the
 nearest ``vendored-upstream.json``, or when it is not ours (``ours``, the Dockerfile,
 the manifest, ``kit-lock.json``) and the adapter has a pinned upstream: a ``source``
-without ``unverified`` or a locked kit base. A guard about our own code skips such a
+without ``unverified``, a locked kit base, or GitHub source and 40-hex revision
+Dockerfile labels (``recipe_tooling.image_labels``). A guard about our own code skips such a
 file, so a refresh that brings it is never blocked; every other file is judged.
 """
 
@@ -14,6 +15,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from recipe_tooling.image_labels import label_source
+
 MANIFEST = "vendored-upstream.json"
 
 
@@ -21,18 +24,23 @@ OWN = {MANIFEST, "Dockerfile", "kit-lock.json"}
 
 
 def _pinned_upstream(adapter: Path, manifest: dict[str, object]) -> bool:
+    """The same pin ``vendored_upstream`` compares against, without an ``unverified`` mark."""
     source = manifest.get("source")
-    if (
-        isinstance(source, dict)
-        and source.get("commit")
-        and not source.get("unverified")
-    ):
-        return True
+    if isinstance(source, dict):
+        return bool(source.get("commit")) and not source.get("unverified")
     lock = adapter / "kit-lock.json"
-    if not lock.is_file():
-        return False
-    dependencies = json.loads(lock.read_text(encoding="utf-8")).get("dependencies", {})
-    return dependencies.get("base") is not None
+    if lock.is_file():
+        dependencies = json.loads(lock.read_text(encoding="utf-8")).get(
+            "dependencies", {}
+        )
+        if dependencies.get("base") is not None:
+            return True
+    dockerfile = adapter / "Dockerfile"
+    return (
+        dockerfile.is_file()
+        and label_source(dockerfile.read_text(encoding="utf-8", errors="replace"))
+        is not None
+    )
 
 
 def verbatim_copy(root: Path, name: str) -> bool:
