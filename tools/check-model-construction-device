@@ -21,7 +21,6 @@ from __future__ import annotations
 
 import argparse
 import ast
-import json
 import os
 import subprocess
 import sys
@@ -31,11 +30,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from recipe_tooling.added_lines import parse_added
+from recipe_tooling.verbatim_copies import verbatim_copy
 
 ROOT = Path(__file__).resolve().parents[1]
 
 ADAPTERS = "adapters"
-MANIFEST = "vendored-upstream.json"
 CPU_BUILD = "CPU model construction"
 EAGER_BUILD = "eager full-model construction"
 CUDA_PLACEMENT = "CUDA placement in a model constructor"
@@ -103,7 +102,7 @@ def added_lines(root: Path, base: str) -> dict[str, set[int]]:
 def _is_adapter_python(root: Path, name: str) -> bool:
     if "/vendor/" in name or not name.startswith(f"{ADAPTERS}/"):
         return False
-    if _is_verbatim_copy(root, name):
+    if verbatim_copy(root, name):
         return False
     if name.endswith(".py"):
         return True
@@ -113,27 +112,6 @@ def _is_adapter_python(root: Path, name: str) -> bool:
     except OSError:
         return False
     return first.startswith(b"#!") and b"python" in first
-
-
-def _is_verbatim_copy(root: Path, name: str) -> bool:
-    """A file the nearest vendored-upstream.json does not list under ``ours``."""
-    path = Path(name)
-    for adapter in path.parents:
-        if adapter == Path(ADAPTERS) or adapter == Path():
-            return False
-        manifest_path = root / adapter / MANIFEST
-        if not manifest_path.is_file():
-            continue
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        if not set(manifest) - {"kit"}:
-            return False  # a kit-only manifest claims no vendored files
-        relative = path.relative_to(adapter).as_posix()
-        ours = manifest.get("ours", [])
-        return not any(
-            relative == entry or (entry.endswith("/") and relative.startswith(entry))
-            for entry in ours
-        )
-    return False
 
 
 def _is_device(node: ast.expr, kind: str) -> bool:

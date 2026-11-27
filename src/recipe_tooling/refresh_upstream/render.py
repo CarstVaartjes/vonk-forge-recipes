@@ -109,10 +109,6 @@ def pr_body(assessment: refresh_model.Assessment) -> str:
         *assessment.evidence,
         f"<!-- refresh-recipe: {assessment.recipe_id} -->",
         f"<!-- refresh-target: {assessment.fingerprint()} -->",
-        "",
-        "🤖 Generated with [Claude Code](https://claude.com/claude-code)",
-        "",
-        "https://claude.ai/code/session_01NxX8uY9ruX1ZqmuABxwaSa",
     ]
     return refresh_evidence.clip("\n".join(body), refresh_model.MAX_BODY)
 

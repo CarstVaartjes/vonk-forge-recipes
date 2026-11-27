@@ -32,7 +32,9 @@ Recipe memory policy lives in the authoring guide's memory section.
   the catalog hierarchy (`lineage`: Family → Line → Model, with the Family titles
   and Line order in `display/families/<slug>.json`), live in
   `display/recipes/<slug>.json` / `display/models/<slug>.json`. A display edit
-  never changes a digest, evidence or a proven status. Add or remove a display together with its document.
+  never changes a digest, evidence or a proven status. A Model's licence id is an
+  SPDX list id, `LicenseRef-<Name>` or `NOASSERTION` (`tools/check-display-licences`,
+  added lines); it informs, never gates. Add or remove a display together with its document.
 - Use contract models and enums for structures, states, reasons and codes we
   control. External wire extensions are distinct from locally owned structures.
   Platform wire consumers use the Pydantic → JSON Schema → typify Rust chain
@@ -306,7 +308,10 @@ base images, base image, Dockerfile) and `policy/build-policy.json` only (the st
 `BuildPolicy` model validates it once at load: a typo refuses), and plans
 both the PR head and base with this checkout's tooling, with no Vonk Forge checkout.
 A Vonk Forge release never changes a key, and no Controller computes one: it runs
-the digest the signed catalog pins for a recipe's content. The pushed image is the
+the digest the signed catalog pins for a recipe's content. Each build is labelled with
+this repository (`org.opencontainers.image.source`), its key and the recipes commit it
+was built from (`ai.vonkforge.recipes-revision`, the AGPL Corresponding Source pointer
+in [NOTICE](NOTICE)); labels are not key inputs. The pushed image is the
 recipe's own build (no platform layer); the platform sets the run-time user,
 workdir and writable paths when the container starts. A genuinely new platform
 requirement on images is a contract change (an image-interface field or a
@@ -325,7 +330,8 @@ To prove the bare-image path for a recipe, dispatch
 `recipe-images.yml -f slugs="<ids>" -f rebuild_adopted=true -f republish=true`: it
 rebuilds only the named recipes whose tag holds an adopted image (never `all`,
 never a v2-built image), and each goes Re-check until the sweep re-proves it.
-Changed images from forks need a trusted repository branch to push candidates.
+Changed images from forks need a trusted repository branch to push candidates
+([Pull requests from a fork](docs/recipe-authoring.md#pull-requests-from-a-fork)).
 `catalog-index.json` is the `CatalogIndex` contract (`vonk_forge_contracts.catalog_index`): the
 build constructs it through the model, consumers read it with `read_catalog`
 (`vonk_forge_contracts.catalog_reader`), and the release ships its generated schema

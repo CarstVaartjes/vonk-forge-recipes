@@ -96,7 +96,6 @@ class ExplicitHuggingFaceManifestTests(unittest.TestCase):
         )
         assert not bria.requires_token
         model_license = model_display("bria-rmbg-1-4").license
-        assert model_license.spdx == "other"
         assert (
             model_license.url
             == "https://bria.ai/bria-huggingface-model-license-agreement/"

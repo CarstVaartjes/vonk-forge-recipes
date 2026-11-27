@@ -86,7 +86,7 @@ ENGRAM_ROW_CACHE_ENVIRONMENT = "DSV41_CACHE_GIB"
 # vLLM's gpu-memory-utilization when a launch omits it.
 VLLM_DEFAULT_UTILIZATION = Decimal("0.90")
 ROOT = REPO_ROOT
-# GB10 total and lower idle MemAvailable from spark-3542, 2026-10-15/16;
+# GB10 total and lower idle MemAvailable from one Spark, 2026-10-15/16;
 # retained from tests/qualification/test_vllm_memory_fit.py at the historical source commit.
 TOTAL_BYTES = SPARK_MEMORY_BYTES
 IDLE_AVAILABLE_BYTES = SPARK_3542_IDLE_AVAILABLE_BYTES

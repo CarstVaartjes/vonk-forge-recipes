@@ -285,6 +285,13 @@ jobs:
           set -euo pipefail
           "$RECIPE_TEST_PYTHON" tools/check-vendored-upstream
 
+      # Informative licence status, kept outside every build context.
+      - name: Require a licence entry for every vendored upstream
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$RECIPE_TEST_PYTHON" tools/check-upstream-licences
+
       # A kit-built recipe pins only its kit; the base is what the kit declares
       # at that commit. Re-reads the declaring file and fails when the committed
       # kit-lock.json (or what consumes it) differs, so generated pins are never
@@ -387,6 +394,14 @@ jobs:
           set -euo pipefail
           python3 tools/check-serial-reads --diff "$RUNNER_TEMP/added.diff"
 
+      # Unpickling runs code: an added torch.load passes weights_only=True and new code
+      # never calls pickle. Creator copies are not judged. Checks only added lines.
+      - name: Reject new pickle loads
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/check-pickle-loads --diff "$RUNNER_TEMP/added.diff"
+
       # An adapter never sets its own NCCL_IB_HCA: the platform names both RDMA devices of a
       # 200 Gb/s port, and a single device halves the link. Checks only added lines.
       - name: Reject adapter lines that narrow NCCL_IB_HCA
@@ -417,6 +432,14 @@ jobs:
         run: |
           set -euo pipefail
           python3 tools/check-identity-compare --diff "$RUNNER_TEMP/added.diff"
+
+      # A Model's licence is shown verbatim, never a gate: an added display id is an
+      # SPDX list id, LicenseRef-<Name> or NOASSERTION. Checks only added lines.
+      - name: Reject new Model display licence ids that are not SPDX-shaped
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$RECIPE_TEST_PYTHON" tools/check-display-licences --diff "$RUNNER_TEMP/added.diff"
 
       - name: Reject new tests that gate on a real recipe's declared memory
         shell: bash

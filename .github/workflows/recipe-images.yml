@@ -281,6 +281,9 @@ jobs:
       - name: Build the recipe image with the Spark build flags
         env:
           GH_TOKEN: ${{ github.token }}
+          # The recipes commit the image is built from: with the source label it names
+          # the Corresponding Source (NOTICE). A label, not a key input, so reuse holds.
+          RECIPES_REVISION: ${{ github.event.pull_request.head.sha || github.sha }}
         shell: bash
         run: |
           set -euo pipefail
@@ -316,6 +319,7 @@ jobs:
             "${recipe_args[@]}" \
             --label "org.opencontainers.image.source=https://github.com/${{ github.repository }}" \
             --label "ai.vonkforge.build-key=$KEY" \
+            --label "ai.vonkforge.recipes-revision=$RECIPES_REVISION" \
             --tag localhost/vonk/recipe-build context
           # Deterministic dependency errors fail here, outside the build retry.
           # Use the recipe interpreter/venv and no GPU or model weights.

@@ -210,6 +210,7 @@ if 'inspect' in args:
         "WORK": str(tmp_path),
         "JOB_START": str(int(time.time())),
         "GH_TOKEN": "",
+        "RECIPES_REVISION": "0" * 40,
         "GITHUB_ENV": str(tmp_path / "env"),
         "GITHUB_STEP_SUMMARY": str(tmp_path / "summary"),
         "EVENT_NAME": event,
@@ -248,5 +249,6 @@ if 'inspect' in args:
     if not fault:
         prefix = "candidate-v2" if event == "pull_request" else "build-v2"
         assert f"docker://ghcr.io/o/recipe:{prefix}-{KEY}" in commands
+        assert f"ai.vonkforge.recipes-revision={'0' * 40}" in commands
         summary = (tmp_path / "summary").read_text()
         assert ("built at publish: no PR candidate" in summary) == (event == "push")

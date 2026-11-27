@@ -378,7 +378,7 @@ LFS SHA-256 and size (downloading and hashing small non-LFS files, and refusing
 non-LFS files over 16 MiB), and writes a validated
 `models/<--version-slug>.json`. It prints the pinned revision, the Model's
 `document_sha256` to use in recipe model references, and the total bytes. You
-still supply identity, license and
+still supply identity, license (`--license-spdx`: an SPDX id or `LicenseRef-<Name>`) and
 `--capability` names through its flags (these are written to the Model's display file, not the Model). Review the file list and roles, drop
 files the model does not need, and list only capabilities the model supports
 before you use the Model in a recipe.
@@ -420,7 +420,8 @@ moves, so no proven recipe is re-run. A source model's vision capability does no
 engine recipe can serve images.
 
 Preserve upstream license terms, territorial notices, and their source links
-as information for the user; a republisher's permissive card metadata does not
+as information for the user (the display `license.spdx` is an SPDX list id,
+`LicenseRef-<Name>` or `NOASSERTION`: `tools/check-display-licences`); a republisher's permissive card metadata does not
 replace the original weight licence. License compliance decisions belong to the user;
 do not add location setup, territorial admission gates, or tests requiring
 Vonk Forge to deny downloads or runs based on geography. A provider may still
@@ -729,7 +730,7 @@ The informative workload estimator (not declaration admission) uses
 108,470,788,096 bytes**. The 16 GiB headroom is this estimator's own planning
 rule, a leftover of the host memory guard's removed per-sample MemAvailable bar;
 the runtime backstop is the swap-aware guard (vonk-forge
-`host_memory_guard_policy.rs`, rules R1–R5). Idle use is from spark-3542
+`host_memory_guard_policy.rs`, rules R1–R5). Idle use is from one Spark's
 2026-10-15/16 incident telemetry, **125,650,657,280 bytes idle MemAvailable**,
 retained in the calculator's historical source. Runtime
 overhead currently uses an **8,000,000,000-byte estimate**, not a measurement. A vLLM
@@ -784,7 +785,7 @@ implementation and constants live in `src/recipe_tooling/qualification/vllm_memo
 **130,663,231,488 bytes** + **8 GB** runtime overhead must fit the declared
 per-node peak; peak + the **2 GiB platform floor** must fit
 the **126,600,000,000-byte idle-available floor**. The 2 GiB floor follows the creators' measured 2-3 GiB of steady free memory; the swap-aware host memory guard (vonk-forge #1936, R1) is the runtime backstop. The 2026-10-15/16 incident also
-retains its measured overhead and the lower spark-3542 idle-available value above.
+retains its measured overhead and the lower single-Spark idle-available value above.
 
 [src/recipe_tooling/qualification/memory_need/](../src/recipe_tooling/qualification/memory_need/), exercised by
 `tests/qualification/test_single_spark_memory_headroom.py`, shares those constants; its
@@ -867,7 +868,7 @@ expansion may require more. Use source-backed `calculate_need` where its
 geometry is available; keep unknown full-workload terms visible.
 
 Calibration separates physical feasibility from planning headroom. The lower
-observed idle MemAvailable is **125,650,657,280 bytes** (spark-3542, 2026-10-15/16,
+observed idle MemAvailable is **125,650,657,280 bytes** (one Spark, 2026-10-15/16,
 retained in `src/recipe_tooling/qualification/vllm_memory_fit.py`). Subtracting the host pressure
 floor leaves **108,470,788,096 bytes** for conservative new-document planning;
 that policy margin is not proof that an existing recipe cannot execute.
@@ -1463,7 +1464,8 @@ review policies; no static guard can prove upstream completeness or honesty.
 | `tools/check-build-context-sources`, `tests/tools/test_check_build_context_sources.py` | Every COPY source is shipped. Add the actual local file or fix the context-relative reference. |
 | `tests/recipes/test_recipe_build_inputs.py`, `tests/tools/test_build_network_hosts.py` | All external build stages are immutable and declared once; URL hosts are allowed. Pin every external base and declare real egress. |
 | `tools/check-vendored-upstream`, `tests/tools/test_check_vendored_upstream.py` | Declared vendored files match immutable upstream bytes. Re-vendor them; carry intentional changes as explicit patches/overlays. An adapter that also vendors a directory of a second upstream lists it under `also` (`repo`, `commit`, `files` prefixes). The manifest is the typed contract `recipe_tooling.vendored_manifest.VendoredManifest`: an unknown key or wrong type is a problem, not silently ignored. |
-| `tools/check-model-construction-device --base origin/main`, `tests/tools/test_check_model_construction_device.py` | New adapter runtime code (added lines, code only; vendored archives and `vendored-upstream.json` verbatim creator copies excluded) builds no full model as real CPU tensors (`init_weights_on_device(cpu)`, `low_cpu_mem_usage=False`) and puts no CUDA device in a model constructor. Build on meta, assign the checkpoint, fail on any parameter left on meta, then let the loader place the model. Upstream source a patch script rewrites is text to this guard: prove it with the adapter's patched-source behaviour test. |
+| `tools/check-upstream-licences --base origin/main`, `tests/tools/test_check_upstream_licences.py` | Every upstream an adapter vendors files from (`check-vendored-upstream`'s own classification, `vendored_upstream.upstream_files`) has an entry in the root `upstream-licences.json`: its SPDX licence and licence-text paths (under `licenses/<owner>/<repo>/`, or a licence file the adapter already vendors), or `unlicensed-upstream` with the issue asking the creator for a licence. The file and `licenses/` sit outside every build context, so they never change a recipe's identity or image key; licences are informative and never gate a recipe. A missing entry fails only for an adapter directory the change adds; for an existing adapter (a refresh that moves its upstream) it is a note, so a refresh is never blocked. A named licence text that is missing follows the same rule, so removing an adapter that held a shared upstream's text is a note. |
+| `tools/check-model-construction-device --base origin/main`, `tests/tools/test_check_model_construction_device.py` | New adapter runtime code (added lines, code only; vendored archives and verbatim creator copies excluded, by the same `recipe_tooling.verbatim_copies` rule as `check-pickle-loads`) builds no full model as real CPU tensors (`init_weights_on_device(cpu)`, `low_cpu_mem_usage=False`) and puts no CUDA device in a model constructor. Build on meta, assign the checkpoint, fail on any parameter left on meta, then let the loader place the model. Upstream source a patch script rewrites is text to this guard: prove it with the adapter's patched-source behaviour test. |
 | `tools/kit-pins check`, `tests/tools/test_kit_pins.py`, `tests/tools/test_kit_prebuilt_images.py` | Kit declarations, lock, image/base/model consumers agree. Regenerate the lock; use a justified override/image exception only for an intentional deviation. |
 | `tools/check-image-provenance`, `tests/tools/test_published_image_follow.py` | Claimed build commit matches the selected source image. Fix provenance or supply the supported explicit unavailable-commit evidence. |
 | `tools/check-base-image-holds`, `tests/tools/test_base_image_holds.py` | A held digest stays consistent and a hold's `source` is followed by the recipe. Change/remove the hold only with replacement evidence. |
@@ -1481,11 +1483,13 @@ review policies; no static guard can prove upstream completeness or honesty.
 | `tests/recipes/test_prebuilt_images.py`, `tests/tools/test_publish_image_guard.py`, `tests/tools/test_release_bundle.py`, `tests/tools/test_release_assets.py` | Plan/source/build keys, digests, signed index and packaged bytes agree. Rebuild/resolve the correct artifacts before signing. |
 | `tools/check-test-git`, `tests/tools/test_check_test_git.py` | An added test line runs git (an argv headed `git`, a `git`-named helper, `git ...` in a shell string, a `GIT_*` env key). Tests never use git: the tool under test takes its changed set, commit or epoch as an argument and the CI step or hook supplies it from git; feed it diff text (`tests/added_diff.py`). Only added lines are checked and there is no allowlist. |
 | Ruff `TID251` (`[tool.ruff.lint.flake8-tidy-imports.banned-api]` in `pyproject.toml`) | `urllib.request.urlopen`, `build_opener` or `HTTPRedirectHandler` anywhere outside `src/recipe_tooling/upstream_http.py`, in any file, not only added lines. `upstream_http` drops `Authorization` when a redirect leaves the original scheme and host (Docker Hub's presigned blob URLs answer 400 to a Bearer header), so a new redirect policy belongs there. Open provider URLs through `fetch` there (bounded retry, `Retry-After`, per-host busy memory); a persistent 429/503 is `UpstreamBusy`, "not checked this run", never an issue. A caller that must not retry goes through `open_once` in the same module: `src/recipe_tooling/refresh_auth.py` (the App credential exchange: POST, a GET of `/installation` and a DELETE; a security edge, never retried), `src/recipe_tooling/adapter_sources.py` (its own jittered retry with mirror fallback), a local fixture server in a test. `spark_sweep/smoke.py` keeps its own `urlopen` with a reasoned `noqa: TID251`: it opens the served recipe's own endpoint, not a provider, and the sweep layer may not import `recipe_tooling.upstream_http` (`tests/tools/test_package_import_direction.py`). `tools/prepare-remote-code-smoke` runs inside the image and holds the opener only as script text. |
+| `tools/check-pickle-loads`, `tests/tools/test_check_pickle_loads.py` | An added Python line that calls `torch.load` without `weights_only=True`, or `pickle.load`/`loads`/`Unpickler` (`_pickle`, `cPickle` too). Unpickling runs code the file names; a weights-only load reads tensors only. Prefer safetensors for new files. A file is skipped as a verbatim creator copy (so a refresh is never blocked) only when it is under an `also` prefix, or when it is not ours (`ours`, the Dockerfile, the manifest, `kit-lock.json`) and the adapter pins an upstream: a `source` without `unverified`, a locked kit base, or GitHub source and 40-hex revision Dockerfile labels (`recipe_tooling.verbatim_copies`, the pin `check-vendored-upstream` compares against). Every other file is judged. Only added lines count. |
 | `tools/check-nccl-ib-hca`, `tests/tools/test_check_nccl_ib_hca.py` | An added line under `adapters/` (scripts and extensionless launchers too, not `.md`/`.rst`/`.txt`) that assigns `NCCL_IB_HCA` to anything but the inherited platform value (`$NCCL_IB_HCA`, `environ["NCCL_IB_HCA"]`, optionally with a `${NCCL_IB_HCA:-...}` default). Each 200 Gb/s port is two RDMA devices and the helper names both; one device cuts the link to about 112 Gb/s. Read or forward the variable, never set it. Only added lines count. |
 | `tools/check-wire-only`, `tests/tools/test_check_wire_only.py` | An added line under `contracts/src/` defines a public top-level function not named in `SHARED_FUNCTIONS` (`vonk_forge_contracts/__init__.py`, the one owner list), or walks the filesystem (`glob(`, `rglob(`, `.iterdir(`, `os.walk(`, `open(`, `.read_text(`, `.read_bytes(`, a `library_root` or `root: Path` parameter). The wheel is wire only; a check over the library or a status derivation lives in `src/recipe_tooling` (`library_checks`, `qualification/status`, `qualification/api_checks`). Name a new shared function in the list, or move the code out. Only added lines count. |
 | `tools/check-closed-sets`, `tests/tools/test_check_closed_sets.py` | A closed set is defined outside `contracts/src/vonk_forge_contracts/executed.py` or `shown.py` (a `StrEnum`/`Enum`, a module alias of a multi-value `Literal`, or an inline multi-value `Literal` on a field), or a field uses a `shown.py` set without `Annotated[X \| UnrecognisedWord, KeepUnrecognised]`. Move the set into the module that matches (`executed.py` when the platform executes it, `shown.py` when a reader keeps unknown words of it); a strict producer twin of a `Published<Name>` class keeps the bare set. Single-value tags stay inline. |
 | `tools/check-final-stage-ldd`, `tests/tools/test_check_final_stage_ldd.py` | An added or final-stage-changed adapter Dockerfile on a plain CUDA runtime/base image copies a binary into `bin/` without `RUN ! ldd <binary> \| grep "not found"`. Only added lines count. |
 | `tools/check-identity-compare`, `tests/tools/test_check_identity_compare.py` | An added line in `src/`, `spark_sweep/` or a `tools/` Python script that compares (`==`/`!=`) an operand ending in `.identity`, `.runtime_image` or `.build_key`, a read of one of those keys (`row["build_key"]`, `pin.get("build_key")`) or a call of an `*_identity(...)` function (`current_identity`, `content_identity`); serialises an identity (`.identity.model_dump_json(`); or uses `.identity` as a dict key. A recipe image is its digest: compare through `recipe_tooling.qualification.identity` (`same_execution`, `execution_key`, `image_digest`), the one owner (out of scope by path). Only added lines count. |
+| `tools/check-display-licences`, `tests/tools/test_check_display_licences.py` | An added `"spdx"` line in `display/models/*.json` that is not an SPDX licence list id or expression in its canonical spelling (`MIT`, `Apache-2.0`, `A AND B`), `LicenseRef-<Name>` with `[A-Za-z0-9.-]` only, or `NOASSERTION`. Write a licence the list lacks as `LicenseRef-<Name>`, one spelling per licence, and keep its url. The list is the one `packaging.licenses` ships (pinned in `uv.lock`): an id newer than that list is a `LicenseRef-` or a `packaging` bump. It checks the id's shape only; a licence never gates a download or run. Only added lines count. |
 | `src/recipe_tooling/added_lines.py`, `tests/tools/test_added_lines.py` | The one parser of the diff the added-line guards read (the `check-*` guards above, `check-model-construction-device`, `check-writable-state-env`). A block the same diff deletes unchanged (a verbatim move or split; one uniform indentation shift allowed; Python launchers and `.py` count as one file type) is not an addition, so moving code does not re-surface old findings. Each guard passes its own `judged` predicate, and a deletion pays only when it judges both the file the block left and the file it entered: a block leaving an exempt owner or an out-of-scope file is still new work where it lands. A deleted block pays for one copy only; an edited or copied line stays added. A guard whose verdict depends on context (`check-serial-reads` reads the loop line, `check-estimate-gates` the test function) judges again when that context gained a line. |
 | `tests/tools/test_guard_paths_exist.py` | Every repository path a guard names matches at least one path in the tree: slash literals, `ROOT / "a" / "b"` chains and bare top-level names (`RECIPES = "recipes"`) in the `tools/check-*` scripts and `src/recipe_tooling/added_lines.py`; the same kinds of scope in four test-side scans (`test_admissible_memory_declarations`, `test_admission_maximum_cap`, `test_own_pulls`, `test_qualification_evidence_publisher`); both `single-source-values.json` files; and each `LAYERS` directory must also own a file the import-direction walker reads (`.py` or a shebang launcher). It catches a scope whose directory disappeared. It does NOT protect a prefix scope on a directory that survives the move (`tools/` after code leaves it still exists): a review of a move must re-point those by hand. The first segment is a listed name or a current top-level directory, so a new directory such as `src/` is covered. Write scopes as plain literals or `/` chains. No allowlist. |
 | `tools/check-document-reads`, `src/recipe_tooling/added_lines.py`, `tests/tools/test_check_document_reads.py` | An added line reads a Recipe, Model or display JSON by hand (`json.loads` then `doc["runtime"]`). Read it through `vonk_forge_contracts` (`read_recipe`, `read_model`, `read_recipe_display`, `read_model_display`, `read_recipe_api`) or `src/recipe_tooling/qualification/documents.py`; only added lines are checked. |
@@ -1567,7 +1571,8 @@ The canary package changes with every contract major: rebuild it, then run
 `tools/adapter-sources add` on its path. `tools/check-added-file-size` fails validate.yml and
 the pre-commit hook on any added or changed file over 1 MiB, anywhere in the repository, and
 its message names `tools/adapter-sources add`; there is no waiver, and files already in the
-tree are not re-flagged. A declared path is ignored, not tracked: a fresh
+tree are not re-flagged. From a fork, a maintainer runs `add`
+([Pull requests from a fork](#pull-requests-from-a-fork)). A declared path is ignored, not tracked: a fresh
 clone lacks it, and a pull of the commit that stopped tracking a file deletes your copy.
 The tools that read those paths place them again first, from the local cache or the
 mirror (network): `tools/build-catalog-index`, `tools/check-build-context-sources`,
@@ -1610,8 +1615,8 @@ For every image whose Models select Python modules, it calls Transformers
 installed environment on modules named by `auto_map` in the selected `config.json`,
 `tokenizer_config.json`, `processor_config.json`, `preprocessor_config.json` and
 `video_preprocessor_config.json`,
-plus their relative imports (including processor dependencies), before adding
-the platform layer or pushing. vLLM and SGLang build registered architectures
+plus their relative imports (including processor dependencies), before
+pushing. vLLM and SGLang build registered architectures
 natively, so their `AutoModel*` entries are checked only when a base or option
 argument selects `model-impl` `transformers` or SGLang's ModelOpt quantization
 load (`modelopt-*`, or `quantization` `modelopt`, `modelopt_fp8` or
@@ -1693,6 +1698,24 @@ Every PR runs the whole `tests/` suite and every static gate; CI never selects t
 For CI, signing, release bundle verification and integration procedure, follow
 [AGENTS.md](../AGENTS.md#ci-and-publication). Build assets are not release evidence
 until that procedure verifies the published bytes.
+
+### Pull requests from a fork
+
+A fork's pull request runs the same required checks with a read-only token, and
+passes them when it changes no runtime image (a first-time contributor's runs wait
+for a maintainer's approval). Two changes need write access a fork does not have:
+
+- **A changed runtime image** (a new build key for a recipe: its Dockerfile, build
+  context or pinned base images). The PR must build and push a GHCR candidate, which a
+  fork cannot, so `recipe-images.yml` fails the required "Verify catalog index" with
+  "Changed images need candidate push permission".
+- **A file over 1 MiB** (see [Build-context files kept out of Git](#build-context-files-kept-out-of-git)).
+  Leave it out of the commit and say in the PR where its bytes come from (an upstream
+  URL); only a maintainer can run `tools/adapter-sources add`. Until that manifest entry
+  lands, the checks that read the file stay red.
+
+In both cases a maintainer pushes your branch to this repository (adding the manifest
+entry if needed) and opens the PR from there; CI then completes.
 
 ### Prebuilt runtime images
 

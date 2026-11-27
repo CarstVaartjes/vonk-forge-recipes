@@ -54,11 +54,10 @@ import argparse
 import hashlib
 import json
 import os
-import re
 import subprocess
 import sys
 from collections import defaultdict
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
 from pathlib import Path, PurePosixPath
 from typing import Any
@@ -68,6 +67,7 @@ from urllib.request import Request
 from recipe_tooling.adapter_sources import (
     materialize_or_exit,
 )
+from recipe_tooling.image_labels import label_source
 from recipe_tooling.paths import REPO_ROOT
 from recipe_tooling.upstream_http import UpstreamBusy, fetch
 from recipe_tooling.vendored_manifest import VendoredManifest
@@ -76,12 +76,6 @@ ROOT = REPO_ROOT
 
 MANIFEST = "vendored-upstream.json"
 KIT_LOCK = "kit-lock.json"  # derived by tools/kit-pins from the kit the recipe pins
-SHA = re.compile(r"^[0-9a-f]{40}$")
-GITHUB = re.compile(
-    r"^https://github\.com/([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+?)(?:\.git)?/?$"
-)
-LABEL_SOURCE = re.compile(r'org\.opencontainers\.image\.source="([^"]+)"')
-LABEL_REVISION = re.compile(r'org\.opencontainers\.image\.revision="([^"]+)"')
 # Basenames too generic to identify a renamed upstream file.
 GENERIC_BASENAMES = frozenset(
     {
@@ -237,14 +231,7 @@ def _source(adapter: Path, manifest: VendoredManifest) -> tuple[str, str] | None
     if manifest.source is not None:
         return manifest.source.repo, manifest.source.commit
     dockerfile = adapter / "Dockerfile"
-    text = dockerfile.read_text(encoding="utf-8", errors="replace")
-    source, revision = LABEL_SOURCE.search(text), LABEL_REVISION.search(text)
-    if not source or not revision:
-        return None
-    match = GITHUB.match(source.group(1))
-    if not match or not SHA.match(revision.group(1)):
-        return None
-    return match.group(1), revision.group(1)
+    return label_source(dockerfile.read_text(encoding="utf-8", errors="replace"))
 
 
 def _candidates(
@@ -278,6 +265,36 @@ def _local_files(adapter: Path) -> list[str]:
             continue
         files.append(rel)
     return files
+
+
+def is_ours(rel: str, ours: Iterable[str]) -> bool:
+    """Whether ``rel`` is a platform file listed (or under a ``dir/``) in ``ours``."""
+    return any(rel == o or (o.endswith("/") and rel.startswith(o)) for o in ours)
+
+
+def upstream_files(adapter: Path) -> dict[str, list[str]]:
+    """Upstream repository -> the adapter files this checker compares with it.
+
+    Only an adapter with a manifest and a source compares files: those under an
+    ``also`` prefix with that upstream, every other file that is not ours with the
+    source. Nothing is fetched.
+    """
+    path = adapter / MANIFEST
+    if not path.is_file():
+        return {}
+    manifest = VendoredManifest.model_validate_json(path.read_text(encoding="utf-8"))
+    source = _source(adapter, manifest)
+    if source is None:
+        return {}
+    found: dict[str, list[str]] = {}
+    for rel in _local_files(adapter):
+        if is_ours(rel, manifest.ours):
+            continue
+        second = next(
+            (e for e in manifest.also if rel.startswith(tuple(e.files))), None
+        )
+        found.setdefault(second.repo if second else source[0], []).append(rel)
+    return found
 
 
 def changed_paths(root: Path, base: str) -> set[str]:
@@ -385,7 +402,7 @@ def check_adapter(
     unclassified: list[str] = []
     weak_problems: list[str] = []
     for rel in files:
-        if rel in ours or any(o.endswith("/") and rel.startswith(o) for o in ours):
+        if is_ours(rel, ours):
             continue
         local_sha = git_blob_sha((adapter / rel).read_bytes())
         second = next(((e, t) for e, t in also if rel.startswith(e.files)), None)

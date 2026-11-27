@@ -37,11 +37,13 @@ fi
 staged=$(python3 tools/added-lines --cached)
 printf '%s\n' "$staged" | python3 tools/check-test-git --diff -
 printf '%s\n' "$staged" | python3 tools/check-nccl-ib-hca --diff -
+printf '%s\n' "$staged" | python3 tools/check-pickle-loads --diff -
 printf '%s\n' "$staged" | python3 tools/check-document-reads --diff -
 printf '%s\n' "$staged" | python3 tools/check-serial-reads --diff -
 printf '%s\n' "$staged" | python3 tools/check-estimate-gates --diff -
 printf '%s\n' "$staged" | python3 tools/check-final-stage-ldd --diff -
 printf '%s\n' "$staged" | python3 tools/check-identity-compare --diff -
+printf '%s\n' "$staged" | uv run --frozen python tools/check-display-licences --diff -
 # A file over 1 MiB is declared with tools/adapter-sources add, never committed.
 changed=$(git diff --cached --name-only --diff-filter=AMR)
 printf '%s\n' "$changed" | python3 tools/check-added-file-size --paths-from -
