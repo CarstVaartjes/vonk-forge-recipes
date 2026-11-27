@@ -404,8 +404,8 @@
     "source_reference": "https://huggingface.co/OpenMOSS-Team/MOVA-720p/tree/8462bea9a317a3591279faeedfd3ca01b055cb59"
   },
   "release": {
-    "released_at": "2026-09-28",
-    "version": "2.0.13"
+    "released_at": "2026-11-26",
+    "version": "2.0.14"
   },
   "runtime": {
     "arguments": [

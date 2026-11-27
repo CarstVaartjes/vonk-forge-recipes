@@ -22,6 +22,9 @@ from recipe_tooling.upstream_http import UpstreamBusy, fetch
 from vonk_forge_contracts.recipe import RecipeRelease
 
 ARCHIVE_LABEL = re.compile(r'([\w.-]*archive-sha256="?)([0-9a-f]{64})("?)')
+ARCHIVE_ARG = re.compile(
+    r"^\s*ARG\s+\w*ARCHIVE_SHA256=[\"']?([0-9a-f]{64})", re.MULTILINE | re.IGNORECASE
+)
 MAX_ARCHIVE_BYTES = 400_000_000
 
 
@@ -52,16 +55,17 @@ def retarget_archive_labels(
 ) -> tuple[str, bool]:
     """Move the pinned commit's archive digest wherever the Dockerfile states it.
 
-    An ``*archive-sha256`` label whose value equals the archive digest of the old pin
-    marks the Dockerfile as fetching that archive; every occurrence of that digest (the
+    An ``*archive-sha256`` label or an ``ARG *ARCHIVE_SHA256=<digest>`` default whose
+    value equals the archive digest of the old pin marks the Dockerfile as fetching that archive; every occurrence of that digest (the
     label and the ``sha256sum --check`` line that verifies the download) then moves to
     the new archive's digest. Other digests (other sources, wheels) are left alone.
     """
-    matches = list(ARCHIVE_LABEL.finditer(dockerfile))
-    if not matches:
+    stated = [m.group(2) for m in ARCHIVE_LABEL.finditer(dockerfile)]
+    stated += [m.group(1) for m in ARCHIVE_ARG.finditer(dockerfile)]
+    if not stated:
         return dockerfile, False
     old = archive_sha256(item.repo, item.current)
-    if not any(m.group(2) == old for m in matches):
+    if old not in stated:
         return dockerfile, False
     new = archive_sha256(item.repo, item.target.sha)
     return dockerfile.replace(old, new), True
