@@ -33,13 +33,13 @@ pythonpath = [
 # Pillow are here because the type gate must resolve the suite's fixtures and the
 # canonical contract types against their real classes, not unresolved imports.
 dev = [
-    "ruff>=0.16.9",
+    "ruff>=0.17.6",
     "pyright[nodejs]>=1.1.414",
-    "pytest>=9.1.1",
-    "pydantic>=2.13.4",
+    "pytest>=9.2.0",
+    "pydantic>=2.14.4",
     "Pillow>=13.0.0",
     # tools/check-display-licences reads the SPDX licence list packaging.licenses ships.
-    "packaging>=26.3",
+    "packaging>=26.4",
 ]
 # The producer test environment (validate.yml, publish.yml, refresh-upstream.yml):
 # `uv sync --frozen` (a default group); uv.lock is the one owner of every version.
@@ -47,8 +47,8 @@ producer-tests = [
     "vonk-forge-public-contracts",
     "jsonschema>=4.24,<5",
     "pytest-xdist==3.8.0",
-    "numpy==2.3.5",
-    "trimesh==4.10.1",
+    "numpy==2.5.5",
+    "trimesh==5.2.2",
 ]
 
 [tool.uv.sources]
