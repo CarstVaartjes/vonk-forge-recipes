@@ -308,7 +308,10 @@ base images, base image, Dockerfile) and `policy/build-policy.json` only (the st
 `BuildPolicy` model validates it once at load: a typo refuses), and plans
 both the PR head and base with this checkout's tooling, with no Vonk Forge checkout.
 A Vonk Forge release never changes a key, and no Controller computes one: it runs
-the digest the signed catalog pins for a recipe's content. The pushed image is the
+the digest the signed catalog pins for a recipe's content. Each build is labelled with
+this repository (`org.opencontainers.image.source`), its key and the recipes commit it
+was built from (`ai.vonkforge.recipes-revision`, the AGPL Corresponding Source pointer
+in [NOTICE](NOTICE)); labels are not key inputs. The pushed image is the
 recipe's own build (no platform layer); the platform sets the run-time user,
 workdir and writable paths when the container starts. A genuinely new platform
 requirement on images is a contract change (an image-interface field or a

@@ -1,0 +1,78 @@
+Vonk Forge recipes
+Copyright (c) 2026 Carst Vaartjes
+This repository is MIT licensed (see LICENSE).
+
+Third-party files
+=================
+
+Adapters under adapters/ include files copied byte for byte from creators'
+repositories, at the commit pinned in each adapter's vendored-upstream.json.
+Those files keep their creators' copyright and licence. The MIT licence of this
+repository does not cover them.
+
+upstream-licences.json records, for every upstream an adapter copies files
+from, its SPDX licence and where its licence text is: under licenses/<owner>/<repo>/
+(fetched at the pinned commit) or beside the copied files in the adapter.
+Neither sits inside a build context, so recording a licence never changes a
+recipe or its image. Licences are informative; they never gate a recipe.
+
+Upstreams without a licence (licence requested)
+-----------------------------------------------
+
+These upstream repositories grant no licence. The project has opened one
+licence request per creator (MIT or Apache-2.0 suggested), linked below. Each
+request names some of that creator's repositories; the others listed under it
+are not named in the request yet. Until a creator answers, the recipes keep
+shipping these files with credit to the creator, and all rights in them stay
+with the creator. A creator who would rather we did not ship their files can
+say so in the issue, and the recipe will change.
+
+  Request: https://github.com/0xSero/deepseek-spark/issues/6
+    0xSero/deepseek-spark
+
+  Request: https://github.com/drowzeys/keys-vLLm.0.27-Qwen3.8-27B-ADay777Ablit-NVFP4-A4Q-NVFP4-KV-4M-KV-token-pool-MTP3-Single-DGX-Spark/issues/3
+    drowzeys/keys-1M-CTX-Inkling-Small-NVFP4-Dspark-NVFP4-KV-Cache-SGlang-SM121-optimized-on-Two-DGX-Sparks
+    drowzeys/keys-GLM5.2-Quantrio-INT4-INT8-Mixed-Abliterated-C1-30toks-4x-DGX-Sparks
+    drowzeys/keys-vLLm.0.27-Qwen3.8-27B-ADay777Ablit-NVFP4-A4Q-NVFP4-KV-4M-KV-token-pool-MTP3-Single-DGX-Spark
+    drowzeys/keys-vLLm.0.27-Qwen3.8-NVFP4-MTP3-Single-DGX-Spark
+
+  Request: https://github.com/MiaAI-Lab/Qwen3.6-35B-A3B-NVFP4-vLLM/issues/2
+    MiaAI-Lab/DGX_Spark_Qwen_3.6_27b_35b_GGUF_start_script
+    MiaAI-Lab/Gemma-4-26B-A4B-DGX-Spark-18-concurrencies
+    MiaAI-Lab/Gemma-4-31B-IT-NVFP4-Recipe
+    MiaAI-Lab/Hy3-Dual-DGX-Spark
+    MiaAI-Lab/Inkling-Small-NVFP4-Dual-DGX-Sparks
+    MiaAI-Lab/Laguna-S-2.1-DGX-Spark-RTX-6000-PRO
+    MiaAI-Lab/Leanstral-1.5-119B-A6B_2x_DGX_Sparks_vLLM
+    MiaAI-Lab/MiMo-V2.5-vLLM-Dual-DGX-Sparks
+    MiaAI-Lab/Nemotron-Labs-3-Puzzle-75B-DGX-Spark
+    MiaAI-Lab/Qwen3.6-27B-NVFP4-DFlash-DGX-Spark
+    MiaAI-Lab/Qwen3.6-35B-A3B-NVFP4-vLLM
+    MiaAI-Lab/Qwen3.6-35B-A3B-UD-Q8_K_XL_DGX-Spark-Recipe
+    MiaAI-Lab/Unsloth-Qwen3.6-35b-NVFP4-DGX-Spark
+
+  Request: https://github.com/r0b0tlab/deepseek-v4-flash-nvfp4-gb10-benchmark/issues/1
+    r0b0tlab/agents-a1-nvfp4-sm121-vllm
+    r0b0tlab/deepseek-v4-flash-nvfp4-gb10-benchmark
+    r0b0tlab/dsv4-flash-vision-exp-vllm-sm121
+    r0b0tlab/laguna-m1-nvfp4-sm121-vllm
+    r0b0tlab/qwen36-35b-a3b-nvfp4-gb10-native-mtp
+    r0b0tlab/step37-flash-nvfp4-sm121-vllm-docker
+    r0b0tlab/vibethinker-3b-nvfp4
+
+  Request: https://github.com/tonyd2wild/Hy3-295B-NVFP4-MTP-2x-DGX-Spark/issues/3
+    tonyd2wild/DS4-Jasl-Sparkrun-GB10-Fix
+    tonyd2wild/GLM-5.3-Flash-NVFP4-1M-KV-4x-DGX-Spark
+    tonyd2wild/Hy3-295B-NVFP4-MTP-2x-DGX-Spark
+    tonyd2wild/Minimax-M3-NVFP-3x-DGX-Sparks-TP-3
+
+AGPL-licensed images: Corresponding Source
+==========================================
+
+Some recipe images include AGPL-3.0 code. Their Corresponding Source is this
+repository: each image carries the labels org.opencontainers.image.source (this
+repository) and ai.vonkforge.recipes-revision (the commit it was built from),
+and the adapter directory at that commit, with the upstream commits pinned in
+its vendored-upstream.json, is the complete build source. An image built before
+the ai.vonkforge.recipes-revision label existed carries ai.vonkforge.build-key;
+any commit whose build plan gives that key holds the same source.
