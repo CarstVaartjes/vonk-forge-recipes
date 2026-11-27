@@ -1,0 +1,103 @@
+Vonk Forge recipes
+Copyright (c) 2026 Carst Vaartjes
+This repository is MIT licensed (see LICENSE).
+
+Third-party files
+=================
+
+Adapters under adapters/ include files copied byte for byte from creators'
+repositories, at the commit pinned in each adapter's vendored-upstream.json.
+Those files keep their creators' copyright and licence. The MIT licence of this
+repository does not cover them. Most adapters carry the upstream LICENSE or
+NOTICE beside the copied files.
+
+Licence not yet beside the copied files
+---------------------------------------
+
+These upstreams are licensed, and the licence text is in the upstream
+repository at the pinned commit. The adapter does not carry a copy yet.
+
+  MIT         0xSero/Step-5-Preview-Four-Sparks
+              adapters/october-2026/step-5-preview-exl3-vllm-four
+  Apache-2.0  ashhart/TensorFold
+              adapters/llm/ashhart-tensorfold-single
+  Apache-2.0  Blackwellboy/DeepSeek-V4.1-Flash-1017-BLACKFOLD-TP2
+              adapters/deepseek/blackfold-1017-tensorfold-tp2
+  Apache-2.0  drowzeys/Imagination-Studio-by-keys-Wasserman
+              adapters/video/drowzeys-fasth3-tensorfold
+  Apache-2.0  drowzeys/keys-heretic-MiniMax-H3-sol-engine-more-speed-upgrades-upscaler-finish-Single-DGX-Spark
+              adapters/video/drowzeys-keys-heretic-h3
+  Apache-2.0  Lightricks/LTX-2
+              adapters/video/ltx2-pytorch
+  Apache-2.0  NVIDIA/TensorRT-LLM
+              adapters/nvidia/nemotron-3-nano-30b-a3b-nvfp4-nvidia-trtllm-single
+  Tencent HY-Motion 1.0 Community License  Tencent-Hunyuan/HY-Motion-1.0
+              adapters/three-d/hy-motion
+  MIT         tonyd2wild/DeepSeek-V4.1-Flash-TP2-and-TP4-DGX-Sparks
+              adapters/deepseek/tonyd2wild-1017-tensorfold-tp4
+  MIT         tonyd2wild/DeepSeek-V4.1-Flash-vLLM-DGX-Spark
+              adapters/deepseek/tonyd2wild-1017-tensorfold-tp2
+  Apache-2.0  vllm-project/vllm-omni
+              adapters/fishaudio/drama-3-vllm-omni-single
+              adapters/qwen/qwen3-tts-customvoice-vllm-omni-single
+
+Upstreams without a licence (licence requested)
+-----------------------------------------------
+
+These upstream repositories have no licence. The project is asking each
+creator to add one (MIT or Apache-2.0 suggested). Until a creator answers, the
+recipes keep shipping these files with credit to the creator, and all rights
+in them stay with the creator. A creator who would rather we did not ship
+their files can say so in an issue, and the recipe will change.
+
+  0xSero/deepseek-spark
+      adapters/deepseek/0xsero-reap-single
+  0xSero/glm-5.3-flash-sglang-sm121
+      adapters/glm/0xsero-nvfp4-sglang-dual
+  drowzeys/keys-1M-CTX-Inkling-Small-NVFP4-Dspark-NVFP4-KV-Cache-SGlang-SM121-optimized-on-Two-DGX-Sparks
+      adapters/inkling/drowzeys-kvquant-dual
+  drowzeys/keys-vLLm.0.27-Qwen3.8-27B-ADay777Ablit-NVFP4-A4Q-NVFP4-KV-4M-KV-token-pool-MTP3-Single-DGX-Spark
+      adapters/qwen/drowzeys-aday777-single
+  drowzeys/keys-vLLm.0.27-Qwen3.8-NVFP4-MTP3-Single-DGX-Spark
+      adapters/qwen/drowzeys-unsloth-mtp3-single
+  MiaAI-Lab/DGX_Spark_Qwen_3.6_27b_35b_GGUF_start_script
+      adapters/qwen/mia-gguf-27b-single
+  MiaAI-Lab/Qwen3.6-35B-A3B-NVFP4-vLLM
+      adapters/qwen/mia-qwen36-35b-vllm-single
+  MiaAI-Lab/Qwen3.6-35B-A3B-UD-Q8_K_XL_DGX-Spark-Recipe
+      adapters/qwen/mia-gguf-35b-single
+  MiaAI-Lab/Unsloth-Qwen3.6-35b-NVFP4-DGX-Spark
+      adapters/qwen/mia-unsloth-qwen36-35b-b12x-single
+  r0b0tlab/agents-a1-nvfp4-sm121-vllm
+      adapters/llm/r0b0tlab-agents-a1-vllm-single
+  r0b0tlab/deepseek-v4-flash-nvfp4-gb10-benchmark
+      adapters/deepseek/r0b0tlab-vllm-fp8-dual
+  r0b0tlab/dsv4-flash-vision-exp-vllm-sm121
+      adapters/deepseek/r0b0tlab-vllm-vision-dual
+  r0b0tlab/laguna-m1-nvfp4-sm121-vllm
+      adapters/llm/r0b0tlab-laguna-m1-vllm-dual
+  r0b0tlab/nemotron3-super-120b-a12b-nvfp4-gb10-native-mtp
+      adapters/nvidia/r0b0tlab-super120-sglang-single
+  r0b0tlab/qwen36-35b-a3b-nvfp4-gb10-native-mtp
+      adapters/nvidia/r0b0tlab-qwen36-redhat-sglang-single
+  r0b0tlab/step37-flash-nvfp4-sm121-vllm-docker
+      adapters/stepfun/r0b0tlab-vllm-dual
+  r0b0tlab/vibethinker-3b-nvfp4
+      adapters/llm/r0b0tlab-vibethinker-vllm-single
+  tonyd2wild/Hy3-295B-NVFP4-MTP-2x-DGX-Spark
+      adapters/hunyuan/tonyd2wild-hy3-dual
+  tonyd2wild/Minimax-M3-NVFP-3x-DGX-Sparks-TP-3
+      adapters/minimax/tonyd2wild-m3-nvfp4-triple
+  vcruz305/Nemotron-3.5-Bolt-74B-A9B-24GB-vLLM-recipe
+      adapters/nvidia/nemotron-3-5-bolt-lilicorr-vcruz-vllm-single
+
+AGPL-licensed images: Corresponding Source
+==========================================
+
+Some recipe images include AGPL-3.0 code. Their Corresponding Source is this
+repository: each image carries the labels org.opencontainers.image.source (this
+repository) and ai.vonkforge.recipes-revision (the commit it was built from),
+and the adapter directory at that commit, with the upstream commits pinned in
+its vendored-upstream.json, is the complete build source. An image built before
+the ai.vonkforge.recipes-revision label existed carries ai.vonkforge.build-key;
+any commit whose build plan gives that key holds the same source.
