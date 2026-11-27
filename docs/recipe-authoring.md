@@ -1607,8 +1607,8 @@ For every image whose Models select Python modules, it calls Transformers
 installed environment on modules named by `auto_map` in the selected `config.json`,
 `tokenizer_config.json`, `processor_config.json`, `preprocessor_config.json` and
 `video_preprocessor_config.json`,
-plus their relative imports (including processor dependencies), before adding
-the platform layer or pushing. vLLM and SGLang build registered architectures
+plus their relative imports (including processor dependencies), before
+pushing. vLLM and SGLang build registered architectures
 natively, so their `AutoModel*` entries are checked only when a base or option
 argument selects `model-impl` `transformers` or SGLang's ModelOpt quantization
 load (`modelopt-*`, or `quantization` `modelopt`, `modelopt_fp8` or
