@@ -387,6 +387,14 @@ jobs:
           set -euo pipefail
           python3 tools/check-serial-reads --diff "$RUNNER_TEMP/added.diff"
 
+      # Unpickling runs code: an added torch.load passes weights_only=True and new code
+      # never calls pickle. Creator copies are not judged. Checks only added lines.
+      - name: Reject new pickle loads
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/check-pickle-loads --diff "$RUNNER_TEMP/added.diff"
+
       # An adapter never sets its own NCCL_IB_HCA: the platform names both RDMA devices of a
       # 200 Gb/s port, and a single device halves the link. Checks only added lines.
       - name: Reject adapter lines that narrow NCCL_IB_HCA

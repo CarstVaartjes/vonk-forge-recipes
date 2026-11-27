@@ -1,0 +1,119 @@
+#!/usr/bin/env python3
+"""Reject an added pickle load: ``torch.load`` without ``weights_only=True``, or ``pickle``.
+
+Unpickling runs code the file names. ``torch.load(..., weights_only=True)`` reads only
+tensors and plain containers (the ``.pt`` files under ``adapters/glm/mia-exl3-dflash2-*``
+are read that way), so a swapped checkpoint cannot run anything. A new ``torch.load``
+passes ``weights_only=True``; new code never calls ``pickle.load``, ``pickle.loads`` or
+``pickle.Unpickler`` (``_pickle`` and ``cPickle`` too). Prefer safetensors for new files.
+
+Only calls on lines added by the diff given with ``--diff FILE|-`` are checked, in Python
+files (``.py`` and Python-shebang launchers); comments and strings are not code. A file
+that ``vendored-upstream.json`` classifies as a verbatim creator copy is not checked: it
+is byte-identical upstream, and a refresh that brings it is never blocked. There is no
+count and no allowlist.
+"""
+
+from __future__ import annotations
+
+import argparse
+import ast
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+from recipe_tooling.added_lines import parse_added, read_diff
+from recipe_tooling.verbatim_copies import verbatim_copy
+
+ROOT = Path(__file__).resolve().parents[1]
+
+PICKLE_MODULES = frozenset({"pickle", "_pickle", "cPickle"})
+PICKLE_CALLS = frozenset({"load", "loads", "Unpickler"})
+ADVICE = (
+    "unpickling runs code; pass weights_only=True to torch.load (or use safetensors), "
+    "never pickle"
+)
+
+
+def _safe_torch_load(call: ast.Call) -> bool:
+    return any(
+        keyword.arg == "weights_only"
+        and isinstance(keyword.value, ast.Constant)
+        and keyword.value.value is True
+        for keyword in call.keywords
+    )
+
+
+def _unsafe(call: ast.Call) -> bool:
+    function = call.func
+    if not isinstance(function, ast.Attribute) or not isinstance(
+        function.value, ast.Name
+    ):
+        return False
+    module, name = function.value.id, function.attr
+    if module == "torch" and name == "load":
+        return not _safe_torch_load(call)
+    return module in PICKLE_MODULES and name in PICKLE_CALLS
+
+
+def scan(source: str, added: set[int]) -> list[int]:
+    """First lines of the unsafe loads whose call spans an added line."""
+    try:
+        tree = ast.parse(source)
+    except SyntaxError:
+        return []  # not Python 3 (ruff judges our own files)
+    hits = {
+        node.lineno
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Call)
+        and _unsafe(node)
+        and added & set(range(node.lineno, (node.end_lineno or node.lineno) + 1))
+    }
+    return sorted(hits)
+
+
+def _python(root: Path, name: str) -> bool:
+    if name.endswith(".py"):
+        return True
+    if Path(name).suffix:
+        return False
+    try:
+        with (root / name).open("rb") as handle:
+            first = handle.readline()
+    except OSError:
+        return False
+    return first.startswith(b"#!") and b"python" in first
+
+
+def check(root: Path, diff: str) -> list[str]:
+    def judged(name: str) -> bool:
+        return _python(root, name) and not verbatim_copy(root, name)
+
+    problems: list[str] = []
+    for name, lines in sorted(parse_added(diff, judged).items()):
+        if not judged(name):
+            continue
+        source = (root / name).read_text(encoding="utf-8", errors="replace")
+        problems.extend(
+            f"{name}:{number}: new pickle load; {ADVICE}"
+            for number in scan(source, lines)
+        )
+    return problems
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=(__doc__ or "").splitlines()[0])
+    parser.add_argument(
+        "--diff",
+        required=True,
+        help="unified -U0 diff to judge: a file, or - for stdin",
+    )
+    parser.add_argument("--root", type=Path, default=ROOT)
+    arguments = parser.parse_args()
+    problems = check(arguments.root, read_diff(arguments.diff))
+    print("\n".join(problems))
+    return 1 if problems else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

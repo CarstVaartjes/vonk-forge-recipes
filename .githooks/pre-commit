@@ -37,6 +37,7 @@ fi
 staged=$(python3 tools/added-lines --cached)
 printf '%s\n' "$staged" | python3 tools/check-test-git --diff -
 printf '%s\n' "$staged" | python3 tools/check-nccl-ib-hca --diff -
+printf '%s\n' "$staged" | python3 tools/check-pickle-loads --diff -
 printf '%s\n' "$staged" | python3 tools/check-document-reads --diff -
 printf '%s\n' "$staged" | python3 tools/check-serial-reads --diff -
 printf '%s\n' "$staged" | python3 tools/check-estimate-gates --diff -
