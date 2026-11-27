@@ -1153,6 +1153,9 @@ to patched runtime files or missing selected files need review; metadata-only
 changes do not independently justify rebuilding identical content. A file counts as metadata only when both its stored roles and `roles_for` say so
 (`classification.is_metadata`, the one rule for payload comparison and sibling weights). Shared build
 contexts refresh together. Human repairs may intentionally diverge with evidence.
+A pinned source-archive digest moves with the pin wherever the Dockerfile states it: an
+`*archive-sha256` label or an `ARG *ARCHIVE_SHA256=<digest>` default marks it, and every
+occurrence (check line, label reference) moves together.
 An adapter that installs a creator's GitHub release asset pins it by version and
 sha256. A refresh moves the `releases/download/<tag>/<asset>` URL and re-pins the
 sha256 from the creator's `<asset>.sha256`, checked against GitHub's recorded
