@@ -28,6 +28,7 @@ ADDED_PATHSPEC = (
     "scripts/",
     "tests/",
     "adapters/",
+    "display/models/",
 )
 # Explicit prefixes: a developer's diff.mnemonicPrefix or diff.noprefix must not
 # change how paths are parsed.

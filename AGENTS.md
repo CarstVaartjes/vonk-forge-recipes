@@ -32,7 +32,9 @@ Recipe memory policy lives in the authoring guide's memory section.
   the catalog hierarchy (`lineage`: Family → Line → Model, with the Family titles
   and Line order in `display/families/<slug>.json`), live in
   `display/recipes/<slug>.json` / `display/models/<slug>.json`. A display edit
-  never changes a digest, evidence or a proven status. Add or remove a display together with its document.
+  never changes a digest, evidence or a proven status. A Model's licence id is an
+  SPDX list id, `LicenseRef-<Name>` or `NOASSERTION` (`tools/check-display-licences`,
+  added lines); it informs, never gates. Add or remove a display together with its document.
 - Use contract models and enums for structures, states, reasons and codes we
   control. External wire extensions are distinct from locally owned structures.
   Platform wire consumers use the Pydantic → JSON Schema → typify Rust chain

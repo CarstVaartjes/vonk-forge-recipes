@@ -13,7 +13,7 @@
     "attribution": [
       "Qwen"
     ],
-    "spdx": "qwen-research",
+    "spdx": "LicenseRef-Qwen-Research-License",
     "url": "https://huggingface.co/Qwen/Qwen-Image-2.1-Turbo/blob/fc13ba1986fcb905854dc8de2f52eee395f49b5b/LICENSE"
   },
   "lineage": {
