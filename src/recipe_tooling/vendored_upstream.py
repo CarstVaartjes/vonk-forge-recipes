@@ -54,7 +54,6 @@ import argparse
 import hashlib
 import json
 import os
-import re
 import subprocess
 import sys
 from collections import defaultdict
@@ -68,6 +67,7 @@ from urllib.request import Request
 from recipe_tooling.adapter_sources import (
     materialize_or_exit,
 )
+from recipe_tooling.image_labels import label_source
 from recipe_tooling.paths import REPO_ROOT
 from recipe_tooling.upstream_http import UpstreamBusy, fetch
 from recipe_tooling.vendored_manifest import VendoredManifest
@@ -76,12 +76,6 @@ ROOT = REPO_ROOT
 
 MANIFEST = "vendored-upstream.json"
 KIT_LOCK = "kit-lock.json"  # derived by tools/kit-pins from the kit the recipe pins
-SHA = re.compile(r"^[0-9a-f]{40}$")
-GITHUB = re.compile(
-    r"^https://github\.com/([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+?)(?:\.git)?/?$"
-)
-LABEL_SOURCE = re.compile(r'org\.opencontainers\.image\.source="([^"]+)"')
-LABEL_REVISION = re.compile(r'org\.opencontainers\.image\.revision="([^"]+)"')
 # Basenames too generic to identify a renamed upstream file.
 GENERIC_BASENAMES = frozenset(
     {
@@ -237,14 +231,7 @@ def _source(adapter: Path, manifest: VendoredManifest) -> tuple[str, str] | None
     if manifest.source is not None:
         return manifest.source.repo, manifest.source.commit
     dockerfile = adapter / "Dockerfile"
-    text = dockerfile.read_text(encoding="utf-8", errors="replace")
-    source, revision = LABEL_SOURCE.search(text), LABEL_REVISION.search(text)
-    if not source or not revision:
-        return None
-    match = GITHUB.match(source.group(1))
-    if not match or not SHA.match(revision.group(1)):
-        return None
-    return match.group(1), revision.group(1)
+    return label_source(dockerfile.read_text(encoding="utf-8", errors="replace"))
 
 
 def _candidates(
