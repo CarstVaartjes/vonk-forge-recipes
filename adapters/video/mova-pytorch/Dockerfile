@@ -1,8 +1,9 @@
 FROM nvcr.io/nvidia/cuda:13.4.1-runtime-ubuntu24.04@sha256:2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962
 
 LABEL org.opencontainers.image.source="https://github.com/OpenMOSS/MOVA" \
-      org.opencontainers.image.revision="1591b2557b42030a3421442c998dd6f5602ed9bd" \
+      org.opencontainers.image.revision="b8cf0252c6e50dd5401b8f1f15f5298b02a2063f" \
       org.opencontainers.image.licenses="Apache-2.0" \
+      io.vonk.mova.source-archive-sha256="9204df9441b9132b6b0e1d896984e559f7f68a1ab91abe08f906a3bde6e2efd9" \
       io.vonk.mova.adapter="synchronized-video-audio-v1"
 
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -12,8 +13,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
     HF_HUB_DISABLE_TELEMETRY=1 \
     TRANSFORMERS_OFFLINE=1
 
-ARG MOVA_REVISION=1591b2557b42030a3421442c998dd6f5602ed9bd
-ARG MOVA_ARCHIVE_SHA256=255aa8eac38ffcbbcd236d95eca29812e46f55d235d6f40aa23cdd4a76dfbaad
+ARG MOVA_REVISION=b8cf0252c6e50dd5401b8f1f15f5298b02a2063f
+ARG MOVA_ARCHIVE_SHA256=9204df9441b9132b6b0e1d896984e559f7f68a1ab91abe08f906a3bde6e2efd9
 
 RUN apt-get update \
     && apt-get install --no-install-recommends --yes \
