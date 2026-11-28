@@ -13,7 +13,7 @@
 #   model        /models/target is the exlr8 release used in place (MODEL, a local path: nothing is fetched); the
 #                DFlash2 drafter in /models/drafter is converted here with the creator's own converter.
 #   writable     everything gr8 writes (its working directory, the prompt cache, the converted drafter and the compact
-#                expert copies) is under /outputs/cache/gr8, where the creator wrote /var/lib/gr8/{home,prompts,cache}.
+#                expert copies) is under /outputs/cache/gr8, where the creator wrote /var/lib/gr8/{home,cache,cache/prompts}.
 set -euo pipefail
 
 creator=$(ls -d /opt/glm53f-?x | head -n 1)
@@ -42,8 +42,8 @@ done
 
 mkdir -p "$state/home" "$state/cache" "$state/prompts" /outputs/tmp
 export GR8_WORK_DIR=$state/home MODEL_CACHE=$state/cache TMPDIR=/outputs/tmp
-# the creator's prompt cache (kv-store.yaml), moved from /var/lib/gr8/prompts to the writable state
-sed "s#/var/lib/gr8/prompts#$state/prompts#g" /etc/gr8/kv-store.yaml > "$state/kv-store.yaml"
+# the creator's prompt cache (kv-store.yaml), moved from /var/lib/gr8/cache/prompts to the writable state
+sed "s#/var/lib/gr8/cache/prompts#$state/prompts#g" /etc/gr8/kv-store.yaml > "$state/kv-store.yaml"
 export KV_STORE=@$state/kv-store.yaml
 
 # placement

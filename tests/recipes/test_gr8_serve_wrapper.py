@@ -47,7 +47,7 @@ def sandbox(request, tmp_path):
     launch.mkdir(parents=True)
     (launch / "hfsource.py").write_text(FAKE_HFSOURCE)
     (tmp_path / "etc/gr8").mkdir(parents=True)
-    (tmp_path / "etc/gr8/kv-store.yaml").write_text("path: /var/lib/gr8/prompts\n")
+    (tmp_path / "etc/gr8/kv-store.yaml").write_text("path: /var/lib/gr8/cache/prompts\n")
     (tmp_path / "models/drafter").mkdir(parents=True)
     for path in (creator / "entrypoint.sh", creator / "bin/gr8"):
         path.chmod(0o755)

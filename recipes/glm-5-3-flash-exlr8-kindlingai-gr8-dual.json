@@ -2,8 +2,8 @@
   "execution": {
     "build": {
       "base_image": {
-        "digest": "3632daae54b2f239366d47c4932bdedf606e00d937a06605a22a45ce04d01149",
-        "repository": "ghcr.io/kindlingai/glm-5.3-flash-exlr8-2x-spark"
+        "digest": "3de05aab8cda21fd5d6b4af89ccdba6ff5abdbd704729601fd348fa638ade9fd",
+        "repository": "ghcr.io/kindlingai/gr8"
       },
       "context": {
         "path": "adapters/glm/kindlingai-gr8-flash-dual"
@@ -2195,11 +2195,11 @@
       "KindlingAI",
       "Z.AI"
     ],
-    "source_reference": "https://github.com/kindlingai/glm-5.3-flash-exlr8-2x-spark/tree/18c948d8c66c42faed1b67d732240974ec288c18"
+    "source_reference": "https://github.com/kindlingai/recipes/blob/13c24ac483eaf8b2fcb828a62ae2604bcc038b92/glm-5.3-flash/dgx-spark/2x/exlr8-gr8/compose.yaml"
   },
   "release": {
-    "released_at": "2026-11-17",
-    "version": "18c948d8"
+    "released_at": "2026-11-28",
+    "version": "13c24ac4"
   },
   "runtime": {
     "arguments": [
@@ -2230,16 +2230,72 @@
     ],
     "environment": [
       {
+        "name": "DEFAULT_MAX_TOKENS",
+        "value": "32768"
+      },
+      {
+        "name": "DEFAULT_PRESENCE_PENALTY",
+        "value": "greedy=0.2,greedy.thinking=0.5,nongreedy.thinking=0.5"
+      },
+      {
+        "name": "DEFAULT_THINKING_BUDGET",
+        "value": "28672"
+      },
+      {
+        "name": "DEFAULT_THINK_END_BOOST",
+        "value": "start=16384,per1k=4,max=10"
+      },
+      {
         "name": "DFLASH",
         "value": "1"
+      },
+      {
+        "name": "FLASH_CACHE",
+        "value": "aligned"
+      },
+      {
+        "name": "FRONT_BIN",
+        "value": "/opt/gr8/bin/g6front-rs"
+      },
+      {
+        "name": "GR8_MODEL",
+        "value": "glm53f"
+      },
+      {
+        "name": "GROUP",
+        "value": "gr8-glm53f-2x"
       },
       {
         "name": "HF_HUB_OFFLINE",
         "value": "1"
       },
       {
+        "name": "KV_FORMAT",
+        "value": "int4"
+      },
+      {
+        "name": "KV_STORE",
+        "value": "@/etc/gr8/kv-store.yaml"
+      },
+      {
+        "name": "MENTAT",
+        "value": "0"
+      },
+      {
+        "name": "TP",
+        "value": "2"
+      },
+      {
         "name": "TRANSFORMERS_OFFLINE",
         "value": "1"
+      },
+      {
+        "name": "TUNE",
+        "value": "speed"
+      },
+      {
+        "name": "UNDECLARED_TOOL_CALLS",
+        "value": "emit"
       }
     ],
     "lifecycle": {
