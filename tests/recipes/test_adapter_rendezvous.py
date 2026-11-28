@@ -2,9 +2,15 @@
 
 from __future__ import annotations
 
+import contextlib
+import io
+import json
+import os
 import re
+import runpy
 import socket
 import subprocess
+import sys
 import types
 from pathlib import Path
 from types import SimpleNamespace
@@ -14,6 +20,7 @@ import pytest
 from repo_root import ROOT
 
 from tests.documents import recipe
+from tests.recipes.test_ray_poll_interpreter import launcher_source
 
 MOVA = "video/mova-pytorch/run.py"
 CALIBRATION = (
@@ -63,11 +70,7 @@ def _rendezvous_errors(source: str) -> list[str]:
 
 def test_adapter_sources_use_loopback_rendezvous() -> None:
     violations: list[str] = []
-    sources = subprocess.check_output(
-        ["git", "ls-files", "-z", "--", "adapters"], cwd=ROOT, text=True
-    )
-    for name in sources.split("\0"):
-        path = ROOT / name
+    for path in sorted((ROOT / "adapters").rglob("*")):
         if not path.is_file() or path.suffix not in {"", ".py", ".sh", ".md", ".patch"}:
             continue
         source = path.read_text(encoding="utf-8")
@@ -213,57 +216,164 @@ def test_multi_node_vllm_recipes_bind_the_controller_placement() -> None:
     assert not unbound, f"multi-node vLLM recipes without a rendezvous bind: {unbound}"
 
 
-# A launcher assigns the engine's host variable (python `environ[...] =`, shell `VLLM_HOST_IP=`).
-HOST_ASSIGNMENT = re.compile(
-    r"""(?:["']VLLM_HOST_IP["']\s*\]\s*=|(?<![\w-])VLLM_HOST_IP=)"""
-)
+FABRIC = "192.0.2.77"
+FABRIC_ENV = {
+    "VONK_LOCAL_ADDR": FABRIC,
+    "VONK_MASTER_ADDR": "192.0.2.1",
+    "VONK_MASTER_PORT": "29500",
+    "NCCL_SOCKET_IFNAME": "eth0",
+    "NCCL_IB_HCA": "roce0",
+    "NCCL_IB_GID_INDEX": "3",
+    "TP_SOCKET_IFNAME": "eth0",
+    "GLOO_SOCKET_IFNAME": "eth0",
+}
+# Shell launchers run in their own behavioural test (the llama wrapper above).
+SHELL_LAUNCHERS = {LLAMA_405B}
 
 
-def _advertises_fabric_address(sources: list[str]) -> bool:
-    return any(
-        HOST_ASSIGNMENT.search(source) and "VONK_LOCAL_ADDR" in source
-        for source in sources
+class _Stop(BaseException):
+    pass
+
+
+def _advertised_host(slug: str) -> list[str | None]:
+    """VLLM_HOST_IP each process spawn of the rank-1 launcher would carry."""
+    document = json.loads((ROOT / "recipes" / f"{slug}.json").read_text())
+    launcher = launcher_source(document)
+    assert launcher is not None, slug
+    seen: list[str | None] = []
+
+    def spawn(*args: object, **kwargs: object) -> None:
+        env = kwargs.get("env")
+        if env is None and args and isinstance(args[-1], dict):
+            env = args[-1]
+        seen.append((env if isinstance(env, dict) else os.environ).get("VLLM_HOST_IP"))
+        if len(seen) > 50:
+            raise _Stop
+
+    def execed(*args: object, **kwargs: object) -> None:
+        spawn(*args, **kwargs)
+        raise _Stop
+
+    backend = document["topology"]["parallelism"]["backend"]
+    authored: list[str] = []
+    for item in document["runtime"]["arguments"]:
+        value = item.get("value")
+        if value is None and item.get("setting"):
+            value = document["settings"][item["setting"]]["value"]
+        if value is True:
+            authored.append(f"--{item['name']}")
+        elif value is not None and value is not False:
+            authored.extend((f"--{item['name']}", str(value)))
+    argv = [
+        str(launcher),
+        *document["runtime"]["entrypoint"][1:],
+        *authored,
+        "--nnodes",
+        str(document["topology"]["node_count"]),
+        "--node-rank",
+        "1",
+        "--headless",
+        "--distributed-executor-backend",
+        # `native` recipes are launched with the multiprocessing backend.
+        backend if backend != "native" else "mp",
+    ]
+    environment = {k: v for k, v in os.environ.items() if k != "VLLM_HOST_IP"}
+    ok = subprocess.CompletedProcess(
+        [], 0, "VONK_ALIVE=9\nResources: 0.0/9.0 GPU\n", ""
     )
+    real_open = io.open
+
+    def read_only_open(file: object, mode: str = "r", *args: object, **kwargs: object):
+        # Image files the launcher reads (model configs, plans) are empty JSON.
+        if set(mode) & set("wax+"):
+            return io.StringIO()
+        try:
+            return real_open(file, mode, *args, **kwargs)  # type: ignore[call-overload]
+        except FileNotFoundError:
+            return io.BytesIO(b"{}") if "b" in mode else io.StringIO("{}")
+
+    real_read_text = Path.read_text
+
+    def read_text(self: Path, *args: object, **kwargs: object) -> str:
+        try:
+            return real_read_text(self, *args, **kwargs)  # type: ignore[arg-type]
+        except FileNotFoundError:
+            return "{}"
+
+    patches = [
+        mock.patch("builtins.open", read_only_open),
+        mock.patch("io.open", read_only_open),
+        mock.patch("pathlib.Path.read_text", read_text),
+        mock.patch.object(sys, "argv", argv),
+        mock.patch.dict(os.environ, {**environment, **FABRIC_ENV}, clear=True),
+        *(
+            mock.patch(f"os.{name}", side_effect=execed)
+            for name in ("execv", "execve", "execvp", "execvpe")
+        ),
+        mock.patch(
+            "subprocess.run", side_effect=lambda *a, **k: (spawn(*a, **k), ok)[1]
+        ),
+        mock.patch("subprocess.Popen", side_effect=spawn),
+        mock.patch("pathlib.Path.is_file", return_value=True),
+        mock.patch("os.path.isfile", return_value=True),
+        mock.patch("os.access", return_value=True),
+        mock.patch("shutil.which", side_effect=lambda name, **_: f"/image/bin/{name}"),
+        mock.patch("time.sleep"),
+        # Nothing is written or removed on the host.
+        mock.patch("pathlib.Path.mkdir"),
+        mock.patch("pathlib.Path.write_text"),
+        mock.patch("pathlib.Path.touch"),
+        mock.patch("pathlib.Path.symlink_to"),
+        mock.patch("pathlib.Path.unlink"),
+        mock.patch("os.makedirs"),
+        mock.patch("os.symlink"),
+        mock.patch("os.remove"),
+        mock.patch("os.replace"),
+        mock.patch("pathlib.Path.replace"),
+        mock.patch("shutil.rmtree"),
+    ]
+    with contextlib.ExitStack() as stack:
+        for patch in patches:
+            stack.enter_context(patch)
+        stack.enter_context(contextlib.suppress(_Stop))
+        runpy.run_path(str(launcher), run_name="__main__")
+    return seen
 
 
-@pytest.mark.parametrize(
-    ("sources", "expected"),
-    [
-        (['os.environ["VLLM_HOST_IP"] = os.environ["VONK_LOCAL_ADDR"]'], True),
-        (['export VLLM_HOST_IP="${VONK_LOCAL_ADDR:?placement}"'], True),
-        (['export VLLM_HOST_IP="$HOST_IP"'], False),
-        (['os.environ["VLLM_HOST_IP"] = "10.0.0.1"'], False),
-        (["only reads VONK_LOCAL_ADDR"], False),
-        (['os.environ["VLLM_HOST_IP"] = a', "b = VONK_LOCAL_ADDR"], False),
-    ],
+def _distributed_vllm_slugs() -> list[str]:
+    return [
+        path.stem
+        for path in sorted((ROOT / "recipes").glob("*.json"))
+        if recipe(path.stem).topology.node_count >= 2
+        and recipe(path.stem).runtime.engine == "vllm"
+        and path.stem not in SHELL_LAUNCHERS
+    ]
+
+
+# Launchers whose image-only inputs (EXL3 plan, safetensors header) the fakes
+# cannot stand in for: only their launcher source is checked.
+SOURCE_ONLY = {
+    "deepseek-v4-1-flash-exl3-0xsero-vllm-dual",
+    "glm-5-3-flash-nvfp4-dflash2-tonyd2wild-vllm-dual",
+}
+FROM_FABRIC = re.compile(
+    r"(\w+)\s*=\s*os\.environ(?:\.get\(|\[)\s*[\"']VONK_LOCAL_ADDR[\"'][\s\S]*"
+    r"os\.environ\[[\"']VLLM_HOST_IP[\"']\]\s*=\s*\1\b"
 )
-def test_host_address_guard_accepts_only_fabric_advertising_launchers(
-    sources: list[str], expected: bool
-) -> None:
-    assert _advertises_fabric_address(sources) is expected
 
 
-def test_distributed_vllm_launchers_advertise_the_fabric_address() -> None:
+@pytest.mark.parametrize("slug", _distributed_vllm_slugs())
+def test_distributed_vllm_launcher_advertises_the_fabric_address(slug: str) -> None:
     # vLLM's message queue advertises VLLM_HOST_IP, or else the default-route
-    # source address, which is the LAN. Every launcher must set it from the
-    # platform's fabric address so peers never dial the LAN.
-    lan_advertising = []
-    for path in sorted((ROOT / "recipes").glob("*.json")):
-        document = recipe(path.stem)
-        if document.topology.node_count < 2 or document.runtime.engine != "vllm":
-            continue
-        context = ROOT / document.execution.build.context.path
-        sources = [
-            file.read_text(encoding="utf-8", errors="ignore")
-            for file in sorted(context.rglob("*"))
-            if file.is_file()
-        ]
-        if not _advertises_fabric_address(sources):
-            lan_advertising.append(path.stem)
-    assert not lan_advertising, (
-        f"distributed vLLM launchers must set VLLM_HOST_IP from VONK_LOCAL_ADDR: "
-        f"{lan_advertising}"
-    )
+    # source address, which is the LAN.
+    if slug in SOURCE_ONLY:
+        document = json.loads((ROOT / "recipes" / f"{slug}.json").read_text())
+        assert FROM_FABRIC.search(launcher_source(document).read_text())  # type: ignore[union-attr]
+        return
+    seen = _advertised_host(slug)
+    assert seen, "launcher never reached an exec"
+    assert FABRIC in seen
+    assert set(seen) <= {FABRIC, None}
 
 
 def _run_llama_405b_wrapper(tmp_path: Path, env: dict[str, str]):
