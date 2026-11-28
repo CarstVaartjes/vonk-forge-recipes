@@ -16,7 +16,7 @@
     }
   },
   "kit": {
-    "commit": "6d531332cdc975415c8b37a20784c21f69eb0644",
-    "repo": "kindlingai/glm-5.3-exlr8-5x-spark"
+    "commit": "13c24ac483eaf8b2fcb828a62ae2604bcc038b92",
+    "repo": "kindlingai/recipes"
   }
 }
