@@ -1,0 +1,43 @@
+{
+  "dependencies": {
+    "cutlass": {
+      "commit": "5c149f52a436782210263fb2f19b354443a61c6a",
+      "datasource": "git-ref",
+      "kind": "commit",
+      "ref": "5c149f52a436782210263fb2f19b354443a61c6a",
+      "repo": "NVIDIA/cutlass"
+    },
+    "flashkda": {
+      "commit": "17a037d98da546deb4591e967cf961a43c034d8b",
+      "datasource": "git-ref",
+      "kind": "commit",
+      "ref": "17a037d98da546deb4591e967cf961a43c034d8b",
+      "repo": "vllm-project/FlashKDA"
+    },
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:ac8b63cdb18294ab4b9efa4a2f0a4474896fbaf9d48700512f8f2082b548c2c0",
+      "kind": "tag",
+      "ref": "nightly-ddd6fbca148a867aad1fcab7ec72f582b9977db4",
+      "repo": "docker.io/mmastrac/vllm-openai"
+    },
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "tag",
+      "ref": "v0.1",
+      "repo": "kindlingai/glm-5.3-flash-exlr8-k2-k3-k4",
+      "revision": "1a22815d178a79f78bb44e6858f0ee446ae8f0d4"
+    },
+    "vllm": {
+      "commit": "ddd6fbca148a867aad1fcab7ec72f582b9977db4",
+      "datasource": "git-ref",
+      "kind": "commit",
+      "ref": "ddd6fbca148a867aad1fcab7ec72f582b9977db4",
+      "repo": "vllm-project/vllm"
+    }
+  },
+  "kit": {
+    "commit": "dfdb0477b5c9131cfdc060ab007cb0553d25326a",
+    "repo": "kindlingai/glm-5.3-flash-exlr8-gx10"
+  }
+}
