@@ -1,0 +1,21 @@
+{
+  "alignment": "unspecified",
+  "component_bindings": [],
+  "description": "StepFun's Step 5 Preview (600B total, 27B active, vision-language) on four DGX Sparks with vLLM tensor parallel 4, from KindlingAI's recipe at 13c24ac4 (creator status: experimental). The weights are StepFun's own NVFP4 checkpoint (ModelOpt, revision bc246cc2). The recipe runs the vLLM Step-5 Preview image as the kit pins it, with the creator's read-only FP8 KV overlay: FP8 E4M3 KV in 40,000 blocks, a 589,824-token window, eight requests at once, MTP with three speculative tokens, dense attention, prefix caching and the step5 reasoning and tool-call parsers, GPU memory utilization 0.86. The creator serves the language model only, so image and video input are off. Options: the creator's profiles (b5-fp8 default; b4-fp8, 30,000 FP8 blocks at GPU memory utilization 0.85; b4-bf16-192k and b4-bf16-256k, BF16 KV without the overlay, the latter not benchmarked by the creator). A profile does not change the context window: set the context setting to the creator's window for it (442,368, 196,608 or 262,144 tokens). The creator's lowest free memory a box was 8.22 GiB on the default profile, 10.06 GiB on b4-fp8 and 9.56 GiB on b4-bf16-192k. About 394 GB of model files on every box: the creator's NFS shard split, its copy and mount scripts only save disk, so they are left out and the platform mounts the full Model on each Spark. Licences, for information: the weights are under StepFun's Model License 1.0, the recipe and the FP8 KV overlay MIT.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "step-5-preview-nvfp4-kindlingai-vllm-four"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "executable",
+    "four-spark",
+    "fp8-kv",
+    "reasoning",
+    "spark",
+    "step-5",
+    "tool-use",
+    "vllm"
+  ],
+  "title": "Step 5 Preview NVFP4 vLLM 4 Sparks"
+}
