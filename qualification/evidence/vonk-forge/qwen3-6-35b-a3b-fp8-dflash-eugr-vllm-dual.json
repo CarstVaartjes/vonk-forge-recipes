@@ -97,11 +97,11 @@
     },
     {
       "identity": {
-        "content_sha256": "0aa2b1cc063b075a63f06ecdb1f27cefb6f4ddaaff88c93ef655868e6d883c94",
-        "source_bundle_sha256": "68b5bfa54455df7971e2c3658ee283eed15066e201c8187aa83159692b57b956",
+        "content_sha256": "cbf1792314ac55353db0707be81fa8d1eb3e1a153ba36bbadc34cf236dd9fd70",
+        "source_bundle_sha256": "dd033481ddb329e36a861cd6bc4c1073c06f59481a3a58e19cb85265978b5a91",
         "runtime_image": {
-          "build_key": "969390f9d2b8d28b0f9b57e95a7a4d6780430b672f8cb349de72fd6607b58db1",
-          "image_digest": "sha256:9c84764f934d69d729eb9c88b303622d72d9bae8c44f05eed05bf0992d6f2bf6"
+          "build_key": "c94ce810343615d260a6cad8f4688ec1d1a05021207f695e3584d473b1c237bb",
+          "image_digest": "sha256:b8c68c742f76643b9114a4cbfde0ac1dce2bfc4ce7df866d159774afe980adb0"
         },
         "model_digests": [
           "2d515229e1ac95a24a33e93dd9dc0adbd754daf48b2208c9459b7dad21d1fccb",
@@ -114,11 +114,11 @@
       "cause_code": "qualification.hardware_pass",
       "cause_summary": "Hardware checks passed",
       "evidence_refs": [
-        "3e8fdf597abb955ff755a7ee0d178b386011e434842fb5c5df11f197713fd3b0"
+        "b5b111a133700c03baee1f0df9c2bfb9a473893263ca76840345ce33833bda4c"
       ],
-      "tested_at": "2026-11-26T23:21:47.483427Z",
+      "tested_at": "2026-11-28T08:37:08.930410Z",
       "platform": {
-        "controller_source_sha": "45f348e7fcaf76d307c687bd8524ccf964d8675a",
+        "controller_source_sha": "011de534f0eff53592cecbf2722c52904d9efd32",
         "hardware_class": "GB10",
         "spark_count": 2,
         "topology": "multi"
@@ -127,18 +127,6 @@
     }
   ],
   "measured_memory": [
-    {
-      "content_sha256": "0aa2b1cc063b075a63f06ecdb1f27cefb6f4ddaaff88c93ef655868e6d883c94",
-      "role": "entrypoint",
-      "steady_bytes": 114331435008,
-      "budget_bytes": 104530585191
-    },
-    {
-      "content_sha256": "0aa2b1cc063b075a63f06ecdb1f27cefb6f4ddaaff88c93ef655868e6d883c94",
-      "role": "worker",
-      "steady_bytes": 111897333760,
-      "budget_bytes": 104530585191
-    },
     {
       "content_sha256": "bbcfcc978e496277f0e2f7b34096706b34354ab8cb31ccf9b3f30cf5bb70e099",
       "role": "entrypoint",
@@ -149,6 +137,18 @@
       "content_sha256": "bbcfcc978e496277f0e2f7b34096706b34354ab8cb31ccf9b3f30cf5bb70e099",
       "role": "worker",
       "steady_bytes": 111854157824,
+      "budget_bytes": 104530585191
+    },
+    {
+      "content_sha256": "cbf1792314ac55353db0707be81fa8d1eb3e1a153ba36bbadc34cf236dd9fd70",
+      "role": "entrypoint",
+      "steady_bytes": 114102329344,
+      "budget_bytes": 104530585191
+    },
+    {
+      "content_sha256": "cbf1792314ac55353db0707be81fa8d1eb3e1a153ba36bbadc34cf236dd9fd70",
+      "role": "worker",
+      "steady_bytes": 112089165824,
       "budget_bytes": 104530585191
     }
   ]
