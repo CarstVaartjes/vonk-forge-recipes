@@ -165,11 +165,9 @@ def test_the_tool_writes_the_same_bytes(vector: FutureVector, tmp_path: Path) ->
 def test_every_recipe_entry_the_reader_keeps_is_consistent_with_its_api(
     vector: FutureVector,
 ) -> None:
-    kept = [
-        entry
-        for entry in read_catalog(vector.document).index.recipes
-        if entry.api is not None
-    ]
-    assert kept
-    for entry in kept:
-        check_recipe_api(entry.document, entry.api)
+    checked = 0
+    for entry in read_catalog(vector.document).index.recipes:
+        if entry.api is not None:
+            check_recipe_api(entry.document, entry.api)
+            checked += 1
+    assert checked
