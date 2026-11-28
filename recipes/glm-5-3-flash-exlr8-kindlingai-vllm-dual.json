@@ -1749,7 +1749,7 @@
       {
         "name": "served-model-name",
         "setting": null,
-        "value": "glm-5.3-flash-nvfp4"
+        "value": "glm-5.3-flash-exlr8"
       },
       {
         "name": "tensor-parallel-size",
@@ -1875,14 +1875,6 @@
     ],
     "environment": [
       {
-        "name": "HF_HUB_OFFLINE",
-        "value": "1"
-      },
-      {
-        "name": "TRANSFORMERS_OFFLINE",
-        "value": "1"
-      },
-      {
         "name": "VLLM_USE_RAY_V2_EXECUTOR_BACKEND",
         "value": "1"
       },
@@ -1909,14 +1901,6 @@
       {
         "name": "NCCL_DEBUG",
         "value": "INFO"
-      },
-      {
-        "name": "TORCH_CUDA_ARCH_LIST",
-        "value": "12.1a"
-      },
-      {
-        "name": "FLASHINFER_CUDA_ARCH_LIST",
-        "value": "12.1a"
       },
       {
         "name": "VLLM_WEIGHT_SNAPSHOT_DIR",

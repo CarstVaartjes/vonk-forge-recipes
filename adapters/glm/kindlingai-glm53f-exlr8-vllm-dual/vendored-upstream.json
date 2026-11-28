@@ -19,12 +19,6 @@
         "pattern": "^ARG BASE=mmastrac/vllm-openai:(?P<version>nightly-[0-9a-f]{40})$",
         "repo": "docker.io/mmastrac/vllm-openai"
       },
-      "mentat": {
-        "datasource": "oci-image",
-        "file": "image/Dockerfile",
-        "pattern": "^ARG MENTAT_VERSION=(?P<version>[0-9][0-9.]*)$",
-        "repo": "docker.io/mmastrac/mentat-artifacts"
-      },
       "model": {
         "binds": "primary",
         "datasource": "hf-revision",
