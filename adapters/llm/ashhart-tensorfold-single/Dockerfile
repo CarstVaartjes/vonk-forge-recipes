@@ -1,4 +1,4 @@
-# TensorFold v1.3.6 (Apache-2.0): Ash Hart's native Zig engine as released, the linux-aarch64 archive
+# TensorFold v1.3.7 (Apache-2.0): Ash Hart's native Zig engine as released, the linux-aarch64 archive
 # installed as the creator's Linux instructions install it (README "Linux with an NVIDIA GPU": download, sha256sum -c,
 # unpack, keep its directories together). CUDA fatbins (sm_80, sm_86, sm_120, sm_121) are embedded in the binary, so
 # nothing is compiled at start; lib/ holds libtfgrammar for structured output and required tool calls. The NVIDIA
@@ -11,16 +11,16 @@
 FROM nvcr.io/nvidia/pytorch:26.07-py3@sha256:7531d90bcbe0e43e1f7363029c7e145ce90eebeb494a7b4695fdba0329d7c3c3
 
 LABEL org.opencontainers.image.source="https://github.com/ashhart/TensorFold" \
-      org.opencontainers.image.revision="f56b1420ff3e17fa531d90eb97bef41053cd852d" \
+      org.opencontainers.image.revision="b336654937bfbee9035af9459f77c8d6fc8aebf1" \
       org.opencontainers.image.licenses="Apache-2.0" \
       ai.vonkforge.runtime-interface="v1"
 
-RUN curl -fsSL -o /tmp/tensorfold.tar.gz https://github.com/ashhart/TensorFold/releases/download/v1.3.6/tensorfold-1.3.6-linux-aarch64.tar.gz \
-    && echo "7f9790480e0a0f4baef73eaf0a5168ffee6d0ddb0e8f11102908f7894d14eb32  /tmp/tensorfold.tar.gz" | sha256sum -c - \
+RUN curl -fsSL -o /tmp/tensorfold.tar.gz https://github.com/ashhart/TensorFold/releases/download/v1.3.7/tensorfold-1.3.7-linux-aarch64.tar.gz \
+    && echo "9487e83d63cc5c12cf86994dffa72960ecdb2b3060516ac4926603a141f39ce3  /tmp/tensorfold.tar.gz" | sha256sum -c - \
     && mkdir /opt/tensorfold \
     && tar -xzf /tmp/tensorfold.tar.gz -C /opt/tensorfold --strip-components=1 \
     && rm /tmp/tensorfold.tar.gz \
-    && test "$(cat /opt/tensorfold/VERSION)" = 1.3.6 \
+    && test "$(cat /opt/tensorfold/VERSION)" = 1.3.7 \
     && /opt/tensorfold/bin/tensorfold-native --version
 
 RUN curl -fsSL -o /tmp/jpeg.tar.gz https://github.com/libjpeg-turbo/libjpeg-turbo/releases/download/3.1.4.1/libjpeg-turbo-3.1.4.1.tar.gz \
