@@ -2,8 +2,8 @@
   "execution": {
     "build": {
       "base_image": {
-        "digest": "593080cb0d4f7c6b815efc4c156b84036fc5c56ae86fbd912a6b221974feb219",
-        "repository": "ghcr.io/kindlingai/glm-5.3-exlr8-k4-4x-spark"
+        "digest": "fa5c9f66fbfa55d162782578b3262893b782e6365a76562bcab951b54acc6d96",
+        "repository": "ghcr.io/kindlingai/gr8"
       },
       "context": {
         "path": "adapters/glm/kindlingai-gr8-glm53-k4-four"
@@ -2946,11 +2946,11 @@
       "KindlingAI",
       "Z.AI"
     ],
-    "source_reference": "https://github.com/kindlingai/glm-5.3-exlr8-k4-4x-spark/tree/edde1cc1a8f1ba8b46ec86bd51d509a85a848cf1"
+    "source_reference": "https://github.com/kindlingai/recipes/blob/13c24ac483eaf8b2fcb828a62ae2604bcc038b92/glm-5.3/dgx-spark/4x/exlr8-k4-gr8/compose.yaml"
   },
   "release": {
-    "released_at": "2026-11-20",
-    "version": "edde1cc1"
+    "released_at": "2026-11-28",
+    "version": "13c24ac4"
   },
   "runtime": {
     "arguments": [
@@ -2981,6 +2981,10 @@
     ],
     "environment": [
       {
+        "name": "CAP",
+        "value": "442368"
+      },
+      {
         "name": "DEC_BK",
         "value": "2048"
       },
@@ -2993,16 +2997,48 @@
         "value": "1"
       },
       {
+        "name": "DISPRAM",
+        "value": "1"
+      },
+      {
+        "name": "FRONT_BIN",
+        "value": "/opt/gr8/bin/g6front-rs"
+      },
+      {
+        "name": "GR8_MODEL",
+        "value": "glm53"
+      },
+      {
         "name": "HF_HUB_OFFLINE",
         "value": "1"
+      },
+      {
+        "name": "KV_FORMAT",
+        "value": "int4"
       },
       {
         "name": "MOE_UNION_CAP",
         "value": "0"
       },
       {
+        "name": "S2_ADAPT",
+        "value": "0"
+      },
+      {
+        "name": "SHARE_LIMIT",
+        "value": "16384"
+      },
+      {
+        "name": "TP",
+        "value": "4"
+      },
+      {
         "name": "TRANSFORMERS_OFFLINE",
         "value": "1"
+      },
+      {
+        "name": "VARIANT",
+        "value": "/models/target/manifests/exlr8-manifest-bit387.json"
       }
     ],
     "lifecycle": {
