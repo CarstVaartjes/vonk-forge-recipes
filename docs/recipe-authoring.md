@@ -485,7 +485,13 @@ exact path and `runtime.entrypoint` names it. A launcher for the `ray`
 parallelism backend starts Ray, so a build step must check the Ray CLI or
 package it uses (`tests/recipes/test_ray_vllm_launchers.py`). When the parent image
 has no Ray, install it from a hash lock as described in
-[Dependency locks and build-time smokes](#dependency-locks-and-build-time-smokes). The image workflow lists, in each
+[Dependency locks and build-time smokes](#dependency-locks-and-build-time-smokes).
+A mentat-shim image (KindlingAI's Ray replacement, `adapters/glm/kindlingai-glm53f-nvfp4-vllm-dual`)
+needs no host daemon: its launcher starts `mentatd daemon` in rank 0 on the rendezvous port
+(`VONK_MASTER_PORT`), every rank's agent (`ray start`) registers with it, rank 0 waits until the
+group reports one GPU per rank, then execs `vllm serve`, and a worker execs `ray start --block`
+against rank 0. `ray` there is a symlink to `mentatd`, which the `/bin/ray` build check accepts.
+A daemon that exits stops the launch, and the platform restarts the run. The image workflow lists, in each
 run summary, why a recipe has no prebuilt image. Every image builds on a hosted
 runner within the build job's 360-minute timeout; there is no exclusion list.
 
