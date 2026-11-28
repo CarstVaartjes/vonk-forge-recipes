@@ -400,6 +400,54 @@
       },
       "value_dim": 0
     },
+    "glm-5-3-flash-nvfp4-1d007386": {
+      "architecture": "Glm5NextForConditionalGeneration",
+      "configuration_sha256": "41db2811023b40ba4c8f8bbba88bce7dff377af51ecd18b32469a2a07064ebaf",
+      "key_dim": 512,
+      "kv_heads": 1,
+      "layers": 12,
+      "max_context_tokens": 1048576,
+      "recurrent": {
+        "attention_layers": 12,
+        "conv_channels": 24576,
+        "conv_kernel": 4,
+        "layers": 34,
+        "state_dtype_bytes": 4,
+        "state_elements": 1048576
+      },
+      "source": "https://huggingface.co/nvidia/GLM-5.3-Flash-NVFP4/resolve/1d00738646cbb0c6d0a9eb403dac5f366f1473a7/config.json (sha256 41db2811023b40ba4c8f8bbba88bce7dff377af51ecd18b32469a2a07064ebaf; 45 layers: 11 deepseek_sparse_attention and 34 linear_attention); layer_types: 11 sparse and 34 linear; bound includes index cache on all 45 layers and MTP, rounded to 12288 bytes/token for FP8; BF16 65536-byte bound as in the existing single-Spark calibration. Typed recurrent state (RecurrentCache, vllm_hybrid_need): config linear_attn_config 64 heads x head_dim 128, short_conv_kernel_size 4, 34 kda_layers; vLLM mamba_utils kda_state_dtype/kda_state_shape: conv state bf16 (3 x 64 x 128 = 24576 channels, width kernel - 1 + speculative tokens), recurrent state fp32 (128 x 128 per head = 1,048,576 elements), both sharded by tensor parallelism. `layers` counts the layers holding a DSA cache (11 full_attn_layers + 1 MTP layer), so token_bytes_by_dtype stays the hand-entered whole-model per-token bound spread over them. Allocation estimate, not hardware proof for this checkpoint.",
+      "tensor_replicated": true,
+      "token_bytes_by_dtype": {
+        "auto": 65536,
+        "fp8": 12288,
+        "fp8_e4m3": 12288
+      },
+      "value_dim": 0
+    },
+    "glm-5-3-flash-exlr8-k2-k3-k4-1a22815d": {
+      "architecture": "Glm5NextForConditionalGeneration",
+      "configuration_sha256": "33e63ec7fe607658be712bd6dd3c16c6549960d8e7f0483d34b939881b55f943",
+      "key_dim": 512,
+      "kv_heads": 1,
+      "layers": 12,
+      "max_context_tokens": 1048576,
+      "recurrent": {
+        "attention_layers": 12,
+        "conv_channels": 24576,
+        "conv_kernel": 4,
+        "layers": 34,
+        "state_dtype_bytes": 4,
+        "state_elements": 1048576
+      },
+      "source": "https://huggingface.co/kindlingai/glm-5.3-flash-exlr8-k2-k3-k4/resolve/1a22815d178a79f78bb44e6858f0ee446ae8f0d4/config.json (sha256 33e63ec7fe607658be712bd6dd3c16c6549960d8e7f0483d34b939881b55f943; 45 layers: 11 deepseek_sparse_attention and 34 linear_attention); layer_types: 11 sparse and 34 linear; bound includes index cache on all 45 layers and MTP, rounded to 12288 bytes/token for FP8; BF16 65536-byte bound as in the existing single-Spark calibration. Typed recurrent state (RecurrentCache, vllm_hybrid_need): config linear_attn_config 64 heads x head_dim 128, short_conv_kernel_size 4, 34 kda_layers; vLLM mamba_utils kda_state_dtype/kda_state_shape: conv state bf16 (3 x 64 x 128 = 24576 channels, width kernel - 1 + speculative tokens), recurrent state fp32 (128 x 128 per head = 1,048,576 elements), both sharded by tensor parallelism. `layers` counts the layers holding a DSA cache (11 full_attn_layers + 1 MTP layer), so token_bytes_by_dtype stays the hand-entered whole-model per-token bound spread over them. Allocation estimate, not hardware proof for this checkpoint.",
+      "tensor_replicated": true,
+      "token_bytes_by_dtype": {
+        "auto": 65536,
+        "fp8": 12288,
+        "fp8_e4m3": 12288
+      },
+      "value_dim": 0
+    },
     "glm-5-3-flash-nvfp4-09b04e5e": {
       "architecture": "Glm5NextForConditionalGeneration",
       "configuration_sha256": "e23c5d98f53e861d49a51bd3c68591621c5482ce829e42c31724152322fba03d",
