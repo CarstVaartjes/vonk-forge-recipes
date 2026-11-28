@@ -416,7 +416,7 @@ indexes, recipe archives, coverage, the future vector and `SHA256SUMS`. The futu
 (`future-canary-index.json`, built by `tools/build-future-vector` from the index, its schema and the contract examples directory (`--examples`),
 signed with the release) is the reader test every consumer runs on its own release: an index with
 an unknown word at every closed-word site outside an execution document, an unknown field on every closed object, and one
-recipe entry whose serving kind is unknown (a reader withholds it and the rest applies). The
+recipe entry whose serving kind is unknown (a reader withholds it and the rest applies) and one whose API `mode` is unknown (a reader keeps the entry and holds the block as a no-facts `UnrecognisedApiBlock` marker; a producer still refuses the mode). The
 sites come from walking the schema over the real index, so a new site is covered with no hand
 list; each contract example pair (`recipe-<name>.json` with `recipe-api-<name>.json`) joins as its own entry, so a word no library recipe uses yet still has a site; it keeps only the entries that cover every schema shape (plus the Models they pin) to
 stay within the index size limit, and it is never a catalog. The signed release contains

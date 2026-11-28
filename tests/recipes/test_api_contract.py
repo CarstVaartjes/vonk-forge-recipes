@@ -32,6 +32,7 @@ from vonk_forge_contracts import (
     CapabilityName,
     RecipeApi,
     RecipeDefinition,
+    UnrecognisedApiBlock,
     document_sha256,
     published_json,
     read_recipe_api,
@@ -41,6 +42,7 @@ from vonk_forge_contracts.api import ApiTokenArgument
 from vonk_forge_contracts.resolver import (
     ContractResolutionError,
 )
+from vonk_forge_contracts.unrecognised import read_context
 
 EXAMPLES = ROOT / "contracts/src/vonk_forge_contracts/examples"
 INVALID = EXAMPLES / "invalid"
@@ -430,8 +432,12 @@ def _silent_model() -> Any:
 
 
 def test_an_audio_mode_fixes_its_accepted_modality() -> None:
-    heard = accepted_modalities(_audio_example("transcription")[1].api)
-    spoken = accepted_modalities(_audio_example("speech")[1].api)
+    heard_block = _audio_example("transcription")[1].api
+    spoken_block = _audio_example("speech")[1].api
+    assert not isinstance(heard_block, UnrecognisedApiBlock)
+    assert not isinstance(spoken_block, UnrecognisedApiBlock)
+    heard = accepted_modalities(heard_block)
+    spoken = accepted_modalities(spoken_block)
     assert (heard.audio, heard.text) == (True, False)
     assert (spoken.audio, spoken.text) == (False, True)
 
@@ -813,3 +819,41 @@ def test_the_catalog_index_entries_carry_served_capabilities() -> None:
         "text-generation",
         "tool-use",
     ]
+
+
+def _api_of_a_newer_mode() -> dict[str, Any]:
+    raw = _json(EXAMPLES / "recipe-api-embedding.json")
+    return {**raw, "api": {**raw["api"], "mode": "rerank"}}
+
+
+def test_a_producer_refuses_a_mode_a_consumer_reader_keeps_as_a_marker() -> None:
+    raw = _api_of_a_newer_mode()
+    with pytest.raises(ValidationError):
+        RecipeApi.model_validate(raw)
+    api = RecipeApi.model_validate(raw, extra="ignore", context=read_context())
+    assert isinstance(api.api, UnrecognisedApiBlock)
+    assert api.api.mode == "rerank"
+
+
+def test_an_option_choice_with_a_newer_mode_is_a_marker_too() -> None:
+    raw = _json(EXAMPLES / "recipe-api-options.json")
+    raw["api"] = {**raw["api"], "mode": "rerank"}
+    raw["option_choices"][0]["api"] = {
+        **raw["option_choices"][0]["api"],
+        "mode": "rerank",
+    }
+    api = RecipeApi.model_validate(raw, extra="ignore", context=read_context())
+    assert isinstance(api.api, UnrecognisedApiBlock)
+    assert isinstance(api.option_choices[0].api, UnrecognisedApiBlock)
+
+
+def test_a_marker_gives_no_facts_and_the_models_capabilities_stay() -> None:
+    document, _ = _embedding_example()
+    api = RecipeApi.model_validate(
+        _api_of_a_newer_mode(), extra="ignore", context=read_context()
+    )
+    with pytest.raises(ValueError, match="newer than this release"):
+        api.for_choices(document)
+    assert served_capabilities([CapabilityName.IMAGE_UNDERSTANDING], api) == (
+        CapabilityName.IMAGE_UNDERSTANDING,
+    )

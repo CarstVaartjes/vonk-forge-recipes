@@ -28,6 +28,7 @@ from vonk_forge_contracts.api import (
     DecisionApi,
     EmbeddingApi,
     RecipeApi,
+    UnrecognisedApiBlock,
     require_api_of,
 )
 from vonk_forge_contracts.display import ModelDisplay, RecipeDisplay
@@ -98,6 +99,10 @@ def served_capabilities(
     if api is None:
         return tuple(sorted(capabilities))
     blocks = [api.api, *(choice.api for choice in api.option_choices)]
+    known = [block for block in blocks if not isinstance(block, UnrecognisedApiBlock)]
+    if len(known) != len(blocks):
+        return tuple(sorted(capabilities))  # a newer mode: no usable facts
+    blocks = known
     for modality, capability in INPUT_MODALITY_CAPABILITIES.items():
         capabilities.discard(capability)
         if any(getattr(accepted_modalities(block), modality) for block in blocks):

@@ -16,6 +16,8 @@ from repo_root import ROOT
 from recipe_tooling.catalog_index import MAX_INDEX_BYTES, rendered_vector
 from recipe_tooling.future_vector import (
     KIND,
+    MODE_FIELD,
+    MODE_SLUG,
     SLUG,
     FutureVector,
     build_future_vector,
@@ -23,7 +25,7 @@ from recipe_tooling.future_vector import (
     words_in,
 )
 from recipe_tooling.qualification.api_checks import check_recipe_api
-from vonk_forge_contracts import read_catalog_index
+from vonk_forge_contracts import UnrecognisedApiBlock, read_catalog_index
 from vonk_forge_contracts.catalog_reader import (
     CatalogSection,
     FaultReason,
@@ -167,7 +169,32 @@ def test_every_recipe_entry_the_reader_keeps_is_consistent_with_its_api(
 ) -> None:
     checked = 0
     for entry in read_catalog(vector.document).index.recipes:
-        if entry.api is not None:
+        if entry.api is not None and not isinstance(
+            entry.api.api, UnrecognisedApiBlock
+        ):
             check_recipe_api(entry.document, entry.api)
             checked += 1
     assert checked
+
+
+def test_the_reader_keeps_the_entry_whose_api_mode_is_unknown(
+    vector: FutureVector,
+) -> None:
+    read = read_catalog(vector.document)
+    blocks = {
+        entry.document.identity.slug: entry.api.api
+        for entry in read.index.recipes
+        if entry.api is not None
+    }
+    assert isinstance(blocks[MODE_SLUG], UnrecognisedApiBlock)
+    assert [
+        slug
+        for slug, block in blocks.items()
+        if isinstance(block, UnrecognisedApiBlock)
+    ] == [MODE_SLUG]
+    assert any(
+        isinstance(problem, UnrecognisedWordReport)
+        and problem.field == MODE_FIELD
+        and problem.entries == (f"vonk-forge/{MODE_SLUG}",)
+        for problem in read.problems
+    )

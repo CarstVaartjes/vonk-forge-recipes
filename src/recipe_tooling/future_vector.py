@@ -9,6 +9,8 @@ a self-consistent index that a consumer must still read:
 * the contract's synthetic example pairs (``recipe-<name>.json`` with
   ``recipe-api-<name>.json``, from the ``examples_dir`` the caller names) as extra
   entries, so a word no library recipe uses yet still has a site, and
+* one extra recipe entry whose API ``mode`` is the unknown word (a reader keeps
+  the entry and holds the block as a marker with no facts), and
 * one extra recipe entry whose serving kind is an unknown executed discriminator
   (``zz.future-kind``), which a reader withholds and the rest of the index survives.
 
@@ -44,6 +46,8 @@ WORD: Final = "zz-future-word"
 FIELD: Final = "zz_future_field"
 KIND: Final = "zz.future-kind"
 SLUG: Final = "zz-future-recipe"
+MODE_SLUG: Final = "zz-future-mode"
+MODE_FIELD: Final = "api.api.mode"
 _OPEN: Final = frozenset({WORD, KIND})
 _DIGEST: Final = re.compile(r"[0-9a-f]{64}")
 _ENTRY_SCHEMAS: Final = {
@@ -403,6 +407,37 @@ def _with_examples(
     return {**index, "recipes": [*index["recipes"], *extra]}, slugs
 
 
+def _real_entries(
+    vector: dict[str, Any], example_slugs: set[str]
+) -> list[dict[str, Any]]:
+    """The vector's library recipe entries that state a chat API block (no option choices: one block, one mode)."""
+    return [
+        entry
+        for entry in vector["recipes"]
+        if entry["document"]["identity"]["slug"] not in example_slugs
+        and isinstance(entry.get("api"), dict)
+        and entry["api"]["api"]["mode"] == "chat"
+        and not entry["api"]["option_choices"]
+    ]
+
+
+def _unknown_mode(pristine: dict[str, Any], opened: Schema) -> dict[str, Any]:
+    """A copy of a real chat entry whose API block has a mode no reader knows.
+
+    A reader keeps the entry and holds the block as a marker with no facts; the
+    one unknown word is the only word in it, at ``api.api.mode``.
+    """
+    entry = copy.deepcopy(pristine)
+    for kind, _path, value, node, _trail in list(
+        opened.walk(entry, opened.schemas["CatalogRecipeEntry"])
+    ):
+        if kind == "object" and node.get("additionalProperties") is False:
+            value[FIELD] = 1
+    extra = _renamed(entry, MODE_SLUG)
+    extra["api"]["api"]["mode"] = WORD
+    return extra
+
+
 def words_in(schema_document: Mapping[str, Any], vector: dict[str, Any]) -> set[str]:
     """The word sites of ``vector`` that hold the unknown word."""
     schema = Schema(schema_document, open_words=True)
@@ -439,6 +474,8 @@ def build_future_vector(
     """The future vector for ``index``; raises ``ValueError`` if its reader would not survive it."""
     extended, example_slugs = _with_examples(index, examples_dir)
     vector = _select(Schema(schema_document), extended)
+    # Taken before any word goes in: the unknown-mode entry carries that one word only.
+    pristine = copy.deepcopy(_real_entries(vector, example_slugs)[-1])
     sites = _word_sites(Schema(schema_document), vector)
     for where in sites.values():
         for section, position, target in where:
@@ -458,12 +495,8 @@ def build_future_vector(
         if kind == "object" and node.get("additionalProperties") is False:
             value[FIELD] = 1
     _rebind(vector)
-    real = next(
-        entry
-        for entry in reversed(vector["recipes"])
-        if entry["document"]["identity"]["slug"] not in example_slugs
-    )
-    vector["recipes"].append(_withhold(real))
+    vector["recipes"].append(_withhold(_real_entries(vector, example_slugs)[-1]))
+    vector["recipes"].append(_unknown_mode(pristine, opened))
     _check(vector, sites)
     return FutureVector(
         document=vector,
@@ -499,6 +532,7 @@ def _check(vector: dict[str, Any], sites: Mapping[str, Any]) -> None:
         for where in sites.values()
         for _section, _position, target in where
     }
+    fields.add(MODE_FIELD)
     if reported != fields:
         raise ValueError(
             f"words not kept: {sorted(fields - reported)}; unexpected: {sorted(reported - fields)}"

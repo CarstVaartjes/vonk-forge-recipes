@@ -23,7 +23,9 @@ Every field of a block is required: "not applicable" is written down (``false``,
 block in ``option_choices``; it replaces the base block as a whole, the way the
 choice's runtime arguments replace base arguments (``RecipeApi.for_choices``).
 
-Strict ``model_validate`` is for this repository's files and output;
+Strict ``model_validate`` is for this repository's files and output (an unknown
+``mode`` is refused); a consumer reader keeps one as ``UnrecognisedApiBlock``, a
+marker with no facts, as it keeps any word the block cannot stand without;
 ``read_recipe_api`` ignores unknown fields and is only for consumers of a
 published index. ``require_api_of`` is the one identity rule. The facts that
 must agree with a recipe's runtime or its Models are checked in ``api_checks``.
@@ -32,18 +34,24 @@ must agree with a recipe's runtime or its Models are checked in ``api_checks``.
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import Annotated, Literal
+from typing import Annotated, Literal, get_args
 
 from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
+    GetJsonSchemaHandler,
     StrictBool,
     StrictInt,
     StrictStr,
+    ValidationInfo,
+    ValidatorFunctionWrapHandler,
+    WrapValidator,
     field_validator,
     model_validator,
 )
+from pydantic.json_schema import JsonSchemaValue
+from pydantic_core import PydanticOmit, core_schema
 
 from vonk_forge_contracts.recipe import (
     Identifier,
@@ -63,7 +71,11 @@ from vonk_forge_contracts.shown import (
     ToolChoice,
     TranscriptionResponseFormat,
 )
-from vonk_forge_contracts.unrecognised import KeepUnrecognised, UnrecognisedWord
+from vonk_forge_contracts.unrecognised import (
+    KeepUnrecognised,
+    UnrecognisedWord,
+    is_reading,
+)
 
 
 class _ApiContract(BaseModel):
@@ -379,6 +391,58 @@ ApiBlock = Annotated[
     ChatApi | DecisionApi | AudioTranscriptionApi | AudioSpeechApi | EmbeddingApi,
     Field(discriminator="mode"),
 ]
+_KNOWN_MODES = frozenset(
+    get_args(block.model_fields["mode"].annotation)[0]
+    for block in get_args(get_args(ApiBlock)[0])
+)
+
+
+class UnrecognisedApiBlock(BaseModel):
+    """A block whose ``mode`` a newer contract minor added: the word, no facts.
+
+    Only a consumer reader yields one (``KeepUnrecognised``'s rule for a word the
+    block cannot stand without, since no neutral value exists); a producer's
+    strict validation still refuses the mode. A consumer treats it as a block
+    with no usable facts, so the route publishes none.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    mode: UnrecognisedWord
+
+    @classmethod
+    def __get_pydantic_json_schema__(
+        cls, schema: core_schema.CoreSchema, handler: GetJsonSchemaHandler
+    ) -> JsonSchemaValue:
+        # The published schema names only the modes this release defines.
+        raise PydanticOmit
+
+
+def _keep_unrecognised_mode(
+    value: object, handler: ValidatorFunctionWrapHandler, info: ValidationInfo
+) -> object:
+    try:
+        return handler(value)
+    except ValueError:
+        if (
+            is_reading(info)
+            and isinstance(value, dict)
+            and isinstance(value.get("mode"), str)
+            and value["mode"] not in _KNOWN_MODES
+        ):
+            return UnrecognisedApiBlock.model_construct(
+                mode=UnrecognisedWord(value["mode"])
+            )
+        raise
+
+
+class ApiModeTooNewError(ValueError):
+    """A route's API block has a mode this release does not know: it has no facts."""
+
+
+# The block as a consumer reader holds it: an unknown mode becomes a marker.
+ReadApiBlock = Annotated[
+    ApiBlock | UnrecognisedApiBlock, WrapValidator(_keep_unrecognised_mode)
+]
 
 
 class RecipeApiOptionChoice(_ApiContract):
@@ -386,13 +450,13 @@ class RecipeApiOptionChoice(_ApiContract):
 
     option: Identifier
     value: Identifier
-    api: ApiBlock
+    api: ReadApiBlock
 
 
 class RecipeApi(_ApiContract):
     kind: Literal["recipe-api"] = "recipe-api"
     identity: RecipeIdentity
-    api: ApiBlock
+    api: ReadApiBlock
     option_choices: list[RecipeApiOptionChoice] = Field(max_length=64)
 
     @model_validator(mode="after")
@@ -417,10 +481,16 @@ class RecipeApi(_ApiContract):
         """
 
         resolved = recipe.resolve_options(choices)
+        block = self.api
         for entry in self.option_choices:
             if resolved.get(entry.option) == entry.value:
-                return entry.api
-        return self.api
+                block = entry.api
+                break
+        if isinstance(block, UnrecognisedApiBlock):
+            raise ApiModeTooNewError(
+                f"the API mode {block.mode!r} is newer than this release"
+            )
+        return block
 
 
 def read_recipe_api(document: Mapping[str, object]) -> RecipeApi:

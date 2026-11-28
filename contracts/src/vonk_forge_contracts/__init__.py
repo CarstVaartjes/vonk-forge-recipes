@@ -32,6 +32,7 @@ from vonk_forge_contracts.api import (
     EmbeddingApi,
     RecipeApi,
     RecipeApiOptionChoice,
+    UnrecognisedApiBlock,
     read_recipe_api,
     require_api_of,
 )
@@ -273,6 +274,7 @@ __all__ = [
     "RecoveryCoverageDefinition",
     "RecoveryCoverageMember",
     "RecoveryCoverageRef",
+    "UnrecognisedApiBlock",
     "UnrecognisedWord",
     "campaign_authority_json_schema",
     "campaign_manifest_json_schema",

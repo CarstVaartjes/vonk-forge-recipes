@@ -233,6 +233,8 @@ by `mode`, and every field is written down, "not applicable" included (`false`,
   the `embeddings` modality and the `embedding` capability (`check_api_models`).
   Its smoke cases must include one that calls `/embeddings` (see below).
 
+A newer minor may add an API mode. A consumer reader (`read_catalog`) keeps the entry and holds the block as `UnrecognisedApiBlock`, a marker that carries the word and no facts (`RecipeApi.for_choices` raises `ApiModeTooNewError` for it); producers' strict validation still refuses an unknown mode. The future vector holds one such entry.
+
 An option choice that changes any of these facts carries its own complete
 block in `option_choices` (`{option, value, api}`); it replaces the base block as
 a whole, applied by `RecipeApi.for_choices` the way `with_option_choices`
@@ -1698,7 +1700,7 @@ release commit. The release also ships `catalog-index-v2.schema.json`, the gener
 `CatalogIndex` contract that `catalog-index.json` is built through, and
 `future-canary-index.json`, the future vector (`tools/build-future-vector`): the index with an
 unknown word at every closed-word site outside an execution document (the build fails if the contract reader does not keep it), an unknown field on every closed object and
-one recipe entry with an unknown serving kind. A consumer reads it on its own release and must
+one recipe entry with an unknown serving kind and one with an unknown API `mode`. A consumer reads it on its own release and must
 keep every entry but that one; `tests/tools/test_future_vector.py` runs the same proof against the
 contract reader, and a new tolerant site is found by the schema walk, never added by hand. The contract examples directory is an explicit input of `tools/build-future-vector`: each `recipe-<name>.json` with its `recipe-api-<name>.json` joins the vector as an entry, so a word no library recipe uses yet still has a site. Build them locally with one command when a tool or test outside
 the suite needs them:
