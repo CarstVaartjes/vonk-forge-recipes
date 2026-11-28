@@ -206,3 +206,34 @@ def test_a_leftover_staging_directory_does_not_stop_prepare(sandbox):
     assert done.returncode == 0, done.stderr
     assert not stale.exists()
     assert (root / "prepare.log").read_text().startswith("glm53f prepare --rank")
+
+
+@pytest.mark.parametrize("size", ["2b", "8b"])
+def test_embedding_wrapper_serves_the_release_in_place(size, tmp_path):
+    kit = ROOT / "adapters/qwen" / f"kindlingai-gr8-embed-{size}"
+    script = (kit / "gr8-serve").read_text()
+    entrypoint = tmp_path / "opt/gr8/docker/entrypoint.sh"
+    entrypoint.parent.mkdir(parents=True)
+    entrypoint.write_text(FAKE_ENTRYPOINT)
+    entrypoint.chmod(0o755)
+    for path in ("/opt/gr8", "/outputs", "/models"):
+        script = script.replace(path, f"{tmp_path}{path}")
+    wrapper = tmp_path / "gr8-serve"
+    wrapper.write_text(script)
+    wrapper.chmod(0o755)
+    env = {"PATH": os.environ["PATH"], "DUMP": str(tmp_path / "dump")}
+
+    def run(*args: str):
+        return subprocess.run(
+            [str(wrapper), *args], env=env, capture_output=True, text=True, check=False
+        )
+
+    assert run("--host", "0.0.0.0", "--port", "8100").returncode == 0
+    seen = dict(
+        line.partition("=")[::2]
+        for line in (tmp_path / "dump").read_text().splitlines()
+    )
+    assert seen["MODEL"] == f"{tmp_path}/models/target"
+    assert (seen["PORT"], seen["PEERS"]) == ("8100", "127.0.0.1")
+    assert seen["GR8_WORK_DIR"] == f"{tmp_path}/outputs/cache/gr8/home"
+    assert run("--host", "0.0.0.0", "--sess", "4").returncode != 0

@@ -1,0 +1,11 @@
+{
+  "id": "vonk-forge/qwen3-vl-embedding-2b-exlr8-kindlingai-gr8-single",
+  "service_recipes": {
+    "alias": "qwen3-vl-embedding-2b",
+    "smoke_cases": [
+      "M0",
+      "EMB_TEXT",
+      "EMB_DIMS"
+    ]
+  }
+}

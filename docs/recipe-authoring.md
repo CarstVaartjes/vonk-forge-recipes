@@ -978,6 +978,12 @@ that move `--sess` with them are one option, because two options may not change 
 revision of a Model whose newer revision holds the same files plus a file the recipe does not select binds the one
 catalogued Model through the dependency's `override`.
 
+The embedding kits of `kindlingai/recipes` (`adapters/qwen/kindlingai-gr8-embed-*`, `settings.kind: embedding`) are the same shape with a
+shorter wrapper: it takes only `--host` and `--port`, because an embedding recipe has no `context_tokens`, so the creator's `MAX_MODEL_LEN`
+and `CAP` lines are the recipe's environment. Each size has its own adapter, since the lock binds one Model to its kit's `.env.example`.
+The route's `api` states text input only (`image: false`): the engine also embeds images through a `messages` field that the gateway's
+`/v1/embeddings` does not carry yet.
+
 Bind generated rank/vision/model views to their checkpoint and engine inputs,
 reuse complete cached work and rebuild malformed/interrupted output
 (`tests/recipes/test_tony_tensorfold_cache.py`,

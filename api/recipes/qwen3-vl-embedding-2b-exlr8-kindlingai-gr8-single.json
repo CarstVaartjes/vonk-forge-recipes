@@ -1,0 +1,25 @@
+{
+  "api": {
+    "encoding_formats": [
+      "float",
+      "base64"
+    ],
+    "input_modalities": {
+      "audio": false,
+      "image": false,
+      "pdf": false,
+      "text": true,
+      "video": false
+    },
+    "matryoshka_min_dimensions": 1,
+    "max_input_tokens": 16384,
+    "mode": "embedding",
+    "output_dimensions": 2048
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "qwen3-vl-embedding-2b-exlr8-kindlingai-gr8-single"
+  },
+  "kind": "recipe-api",
+  "option_choices": []
+}
