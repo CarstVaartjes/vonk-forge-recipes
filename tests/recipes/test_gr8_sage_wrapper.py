@@ -1,4 +1,4 @@
-"""The gr8 Sage placement wrapper maps the platform's environment onto the creator's entrypoint."""
+"""The gr8 Sage placement wrapper maps the platform's environment onto gr8's entrypoint and the creator's settings."""
 
 import os
 import subprocess
@@ -23,17 +23,17 @@ def sandbox(request, tmp_path):
     name = request.param
     tp = ADAPTERS[name]
     script = (ROOT / "adapters/sage" / name / "gr8-serve").read_text()
-    creator = tmp_path / f"opt/sage-{tp}x"
-    (creator / "bin").mkdir(parents=True)
-    (creator / "entrypoint.sh").write_text(FAKE_ENTRYPOINT)
-    (creator / "bin/gr8").write_text(FAKE_GR8)
-    for path in (creator / "entrypoint.sh", creator / "bin/gr8"):
+    gr8 = tmp_path / "opt/gr8"
+    (gr8 / "docker").mkdir(parents=True)
+    (gr8 / "docker/entrypoint.sh").write_text(FAKE_ENTRYPOINT)
+    (gr8 / "gr8").write_text(FAKE_GR8)
+    for path in (gr8 / "docker/entrypoint.sh", gr8 / "gr8"):
         path.chmod(0o755)
     (tmp_path / "etc/gr8").mkdir(parents=True)
     (tmp_path / "etc/gr8/kv-store.yaml").write_text(
-        "ssd: {path: /var/lib/gr8/prompts}\n"
+        "ssd: {path: /var/lib/gr8/cache/prompts}\n"
     )
-    for old in ("/opt/sage-?x", "/outputs", "/etc/gr8", "/models"):
+    for old in ("/opt/gr8", "/outputs", "/etc/gr8", "/models"):
         script = script.replace(old, f"{tmp_path}{old}")
     wrapper = tmp_path / "gr8-serve"
     wrapper.write_text(script)
@@ -123,6 +123,14 @@ def test_vision_and_compact_copies_compose_one_extra_env(sandbox):
     # a finished prepare is reused: the next start writes no copies
     run(env)
     assert len((root / "prepare.log").read_text().splitlines()) == 1
+
+
+def test_context_parallel_joins_the_extra_env(sandbox):
+    _, _, _, run = sandbox
+    done, dump = run({"CONTEXT_PARALLEL": "1", "VISION": "1"})
+    assert done.returncode == 0, done.stderr
+    assert dump["EXTRA_ENV"].split() == ["GR8_GLM53F_VISION=1", "GR8_CP=1"]
+    assert "CONTEXT_PARALLEL" not in dump
 
 
 def test_an_interrupted_prepare_is_redone(sandbox):

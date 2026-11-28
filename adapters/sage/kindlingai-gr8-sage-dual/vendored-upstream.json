@@ -3,23 +3,27 @@
     "dependencies": {
       "image": {
         "datasource": "oci-image",
-        "file": "kindling.json",
-        "pattern": "^\\s*\"image\": \"ghcr\\.io/kindlingai/gr8:(?P<version>[A-Za-z0-9_][\\w.-]*)\"",
+        "file": "sage-s2.1-flash/dgx-spark/2x/exlr8-gr8/compose.yaml",
+        "pattern": "^\\s+image: \\$\\{GR8_IMAGE:-ghcr\\.io/kindlingai/gr8:[\\w.-]+@(?P<version>sha256:[0-9a-f]{64})\\}\\s*$",
         "repo": "ghcr.io/kindlingai/gr8"
       },
       "model": {
         "binds": "primary",
         "datasource": "hf-revision",
-        "file": "Dockerfile",
-        "pattern": "^[ \\t]+MODEL=https://huggingface\\.co/(?P<repo>[\\w.-]+/[\\w.-]+)@(?P<version>[0-9a-f]{40})"
+        "file": "sage-s2.1-flash/dgx-spark/2x/exlr8-gr8/.env.example",
+        "pattern": "^MODEL=https://huggingface\\.co/(?P<repo>[\\w.-]+/[\\w.-]+)@(?P<version>[0-9a-f]{40})\\s*$"
       }
-    }
+    },
+    "whole": true
   },
   "ours": [
     "gr8-serve"
   ],
+  "renamed": {
+    "kv-store.yaml": "sage-s2.1-flash/dgx-spark/2x/exlr8-gr8/kv-store.yaml"
+  },
   "source": {
-    "commit": "99f32341ee67401cb17f9b87697d1049791b9c95",
-    "repo": "kindlingai/sage-s2.1-flash-exlr8-2x-spark"
+    "commit": "13c24ac483eaf8b2fcb828a62ae2604bcc038b92",
+    "repo": "kindlingai/recipes"
   }
 }

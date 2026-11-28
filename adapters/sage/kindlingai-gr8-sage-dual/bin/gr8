@@ -1,5 +1,0 @@
-#!/bin/bash
-# gr8's ./gr8 with the recipe's knobs applied (knobs.sh): `gr8 glm53f smoke`, `gr8 glm53f status`.
-set -euo pipefail
-. /opt/sage-2x/knobs.sh
-exec /opt/gr8/gr8 "$@"

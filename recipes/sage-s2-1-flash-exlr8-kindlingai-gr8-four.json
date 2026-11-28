@@ -2,7 +2,7 @@
   "execution": {
     "build": {
       "base_image": {
-        "digest": "d140aca32886d2055b7ff11d88c8860c6bb9c108c626f8f3a4f3cebdfe5fcfc6",
+        "digest": "3de05aab8cda21fd5d6b4af89ccdba6ff5abdbd704729601fd348fa638ade9fd",
         "repository": "ghcr.io/kindlingai/gr8"
       },
       "context": {
@@ -1684,7 +1684,8 @@
             }
           ],
           "env": {
-            "TUNE": "context"
+            "CAP": "2097152",
+            "CONTEXT_PARALLEL": "1"
           },
           "help": "Eight requests at once sharing a 2,097,152-token KV pool, one request up to 1,048,576 tokens, and context-parallel KV (GR8_CP=1, experimental upstream). The creator measured 46.5-48.2 GiB free a box after boot and passed a 128K needle; 1M tokens is not yet tested upstream.",
           "label": "Long context",
@@ -1692,7 +1693,8 @@
         },
         {
           "env": {
-            "TUNE": "quality"
+            "MTP": "1",
+            "S2_SHARED_WATERFILL": "0"
           },
           "help": "Strict MTP=1 drafting without the shared waterfill, eight requests at once.",
           "label": "Quality",
@@ -1730,11 +1732,11 @@
       "KindlingAI",
       "Shanghai Artificial Intelligence Laboratory"
     ],
-    "source_reference": "https://github.com/kindlingai/sage-s2.1-flash-exlr8-4x-spark/tree/1f1062775e075c1746c97cf64b38fa8f3046cd1c"
+    "source_reference": "https://github.com/kindlingai/recipes/blob/13c24ac483eaf8b2fcb828a62ae2604bcc038b92/sage-s2.1-flash/dgx-spark/4x/exlr8-gr8/compose.yaml"
   },
   "release": {
-    "released_at": "2026-11-18",
-    "version": "1f106277"
+    "released_at": "2026-11-28",
+    "version": "13c24ac4"
   },
   "runtime": {
     "arguments": [
@@ -1765,12 +1767,68 @@
     ],
     "environment": [
       {
+        "name": "CAP",
+        "value": "262208"
+      },
+      {
+        "name": "DEFAULT_MAX_TOKENS",
+        "value": "32768"
+      },
+      {
+        "name": "DFLASH",
+        "value": "0"
+      },
+      {
+        "name": "FLASH_CACHE",
+        "value": "aligned"
+      },
+      {
+        "name": "FRONT_BIN",
+        "value": "/opt/gr8/bin/g6front-rs"
+      },
+      {
+        "name": "GR8_MODEL",
+        "value": "glm53f"
+      },
+      {
+        "name": "GROUP",
+        "value": "gr8-sage-4x"
+      },
+      {
         "name": "HF_HUB_OFFLINE",
         "value": "1"
       },
       {
+        "name": "KV_FORMAT",
+        "value": "int4"
+      },
+      {
+        "name": "KV_STORE",
+        "value": "@/etc/gr8/kv-store.yaml"
+      },
+      {
+        "name": "MTP",
+        "value": "2"
+      },
+      {
+        "name": "S2_SHARED_WATERFILL",
+        "value": "1"
+      },
+      {
+        "name": "TP",
+        "value": "4"
+      },
+      {
         "name": "TRANSFORMERS_OFFLINE",
         "value": "1"
+      },
+      {
+        "name": "UNDECLARED_TOOL_CALLS",
+        "value": "emit"
+      },
+      {
+        "name": "VARIANT",
+        "value": "k4"
       }
     ],
     "lifecycle": {
