@@ -32,6 +32,7 @@ class CapabilityName(StrEnum):
     CHAT = "chat"
     CODE_GENERATION = "code-generation"
     DECISION = "decision"
+    EMBEDDING = "embedding"
     IMAGE_EDITING = "image-editing"
     IMAGE_GENERATION = "image-generation"
     IMAGE_UNDERSTANDING = "image-understanding"
@@ -85,6 +86,7 @@ _OTHER = (
     CapabilityName.CHAT,
     CapabilityName.CODE_GENERATION,
     CapabilityName.DECISION,
+    CapabilityName.EMBEDDING,
     CapabilityName.OCR,
     CapabilityName.PERSON_DETECTION,
     CapabilityName.REASONING,
@@ -149,6 +151,10 @@ SpeechResponseFormat = Literal["mp3", "opus", "aac", "flac", "wav", "pcm"]
 
 
 TimestampGranularity = Literal["word", "segment"]
+
+
+# OpenAI createEmbedding encoding formats.
+EmbeddingEncodingFormat = Literal["float", "base64"]
 
 
 ToolChoice = Literal["auto", "none", "required", "named"]

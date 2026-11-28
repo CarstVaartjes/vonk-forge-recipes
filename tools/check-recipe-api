@@ -1,7 +1,7 @@
 #!/usr/bin/env -S uv run --no-project --python 3.14 --with-editable contracts python
 """Require and check the API facts of every recipe a change adds or edits.
 
-An OpenAI-interface generation or decision recipe needs ``api/recipes/<slug>.json``
+An OpenAI-interface generation, decision or embedding recipe needs ``api/recipes/<slug>.json``
 (the ``recipe-api`` document: token limits, modalities, reasoning, tools,
 endpoints). The document must agree with the recipe's runtime for its engine,
 through every option choice (``check_recipe_api``), and with the Models the
@@ -54,7 +54,7 @@ from vonk_forge_contracts.api import ApiReasoningNone, ApiToolsNone
 
 ROOT = Path(__file__).resolve().parents[1]
 
-SERVING_KINDS = frozenset({"generation", "decision"})
+SERVING_KINDS = frozenset({"generation", "decision", "embedding"})
 
 
 def changed_slugs(paths: list[str], root: Path = ROOT) -> list[str]:

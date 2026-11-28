@@ -76,6 +76,11 @@ CAPABILITY_TEXT: Mapping[CapabilityName, CapabilityText] = {
         "Chooses between options and returns the choice.",
         CapabilityCategory.OTHER,
     ),
+    CapabilityName.EMBEDDING: CapabilityText(
+        "Embedding",
+        "Turns text or images into vectors for search and similarity.",
+        CapabilityCategory.LANGUAGE,
+    ),
     CapabilityName.IMAGE_EDITING: CapabilityText(
         "Image editing",
         "Changes an existing image from an instruction.",

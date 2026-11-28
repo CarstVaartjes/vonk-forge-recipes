@@ -12,9 +12,10 @@ record keyed by it stay as they are. A document is optional at contract level;
 a route without one publishes no gateway facts.
 
 A block is named by the LiteLLM ``model_info.mode`` its route publishes
-(``chat``, ``audio_transcription``, ``audio_speech``; ``decision`` is ours, as
-LiteLLM has no equivalent). An audio mode has exactly one endpoint, so its block
-carries no ``endpoints`` field: the consumer derives it from the mode.
+(``chat``, ``audio_transcription``, ``audio_speech``, ``embedding``;
+``decision`` is ours, as LiteLLM has no equivalent). An audio or embedding mode
+has exactly one endpoint, so its block carries no ``endpoints`` field: the
+consumer derives it from the mode.
 
 Every field of a block is required: "not applicable" is written down (``false``,
 ``{"kind": "none"}``, ``null``), never left out. A block is discriminated by
@@ -53,6 +54,7 @@ from vonk_forge_contracts.recipe import (
 from vonk_forge_contracts.shown import (
     AudioInputFormat,
     ContextBasis,
+    EmbeddingEncodingFormat,
     Endpoint,
     ReasoningDefault,
     RequestPlacement,
@@ -86,6 +88,9 @@ _TranscriptionFormatWord = Annotated[
 ]
 _SpeechFormatWord = Annotated[SpeechResponseFormat | UnrecognisedWord, KeepUnrecognised]
 _GranularityWord = Annotated[TimestampGranularity | UnrecognisedWord, KeepUnrecognised]
+_EmbeddingFormatWord = Annotated[
+    EmbeddingEncodingFormat | UnrecognisedWord, KeepUnrecognised
+]
 _ToolChoiceWord = Annotated[ToolChoice | UnrecognisedWord, KeepUnrecognised]
 _ReasoningDefaultWord = Annotated[ReasoningDefault | UnrecognisedWord, KeepUnrecognised]
 _PlacementWord = Annotated[RequestPlacement | UnrecognisedWord, KeepUnrecognised]
@@ -338,8 +343,40 @@ class AudioSpeechApi(_ApiContract):
         return self
 
 
+class EmbeddingApi(_ApiContract):
+    """A route serving ``POST /v1/embeddings``: input in, one vector per input out.
+
+    The mode fixes the endpoint, so the block has no ``endpoints`` field.
+    ``max_input_tokens`` is the engine's sequence limit (an embedding recipe's
+    settings have no ``context_tokens``). ``input_modalities`` states what the
+    route takes through the gateway. ``output_dimensions`` is the native vector
+    size; ``matryoshka_min_dimensions`` is ``null`` when the request's
+    ``dimensions`` is not honoured, else the smallest size the engine truncates
+    to (any size from it up to ``output_dimensions``).
+    """
+
+    mode: Literal["embedding"]
+    max_input_tokens: StrictInt = Field(ge=1)
+    input_modalities: ApiInputModalities
+    output_dimensions: StrictInt = Field(ge=1)
+    matryoshka_min_dimensions: StrictInt | None = Field(ge=1)
+    encoding_formats: list[_EmbeddingFormatWord] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def consistent(self) -> EmbeddingApi:
+        if not self.input_modalities.text:
+            raise ValueError("an embedding route takes text input")
+        if (
+            self.matryoshka_min_dimensions is not None
+            and self.matryoshka_min_dimensions > self.output_dimensions
+        ):
+            raise ValueError("matryoshka_min_dimensions exceeds output_dimensions")
+        _unique(list(self.encoding_formats), "encoding_formats")
+        return self
+
+
 ApiBlock = Annotated[
-    ChatApi | DecisionApi | AudioTranscriptionApi | AudioSpeechApi,
+    ChatApi | DecisionApi | AudioTranscriptionApi | AudioSpeechApi | EmbeddingApi,
     Field(discriminator="mode"),
 ]
 

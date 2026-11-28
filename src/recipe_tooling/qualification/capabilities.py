@@ -43,6 +43,15 @@ VISION_CASES = frozenset({"V_RED", "V7", "MIS_V_RED"})
 STRICT_ARITHMETIC = ("A391", "A323", "MIS_A391")
 UNPARSED_ARITHMETIC = {"A391": "A391_UNPARSED", "A323": "A323_UNPARSED"}
 
+# The one endpoint each non-chat API mode serves: a recipe of that mode must list
+# a smoke case on it, or it would pass on ``GET /models`` alone.
+MODE_ENDPOINTS: dict[str, str] = {
+    "decision": "/systemone",
+    "audio_transcription": "/audio/transcriptions",
+    "audio_speech": "/audio/speech",
+    "embedding": "/embeddings",
+}
+
 _TOOL_PARSER = re.compile(r"(?<![\w-])--?tool[-_](?:call[-_])?parser\b")
 _AUTO_TOOL = re.compile(r"(?<![\w-])--enable-auto-tool-choice\b")
 # A reasoning-parser flag and, when written as one, its value.
@@ -223,6 +232,21 @@ def serving_capabilities(
         vision=multimodal(recipe, models, display),
         flags_from=source,
     )
+
+
+def mode_case_problems(
+    slug: str,
+    mode: str,
+    smoke_cases: Iterable[str],
+    templates: Mapping[str, Any],
+) -> list[str]:
+    """A non-chat route lists no smoke case on its mode's endpoint."""
+    endpoint = MODE_ENDPOINTS.get(mode)
+    if endpoint is None or any(
+        templates[case]["path"] == endpoint for case in smoke_cases
+    ):
+        return []
+    return [f"{slug}: a {mode} recipe needs a smoke case that calls {endpoint}"]
 
 
 def generic_case_problems(

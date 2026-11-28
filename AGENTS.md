@@ -286,7 +286,10 @@ platform support in forge first. Recipes ship continuously, so the stable leg on
 reports such a word (`--report-words`, a warning), and its bundle validator runs with
 `continue-on-error`: a stable Controller withholds a recipe whose executed word it lacks
 until it upgrades. Shown words are never gated. A new capability is one recipes PR (the
-procedure is in the authoring guide's contract version policy); nothing waits.
+procedure is in the authoring guide's contract version policy); nothing waits. A new API
+mode (such as `embedding`) is an executed word: forge ships it first, then recipes use it.
+`tools/check-recipe-api` requires an API document for every generation, decision or embedding recipe,
+and every non-chat mode needs a smoke case on its endpoint (`MODE_ENDPOINTS`).
 A contracts **major** bump is deployed consumer-first: the same tool refuses, on every
 channel, a `CONTRACT_MAJOR` newer than the channel's `contract_major`. Pin the recipes commit in
 vonk-forge and release it (the Controller waits visibly for the new major), then merge

@@ -1,0 +1,4 @@
+{
+  "contract": "RecipeApi",
+  "error_contains": "matryoshka_min_dimensions exceeds output_dimensions"
+}

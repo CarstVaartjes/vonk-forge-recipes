@@ -143,6 +143,7 @@ def test_there_are_invalid_vectors_for_each_named_failure() -> None:
         "recipe-api-context-unbound",
         "recipe-api-default-output-names-missing-argument",
         "recipe-api-effort-default-not-a-level",
+        "recipe-api-embedding-matryoshka-above-native",
         "recipe-api-identity-mismatch",
         "recipe-api-image-with-language-model-only",
         "recipe-api-missing-field",
@@ -490,6 +491,62 @@ def test_a_decision_recipe_cannot_serve_an_audio_block() -> None:
         raw["identity"] = decision.identity.model_dump()
         with pytest.raises(RecipeApiError, match="decision recipe cannot serve"):
             check_recipe_api(decision, RecipeApi.model_validate(raw))
+
+
+def _embedding_example() -> tuple[RecipeDefinition, RecipeApi]:
+    return (
+        RecipeDefinition.model_validate(_json(EXAMPLES / "recipe-embedding.json")),
+        RecipeApi.model_validate(_json(EXAMPLES / "recipe-api-embedding.json")),
+    )
+
+
+def test_the_synthetic_embedding_example_is_checked_like_any_recipe() -> None:
+    document, api = _embedding_example()
+    assert api.api.mode == "embedding"
+    check_recipe_api(document, api)
+    assert read_recipe_api(published_json(api)) == api
+    Draft202012Validator(recipe_api_json_schema()).validate(published_json(api))
+
+
+def test_an_embedding_block_takes_text_and_has_no_endpoints() -> None:
+    raw = _json(EXAMPLES / "recipe-api-embedding.json")
+    modalities = {**raw["api"]["input_modalities"], "text": False}
+    with pytest.raises(ValidationError, match="takes text input"):
+        RecipeApi.model_validate(
+            {**raw, "api": {**raw["api"], "input_modalities": modalities}}
+        )
+    with pytest.raises(ValidationError):
+        RecipeApi.model_validate({**raw, "api": {**raw["api"], "endpoints": ["x"]}})
+    with pytest.raises(ValidationError, match="encoding_formats must be unique"):
+        RecipeApi.model_validate(
+            {**raw, "api": {**raw["api"], "encoding_formats": ["float", "float"]}}
+        )
+
+
+def test_a_recipe_kind_serves_only_its_modes() -> None:
+    embedding, _ = _embedding_example()
+    chat = RecipeDefinition.model_validate(_json(EXAMPLES / "recipe-source-build.json"))
+    raw = _json(EXAMPLES / "recipe-api-embedding.json")
+    raw["identity"] = chat.identity.model_dump()
+    with pytest.raises(RecipeApiError, match="generation recipe cannot serve"):
+        check_recipe_api(chat, RecipeApi.model_validate(raw))
+    chat_api = RecipeApi.model_validate(
+        _json(EXAMPLES / "recipe-api-source-build.json")
+    )
+    chat_api = chat_api.model_copy(update={"identity": embedding.identity})
+    with pytest.raises(RecipeApiError, match="embedding recipe cannot serve"):
+        check_recipe_api(embedding, chat_api)
+
+
+def test_an_embedding_route_needs_an_embedding_model() -> None:
+    document, api = _embedding_example()
+    silent = _silent_model()
+    with pytest.raises(RecipeApiError, match="embedding route needs a Model"):
+        check_api_models(document, api, [silent])
+    embedding = silent.model_copy(
+        update={"modalities": ["text", "embeddings"], "capabilities": ["embedding"]}
+    )
+    check_api_models(document, api, [embedding])
 
 
 def test_an_audio_file_limit_stays_within_the_edge_bound() -> None:

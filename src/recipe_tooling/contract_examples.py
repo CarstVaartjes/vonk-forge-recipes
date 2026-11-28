@@ -398,6 +398,69 @@ def _audio_examples(build: dict[str, Any], seed: dict[str, Any]) -> None:
     )
 
 
+def _embedding_example(build: dict[str, Any], seed: dict[str, Any]) -> None:
+    """A synthetic ``/v1/embeddings`` recipe, its API document and a refusal."""
+
+    embedding = copy.deepcopy(build)
+    embedding["identity"]["slug"] = "synthetic-tiny-build-embedding"
+    embedding["runtime"]["engine"] = "gr8"
+    embedding["settings"] = {"kind": "embedding", "knobs": {}}
+    embedding["validation"] = {
+        "serving": {
+            "interface": "openai",
+            "checks": [
+                {
+                    "name": "health",
+                    "kind": "openai.health",
+                    "request": {
+                        "transport": "http",
+                        "method": "GET",
+                        "path": "/v1/models",
+                    },
+                    "assertions": ["endpoint.healthy"],
+                },
+                {
+                    "name": "embed",
+                    "kind": "openai.embedding",
+                    "request": {
+                        "transport": "http",
+                        "method": "POST",
+                        "path": "/v1/embeddings",
+                        "body": {"model": "synthetic-tiny", "input": ["hello"]},
+                    },
+                    "assertions": ["embedding.nonempty"],
+                },
+            ],
+        }
+    }
+    block = {
+        "mode": "embedding",
+        "max_input_tokens": 8192,
+        "input_modalities": {
+            "text": True,
+            "image": False,
+            "video": False,
+            "audio": False,
+            "pdf": False,
+        },
+        "output_dimensions": 1024,
+        "matryoshka_min_dimensions": 32,
+        "encoding_formats": ["float", "base64"],
+    }
+    api = {**_api_for(embedding, seed), "api": block}
+    check_recipe_api(
+        RecipeDefinition.model_validate(embedding), RecipeApi.model_validate(api)
+    )
+    _write("recipe-embedding.json", embedding)
+    _write("recipe-api-embedding.json", api)
+    _invalid(
+        "recipe-api-embedding-matryoshka-above-native",
+        "RecipeApi",
+        "matryoshka_min_dimensions exceeds output_dimensions",
+        {**api, "api": {**block, "matryoshka_min_dimensions": 2048}},
+    )
+
+
 def _api_vectors(
     build: dict[str, Any], options: dict[str, Any], seed: dict[str, Any]
 ) -> None:
@@ -421,6 +484,7 @@ def _api_vectors(
     _write("recipe-api-options.json", api_options)
     _decision_example(build, seed)
     _audio_examples(build, seed)
+    _embedding_example(build, seed)
     options_model = RecipeDefinition.model_validate(options)
     options_api = RecipeApi.model_validate(api_options)
     vectors = []
