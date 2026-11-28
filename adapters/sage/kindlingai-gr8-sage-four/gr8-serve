@@ -1,8 +1,8 @@
 #!/bin/bash
 # The Vonk Forge placement wrapper for the kindlingai gr8 Sage-S2.1-Flash recipes (two Sparks or four). It maps what
 # the platform gives a workload (the arguments in the recipe, the VONK_* placement environment, the read-only /models
-# mounts and the writable /outputs) onto what the creator's entrypoint reads (the creator's .env settings), then runs
-# the creator's own entrypoint, which sources the creator's knobs.sh and starts gr8's supervisor.
+# mounts and the writable /outputs) onto what gr8's launcher reads (the creator's .env settings, which the recipe's environment carries), then runs
+# gr8's own image entrypoint, which starts this box's supervisor.
 #
 #   arguments    --host (accepted: the front end serves on every address), --port -> PORT,
 #                --max-model-len -> MAX_MODEL_LEN, --sess -> SESS
@@ -15,7 +15,7 @@
 #                /outputs/cache/gr8, where the creator wrote /var/lib/gr8/{home,prompts,cache}.
 set -euo pipefail
 
-creator=$(ls -d /opt/sage-?x | head -n 1)
+gr8=/opt/gr8
 release=/models/target
 state=/outputs/cache/gr8
 
@@ -40,8 +40,8 @@ done
 
 mkdir -p "$state/home" "$state/cache" "$state/prompts" /outputs/tmp
 export GR8_WORK_DIR=$state/home MODEL_CACHE=$state/cache TMPDIR=/outputs/tmp
-# the creator's prompt cache (kv-store.yaml), moved from /var/lib/gr8/prompts to the writable state
-sed "s#/var/lib/gr8/prompts#$state/prompts#g" /etc/gr8/kv-store.yaml > "$state/kv-store.yaml"
+# the creator's prompt cache (kv-store.yaml), moved from /var/lib/gr8/cache/prompts to the writable state
+sed "s#/var/lib/gr8/cache/prompts#$state/prompts#g" /etc/gr8/kv-store.yaml > "$state/kv-store.yaml"
 export KV_STORE=@$state/kv-store.yaml
 
 # placement
@@ -66,11 +66,15 @@ tp=${TP:?gr8-serve: TP is not set}
 if [ "${VISION:-0}" = 1 ]; then
   extra="${extra:+$extra }GR8_GLM53F_VISION=1"
 fi
+# the creator's context preset: context-parallel KV (the Flash engine's environment ends with EXTRA_ENV, so this wins)
+if [ "${CONTEXT_PARALLEL:-0}" = 1 ]; then
+  extra="${extra:+$extra }GR8_CP=1"
+fi
 if [ "${COMPACT_EXPERTS:-0}" = 1 ]; then
   extra="${extra:+$extra }GR8_LOAD_COMPACT=$state/cache/compact-tp$tp GR8_LOAD_MERGE_KB=1"
 fi
 [ -z "$extra" ] || export EXTRA_ENV=$extra
-unset VISION COMPACT_EXPERTS
+unset VISION COMPACT_EXPERTS CONTEXT_PARALLEL
 
 # the creator's compact expert copies: written once by `prepare` (a boot never writes them), then read by the loader.
 # The stamp records a finished prepare for this TP, rank and width manifest, so a later start does not read them again.
@@ -79,9 +83,9 @@ if [[ " $extra " == *" GR8_LOAD_COMPACT="* ]]; then
   stamp=$state/cache/.compact-prepared-tp$tp-rank$rank-$(basename "${VARIANT:-k4}")
   if [ ! -f "$stamp" ]; then
     rm -rf "$state/cache/".compact-tp*.partial-*
-    "$creator/bin/gr8" glm53f prepare --rank "$rank"
+    "$gr8/gr8" glm53f prepare --rank "$rank"
     : > "$stamp"
   fi
 fi
 
-exec "$creator/entrypoint.sh"
+exec "$gr8/docker/entrypoint.sh"
