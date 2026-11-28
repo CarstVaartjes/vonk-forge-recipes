@@ -176,10 +176,14 @@ class GlmWrapperArgvTests(unittest.TestCase):
                 assert final[speculative[-1] + 1] == '{"user_override":true}'
 
 
-MENTAT = "glm-5-3-flash-nvfp4-dflash2-kindlingai-vllm-dual"
+MENTATS = (
+    "glm-5-3-flash-nvfp4-dflash2-kindlingai-vllm-dual",
+    "glm-5-3-flash-exlr8-kindlingai-vllm-dual",
+)
 
 
 def run_mentat_launcher(
+    slug: str,
     rank: int,
     extra_env: dict[str, str] | None = None,
     gpus: int = 2,
@@ -187,8 +191,8 @@ def run_mentat_launcher(
     expect: type[BaseException] = StopExec,
 ) -> tuple[list[Any], list[Any], list[Any], list[str]]:
     """What the mentat launcher starts for one rank: Popen, run and exec calls, and the directories made."""
-    wrapper = RECIPES[MENTAT]
-    recipe = load(MENTAT)
+    wrapper = RECIPES[slug]
+    recipe = load(slug)
     arguments = compile_authored_argv(recipe)
     arguments[arguments.index("--node-rank") + 1] = str(rank)
     if rank:
@@ -252,7 +256,11 @@ class MentatLauncherTests(unittest.TestCase):
     def test_rank_zero_hosts_the_daemon_on_the_rendezvous_port_then_serves(
         self,
     ) -> None:
-        popen, run, execs, _ = run_mentat_launcher(0)
+        for slug in MENTATS:
+            self.check_rank_zero(slug)
+
+    def check_rank_zero(self, slug: str) -> None:
+        popen, run, execs, _ = run_mentat_launcher(slug, 0)
         assert popen == [
             [
                 "/usr/local/bin/mentatd",
@@ -278,22 +286,24 @@ class MentatLauncherTests(unittest.TestCase):
             "VLLM_DRAFT_TRUNC_CONTROL": "/outputs/cache/draft-trunc",
             "VLLM_WEIGHT_SNAPSHOT_DIR": "/outputs/cache/weight-snapshots",
         }
-        *_, made = run_mentat_launcher(0, extra_env=names)
-        assert "/outputs/cache/weight-snapshots" in made
-        assert not {
-            names["VLLM_ADAPTIVE_K_CONTROL"],
-            names["VLLM_DRAFT_TRUNC_CONTROL"],
-        } & set(made)
+        for slug in MENTATS:
+            *_, made = run_mentat_launcher(slug, 0, extra_env=names)
+            assert "/outputs/cache/weight-snapshots" in made
+            assert not {
+                names["VLLM_ADAPTIVE_K_CONTROL"],
+                names["VLLM_DRAFT_TRUNC_CONTROL"],
+            } & set(made)
 
     def test_a_daemon_that_exits_while_the_group_forms_stops_the_launch(self) -> None:
         # The helper requires the SystemExit; vLLM is never exec'd before it.
-        _, _, execs, _ = run_mentat_launcher(
-            0, gpus=0, daemon_exit=1, expect=SystemExit
-        )
-        assert not execs
+        for slug in MENTATS:
+            _, _, execs, _ = run_mentat_launcher(
+                slug, 0, gpus=0, daemon_exit=1, expect=SystemExit
+            )
+            assert not execs
 
     def test_a_worker_joins_the_rank_zero_daemon_without_starting_one(self) -> None:
-        popen, run, execs, _ = run_mentat_launcher(1)
+        popen, run, execs, _ = run_mentat_launcher(MENTATS[0], 1)
         assert not popen
         assert not run
         assert execs == [
