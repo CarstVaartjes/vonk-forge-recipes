@@ -1690,8 +1690,8 @@
     "source_reference": "https://huggingface.co/Bizuayeu/Sage-S2.1-Flash-Mixed-NVFP4/tree/af78c7f5b424a10474be859fa4f3afd4ebbce14e"
   },
   "release": {
-    "released_at": "2026-11-26",
-    "version": "1.3.6"
+    "released_at": "2026-11-27",
+    "version": "1.3.7"
   },
   "runtime": {
     "arguments": [

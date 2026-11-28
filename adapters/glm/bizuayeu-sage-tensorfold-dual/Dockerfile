@@ -1,10 +1,10 @@
-# Bizuayeu's Sage-S2.1-Flash Mixed NVFP4 (HF 32063d6b): the stock TensorFold 1.3.6 release (02b324ae97), no fork and no
+# Bizuayeu's Sage-S2.1-Flash Mixed NVFP4 (HF 32063d6b): the stock TensorFold 1.3.7 release (02b324ae97), no fork and no
 # patches. The creator publishes no image and no kit; its card verified release 1.2.9 (tag 6b9de69510) and main 077998f7d9,
 # which 1.3.5 contains, and serves the checkpoint unchanged. The image is the same stock-release build as the sfxnz GLM recipe's (NVIDIA's CUDA 13.0 base, the checksummed
 # release archive, the exact JPEG/WebP codecs the engine insists on), at 1.3.5. python3 is installed for the Controller
 # launcher and the final user is numeric. The release archive carries the CUDA kernels it embeds.
-ARG TF_VERSION=1.3.6
-ARG TF_SHA256=7f9790480e0a0f4baef73eaf0a5168ffee6d0ddb0e8f11102908f7894d14eb32
+ARG TF_VERSION=1.3.7
+ARG TF_SHA256=9487e83d63cc5c12cf86994dffa72960ecdb2b3060516ac4926603a141f39ce3
 
 # Every FROM pins the digest (the recipe source policy checks each one).
 # TensorFold refuses any JPEG/WebP decoder whose embedded version is not exactly libjpeg-turbo 3.1.4.1 / libwebp 1.6.0,
@@ -28,7 +28,7 @@ FROM docker.io/nvidia/cuda:13.0.0-base-ubuntu24.04@sha256:6e43a6b02e5f16e4a71595
 ARG TF_VERSION
 ARG TF_SHA256
 LABEL org.opencontainers.image.source="https://github.com/ashhart/TensorFold" \
-      org.opencontainers.image.revision="f56b1420ff3e17fa531d90eb97bef41053cd852d" \
+      org.opencontainers.image.revision="b336654937bfbee9035af9459f77c8d6fc8aebf1" \
       org.opencontainers.image.licenses="Apache-2.0"
 # NCCL 2.30.7 is the version upstream's GLM TP receipts ran; ibverbs-providers carries the mlx5 provider for RoCE gathers.
 # curl only fetches the release archive and leaves with the apt lists.
