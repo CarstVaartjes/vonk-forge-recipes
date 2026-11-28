@@ -26,6 +26,7 @@ from typing import Any
 from unittest.mock import patch
 
 from repo_root import ROOT
+from test_ray_vllm_launchers import build_time_text
 
 PLACEMENT = {
     "VONK_LOCAL_ADDR": "10.0.0.1",
@@ -67,13 +68,18 @@ def ray_launchers() -> list[tuple[str, dict[str, Any], Path]]:
     return found
 
 
-def ray_poll_commands(recipe: dict[str, Any], launcher: Path) -> list[list[str]]:
+def ray_commands(recipe: dict[str, Any], launcher: Path) -> list[list[str]]:
     node_count = recipe["topology"]["node_count"]
     commands: list[list[str]] = []
 
     def run(command: list[str], *args: object, **kwargs: object):
         commands.append(list(command))
-        return subprocess.CompletedProcess(command, 0, f"VONK_ALIVE={node_count}\n", "")
+        return subprocess.CompletedProcess(
+            command,
+            0,
+            f"VONK_ALIVE={node_count}\nResources: 0.0/{node_count}.0 GPU\n",
+            "",
+        )
 
     argv = [
         str(launcher),
@@ -90,6 +96,7 @@ def ray_poll_commands(recipe: dict[str, Any], launcher: Path) -> list[list[str]]
         patch.dict(os.environ, PLACEMENT),
         patch("os.execv", side_effect=Exec),
         patch("subprocess.run", side_effect=run),
+        patch("subprocess.Popen"),
         patch("pathlib.Path.is_file", return_value=True),
         patch("os.path.isfile", return_value=True),
         patch("os.access", return_value=True),
@@ -98,11 +105,20 @@ def ray_poll_commands(recipe: dict[str, Any], launcher: Path) -> list[list[str]]
         contextlib.suppress(Exec),
     ):
         runpy.run_path(str(launcher), run_name="__main__")
+    return commands
+
+
+def ray_poll_commands(commands: list[list[str]]) -> list[list[str]]:
     return [
         command
         for command in commands
         if "-c" in command and "import ray" in command[command.index("-c") + 1]
     ]
+
+
+def ray_status_commands(commands: list[list[str]]) -> list[list[str]]:
+    """The `<ray> status` polls of a mentat-shim launcher."""
+    return [command for command in commands if command[1:2] == ["status"]]
 
 
 class RayPollInterpreterTest(unittest.TestCase):
@@ -120,12 +136,22 @@ class RayPollInterpreterTest(unittest.TestCase):
     def test_every_ray_launcher_polls_ray_with_its_own_interpreter(self) -> None:
         for slug, recipe, launcher in ray_launchers():
             with self.subTest(recipe=slug, launcher=str(launcher.relative_to(ROOT))):
-                polls = ray_poll_commands(recipe, launcher)
-                assert polls, "rank 0 never polled the Ray cluster"
-                assert {command[0] for command in polls} == {sys.executable}, (
-                    "poll Ray with sys.executable, not a hard-coded interpreter "
-                    "path the image may not have"
-                )
+                commands = ray_commands(recipe, launcher)
+                polls = ray_poll_commands(commands)
+                statuses = ray_status_commands(commands)
+                assert polls or statuses, "rank 0 never polled the Ray cluster"
+                # A launcher that polls with the CLI (a mentat shim: `ray status`)
+                # needs no interpreter, but the executable it names must be the one
+                # the image build checks.
+                for command in statuses:
+                    assert command[0] in build_time_text(recipe), (
+                        "poll Ray with an executable the image build checks"
+                    )
+                if polls:
+                    assert {command[0] for command in polls} == {sys.executable}, (
+                        "poll Ray with sys.executable, not a hard-coded interpreter "
+                        "path the image may not have"
+                    )
 
 
 if __name__ == "__main__":

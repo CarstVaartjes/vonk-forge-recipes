@@ -616,9 +616,17 @@
             {
               "name": "scheduler-cls",
               "value": "vllm.v1.core.sched.scheduler.Scheduler"
+            },
+            {
+              "name": "max-cudagraph-capture-size",
+              "value": 80
             }
           ],
-          "help": "The checkpoint's own MTP layer with 4 drafted tokens (the creator's mtp lane) under vLLM's stock scheduler; the drafter files stay mounted but unused. The adaptive-k and draft-trunc overlay files stay in the image but are only reached through the DFlash2 speculative config.",
+          "env": {
+            "VLLM_DRAFT_TRUNC_CONTROL": "",
+            "VLLM_DRAFT_TRUNC_TAU": "0"
+          },
+          "help": "The checkpoint's own MTP layer with 4 drafted tokens (the creator's mtp lane) under vLLM's stock scheduler, with CUDA graphs capped at 80 tokens and draft truncation off as in the creator's MTP lane; the drafter files stay mounted but unused. The adaptive-k scheduler and the per-batch draft widths belong to the DFlash2 lane (the creator refuses adaptive-k with MTP, and a choice can only replace a value, so it writes the stock scheduler).",
           "label": "Native MTP",
           "value": "mtp"
         }
@@ -798,14 +806,6 @@
     ],
     "environment": [
       {
-        "name": "HF_HUB_OFFLINE",
-        "value": "1"
-      },
-      {
-        "name": "TRANSFORMERS_OFFLINE",
-        "value": "1"
-      },
-      {
         "name": "VLLM_USE_RAY_V2_EXECUTOR_BACKEND",
         "value": "1"
       },
@@ -832,14 +832,6 @@
       {
         "name": "NCCL_DEBUG",
         "value": "INFO"
-      },
-      {
-        "name": "TORCH_CUDA_ARCH_LIST",
-        "value": "12.1a"
-      },
-      {
-        "name": "FLASHINFER_CUDA_ARCH_LIST",
-        "value": "12.1a"
       },
       {
         "name": "VLLM_WEIGHT_SNAPSHOT_DIR",

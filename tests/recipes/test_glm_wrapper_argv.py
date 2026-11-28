@@ -7,6 +7,7 @@ import subprocess
 import sys
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 from unittest.mock import patch
 
@@ -177,8 +178,14 @@ class GlmWrapperArgvTests(unittest.TestCase):
 MENTAT = "glm-5-3-flash-nvfp4-dflash2-kindlingai-vllm-dual"
 
 
-def run_mentat_launcher(rank: int) -> tuple[list[Any], list[Any], list[Any]]:
-    """What the mentat launcher starts for one rank: Popen, run and exec calls."""
+def run_mentat_launcher(
+    rank: int,
+    extra_env: dict[str, str] | None = None,
+    gpus: int = 2,
+    daemon_exit: int | None = None,
+    expect: type[BaseException] = StopExec,
+) -> tuple[list[Any], list[Any], list[Any], list[str]]:
+    """What the mentat launcher starts for one rank: Popen, run and exec calls, and the directories made."""
     wrapper = RECIPES[MENTAT]
     recipe = load(MENTAT)
     arguments = compile_authored_argv(recipe)
@@ -194,10 +201,16 @@ def run_mentat_launcher(rank: int) -> tuple[list[Any], list[Any], list[Any]]:
         "NCCL_IB_GID_INDEX": "3",
         "TP_SOCKET_IFNAME": "eth0",
         "GLOO_SOCKET_IFNAME": "eth0",
+        **(extra_env or {}),
     }
     popen: list[Any] = []
     run: list[Any] = []
     execs: list[Any] = []
+    made: list[str] = []
+
+    def fake_popen(command: list[str]) -> Any:
+        popen.append(command)
+        return SimpleNamespace(poll=lambda: daemon_exit)
 
     def fake_execv(path: str, argv: tuple[str, ...]) -> None:
         execs.append((path, argv))
@@ -208,7 +221,7 @@ def run_mentat_launcher(rank: int) -> tuple[list[Any], list[Any], list[Any]]:
     ) -> subprocess.CompletedProcess[str]:
         run.append(command)
         return subprocess.CompletedProcess(
-            command, 0, stdout="Resources: 0.0/2.0 GPU (0.0 reserved)\n"
+            command, 0, stdout=f"Resources: 0.0/{gpus}.0 GPU (0.0 reserved)\n"
         )
 
     with (
@@ -218,21 +231,27 @@ def run_mentat_launcher(rank: int) -> tuple[list[Any], list[Any], list[Any]]:
         patch("pathlib.Path.is_file", return_value=True),
         patch("os.access", return_value=True),
         patch("subprocess.run", side_effect=fake_run),
-        patch("subprocess.Popen", side_effect=popen.append),
+        patch("subprocess.Popen", side_effect=fake_popen),
         patch.object(Path, "rglob", return_value=[]),
-        patch.object(Path, "mkdir"),
+        patch.object(
+            Path,
+            "mkdir",
+            autospec=True,
+            side_effect=lambda path, **_: made.append(str(path)),
+        ),
         patch.object(Path, "read_text", new=lambda *args, **kwargs: ""),
-        pytest.raises(StopExec),
+        patch("time.sleep"),
+        pytest.raises(expect),
     ):
         runpy.run_path(str(ROOT / wrapper))
-    return popen, run, execs
+    return popen, run, execs, made
 
 
 class MentatLauncherTests(unittest.TestCase):
     def test_rank_zero_hosts_the_daemon_on_the_rendezvous_port_then_serves(
         self,
     ) -> None:
-        popen, run, execs = run_mentat_launcher(0)
+        popen, run, execs, _ = run_mentat_launcher(0)
         assert popen == [
             [
                 "/usr/local/bin/mentatd",
@@ -252,8 +271,28 @@ class MentatLauncherTests(unittest.TestCase):
             assert placement not in argv
         assert "--tensor-parallel-size" in argv
 
+    def test_the_control_file_variables_are_never_made_into_directories(self) -> None:
+        names = {
+            "VLLM_ADAPTIVE_K_CONTROL": "/outputs/cache/adaptive-k",
+            "VLLM_DRAFT_TRUNC_CONTROL": "/outputs/cache/draft-trunc",
+            "VLLM_WEIGHT_SNAPSHOT_DIR": "/outputs/cache/weight-snapshots",
+        }
+        *_, made = run_mentat_launcher(0, extra_env=names)
+        assert "/outputs/cache/weight-snapshots" in made
+        assert not {
+            names["VLLM_ADAPTIVE_K_CONTROL"],
+            names["VLLM_DRAFT_TRUNC_CONTROL"],
+        } & set(made)
+
+    def test_a_daemon_that_exits_while_the_group_forms_stops_the_launch(self) -> None:
+        # The helper requires the SystemExit; vLLM is never exec'd before it.
+        _, _, execs, _ = run_mentat_launcher(
+            0, gpus=0, daemon_exit=1, expect=SystemExit
+        )
+        assert not execs
+
     def test_a_worker_joins_the_rank_zero_daemon_without_starting_one(self) -> None:
-        popen, run, execs = run_mentat_launcher(1)
+        popen, run, execs, _ = run_mentat_launcher(1)
         assert not popen
         assert not run
         assert execs == [

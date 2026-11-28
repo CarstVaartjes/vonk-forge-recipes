@@ -21,13 +21,6 @@
       "ref": "nightly-ddd6fbca148a867aad1fcab7ec72f582b9977db4",
       "repo": "docker.io/mmastrac/vllm-openai"
     },
-    "mentat": {
-      "datasource": "oci-image",
-      "digest": "sha256:27db96b9c0d298721db02725739194d1ab113a58f4672b42eadbb45b972f8e86",
-      "kind": "tag",
-      "ref": "0.17.1",
-      "repo": "docker.io/mmastrac/mentat-artifacts"
-    },
     "vllm": {
       "commit": "ddd6fbca148a867aad1fcab7ec72f582b9977db4",
       "datasource": "git-ref",

@@ -7,8 +7,9 @@
 #     recoverssm) are copied to the same target paths after the kit's verify-base.py ran, in the order its launcher stacks them: the
 #     platform has no recipe bind mounts, and the kit's own check runs against the image the overlays are mounted on;
 #   * the Vonk layer replaces the kit's entrypoint: the launcher at /opt/vonk/bin/vllm starts the mentat daemon in rank 0 on the
-#     rendezvous port and then vllm serve, and sets the platform-owned TileLang and FlashInfer autotune cache paths; the non-root user and
-#     the licence texts are added.
+#     rendezvous port and then vllm serve, the non-root user and the licence texts are added;
+#     the image ENV puts the TileLang cache in /outputs/cache and the FlashInfer autotune cache in the run's fresh /tmp (the creator wipes it
+#     every start: a persisted one deadlocks the next boot at TP>1).
 # Dropped from the kit, as interface deviations: the status server on :8082 (an unauthenticated file search on 0.0.0.0, from the
 # unlicensed mmastrac/spark-agent submodule) and the allocator counters it reads (TORCH_MEM_STATS_DIR=/logs), self-test.py,
 # fabric-check.py, discover.sh and the entrypoint's preflight table and head election, the router mentatd-serve (the platform's gateway
@@ -25,7 +26,7 @@ ARG VLLM_REF=ddd6fbca148a867aad1fcab7ec72f582b9977db4
 ARG FLASHKDA_REF=17a037d98da546deb4591e967cf961a43c034d8b
 ARG CUTLASS_REF=5c149f52a436782210263fb2f19b354443a61c6a
 COPY image/flashkda/ /build/
-RUN FLASHKDA_REF=${FLASHKDA_REF} CUTLASS_REF=${CUTLASS_REF} VLLM_REF=${VLLM_REF} /build/build.sh
+RUN FLASHKDA_REF=${FLASHKDA_REF} CUTLASS_REF=${CUTLASS_REF} VLLM_REF=${VLLM_REF} bash /build/build.sh
 
 FROM docker.io/mmastrac/vllm-openai:nightly-ddd6fbca148a867aad1fcab7ec72f582b9977db4@sha256:ac8b63cdb18294ab4b9efa4a2f0a4474896fbaf9d48700512f8f2082b548c2c0
 
@@ -168,7 +169,9 @@ ENV HF_HUB_OFFLINE=1 \
     VLLM_NO_USAGE_STATS=1 \
     DO_NOT_TRACK=1 \
     HOME=/state \
-    XDG_CACHE_HOME=/outputs/cache
+    XDG_CACHE_HOME=/outputs/cache \
+    TILELANG_CACHE_DIR=/outputs/cache/tilelang \
+    VLLM_FLASHINFER_AUTOTUNE_CACHE_DIR=/tmp/flashinfer_autotune
 
 WORKDIR /state
 USER 10001:10001

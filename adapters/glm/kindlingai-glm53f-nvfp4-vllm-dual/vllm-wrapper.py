@@ -20,17 +20,12 @@ from pathlib import Path
 GROUP = "glm53"
 # What the creator's entrypoint exports for every rank (and the preflight's headroom beyond weights and KV).
 OTHER_GIB = 30
-# Platform-owned names a recipe cannot set; the platform's own value wins. The autotune cache stays in the
-# run's fresh /tmp, as the creator wipes it at every start (a persisted one deadlocks the next boot at TP>1).
-PLATFORM_STATE = {
-    "TILELANG_CACHE_DIR": "/outputs/cache/tilelang",
-    "VLLM_FLASHINFER_AUTOTUNE_CACHE_DIR": "/tmp/flashinfer_autotune",
-}
+# Directories the launcher makes when the environment names one. The adaptive-k and draft-trunc control variables
+# name optional control FILES (a missing file is the creator's behaviour), so no path is made for them.
 STATE_DIRECTORIES = (
-    *PLATFORM_STATE,
+    "TILELANG_CACHE_DIR",
+    "VLLM_FLASHINFER_AUTOTUNE_CACHE_DIR",
     "VLLM_WEIGHT_SNAPSHOT_DIR",
-    "VLLM_ADAPTIVE_K_CONTROL",
-    "VLLM_DRAFT_TRUNC_CONTROL",
 )
 GPU_TOTAL = re.compile(r"[0-9.]+/([0-9.]+) GPU")
 
@@ -77,7 +72,11 @@ def _gpu_total(ray: str, address: str) -> int:
 
 
 def _meminfo_gib(field: str) -> int | None:
-    for line in Path("/proc/meminfo").read_text().splitlines():
+    try:
+        lines = Path("/proc/meminfo").read_text().splitlines()
+    except OSError:
+        return None
+    for line in lines:
         name, _, rest = line.partition(":")
         if name == field and rest.split():
             return int(rest.split()[0]) >> 20
@@ -171,8 +170,6 @@ os.environ["CONTAINER_NAME"] = GROUP
 os.environ["MENTAT_ANNOUNCE_PORT"] = "0"
 os.environ["MENTAT_ANNOUNCE_ADDRS"] = local_address
 
-for name, default in PLATFORM_STATE.items():
-    os.environ.setdefault(name, default)
 for name in STATE_DIRECTORIES:
     if os.environ.get(name):
         Path(os.environ[name]).mkdir(parents=True, exist_ok=True)
