@@ -160,9 +160,10 @@ def _visit_for(self, forward_batch, attn, get_attn_backend, get_model, in_breaka
             return None
     except Exception:  # noqa: BLE001
         return None
-    contains = getattr(forward_batch, "contains_mm_inputs", None)
-    if contains is not None and contains():
-        return None
+    # Image batches are eligible: Inkling2 image tokens are ordinary causal positions (the vision tower only
+    # supplies their input embeddings), so an image chunk's attention is a text chunk's. (SGLang also clears
+    # forward_batch.mm_inputs once the embeddings are built, prepare_mm_inputs, so a contains_mm_inputs() test here
+    # never saw images.) Image masks (FA4 image_token_ranges: other models' bidirectional spans) are excluded below.
     backend = get_attn_backend()
     if getattr(backend, "fa_skip_kv_cache", False) or getattr(backend, "use_mla", False):
         return None
