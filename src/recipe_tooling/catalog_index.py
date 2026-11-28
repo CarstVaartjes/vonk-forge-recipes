@@ -96,6 +96,7 @@ ENTITY_DIRECTORIES = {
 SCHEMA_SOURCE = (
     ROOT / "contracts" / "src" / "vonk_forge_contracts" / "schema" / INDEX_SCHEMA_ASSET
 )
+EXAMPLES_SOURCE = ROOT / "contracts" / "src" / "vonk_forge_contracts" / "examples"
 FROM_LINE = re.compile(
     r"^FROM(?:\s+--platform=(\S+))?\s+(\S+)(?:\s+AS\s+(\S+))?\s*$", re.IGNORECASE
 )
@@ -988,7 +989,9 @@ def write_release(
             # newer minor could publish it (tools/build-future-vector).
             FUTURE_VECTOR_ASSET: rendered_vector(
                 build_future_vector(
-                    document, json.loads(SCHEMA_SOURCE.read_text(encoding="utf-8"))
+                    document,
+                    json.loads(SCHEMA_SOURCE.read_text(encoding="utf-8")),
+                    EXAMPLES_SOURCE,
                 ).document
             ),
         }

@@ -22,6 +22,7 @@ from recipe_tooling.future_vector import (
     missing_fields,
     words_in,
 )
+from recipe_tooling.qualification.api_checks import check_recipe_api
 from vonk_forge_contracts import read_catalog_index
 from vonk_forge_contracts.catalog_reader import (
     CatalogSection,
@@ -35,11 +36,12 @@ SCHEMA_PATH = (
     ROOT / "contracts/src/vonk_forge_contracts/schema/catalog-index-v2.schema.json"
 )
 SCHEMA: dict[str, Any] = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
+EXAMPLES = ROOT / "contracts/src/vonk_forge_contracts/examples"
 
 
 @pytest.fixture(scope="module")
 def vector(built_catalog: tuple[dict[str, Any], Path]) -> FutureVector:
-    return build_future_vector(built_catalog[0], SCHEMA)
+    return build_future_vector(built_catalog[0], SCHEMA, EXAMPLES)
 
 
 SCHEMAS = SCHEMA["components"]["schemas"]
@@ -147,6 +149,8 @@ def test_the_tool_writes_the_same_bytes(vector: FutureVector, tmp_path: Path) ->
             str(GENERATED / "catalog-index.json"),
             "--schema",
             str(SCHEMA_PATH),
+            "--examples",
+            str(EXAMPLES),
             "--out",
             str(out),
         ],
@@ -156,3 +160,16 @@ def test_the_tool_writes_the_same_bytes(vector: FutureVector, tmp_path: Path) ->
     )
     assert done.returncode == 0, done.stderr
     assert out.read_bytes() == rendered_vector(vector.document)
+
+
+def test_every_recipe_entry_the_reader_keeps_is_consistent_with_its_api(
+    vector: FutureVector,
+) -> None:
+    kept = [
+        entry
+        for entry in read_catalog(vector.document).index.recipes
+        if entry.api is not None
+    ]
+    assert kept
+    for entry in kept:
+        check_recipe_api(entry.document, entry.api)

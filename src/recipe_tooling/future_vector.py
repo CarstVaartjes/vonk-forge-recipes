@@ -6,6 +6,9 @@ a self-consistent index that a consumer must still read:
 * an unknown word (``zz-future-word``) at every closed-word site outside an entry's
   execution document (an empty or absent list of words gets ``[word]``),
 * an unknown field (``zz_future_field``) on every object the schema closes,
+* the contract's synthetic example pairs (``recipe-<name>.json`` with
+  ``recipe-api-<name>.json``, from the ``examples_dir`` the caller names) as extra
+  entries, so a word no library recipe uses yet still has a site, and
 * one extra recipe entry whose serving kind is an unknown executed discriminator
   (``zz.future-kind``), which a reader withholds and the rest of the index survives.
 
@@ -25,9 +28,9 @@ import json
 import re
 from collections.abc import Iterator, Mapping
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Final
 
-from recipe_tooling.paths import REPO_ROOT
 from vonk_forge_contracts import document_sha256
 from vonk_forge_contracts.catalog_reader import (
     CatalogSection,
@@ -42,7 +45,6 @@ FIELD: Final = "zz_future_field"
 KIND: Final = "zz.future-kind"
 SLUG: Final = "zz-future-recipe"
 _OPEN: Final = frozenset({WORD, KIND})
-API_EXAMPLES: Final = REPO_ROOT / "contracts/src/vonk_forge_contracts/examples"
 _DIGEST: Final = re.compile(r"[0-9a-f]{64}")
 _ENTRY_SCHEMAS: Final = {
     "catalog_entities": "CatalogModelEntry",
@@ -374,22 +376,31 @@ def _withhold(entry: dict[str, Any]) -> dict[str, Any]:
     return _renamed(entry, SLUG, KIND)
 
 
-def _with_examples(index: dict[str, Any]) -> dict[str, Any]:
-    """The index plus one entry per synthetic API example, so a word no library recipe uses yet has a site.
+def _with_examples(
+    index: dict[str, Any], examples_dir: Path
+) -> tuple[dict[str, Any], set[str]]:
+    """The index plus one entry per synthetic example pair, and those entries' slugs.
 
-    Each example API document rides on a copy of a real recipe entry; the
-    covering step keeps only the copies that add a shape.
+    A word no library recipe uses yet still needs a site. Each example API
+    document (``recipe-api-<name>.json``) rides on its own paired example recipe
+    (``recipe-<name>.json``), so every entry is a consistent recipe plus API. The
+    entry's other parts are a copy of a real one; the covering step keeps only
+    the pairs that add a shape.
     """
     base = next(
         entry for entry in index["recipes"] if isinstance(entry.get("api"), dict)
     )
     extra = []
-    for path in sorted(API_EXAMPLES.glob("recipe-api-*.json")):
-        entry = _renamed(base, f"zz-example-{path.stem.removeprefix('recipe-api-')}")
-        entry["api"] = json.loads(path.read_text(encoding="utf-8"))
-        entry["api"]["identity"]["slug"] = entry["document"]["identity"]["slug"]
-        extra.append(entry)
-    return {**index, "recipes": [*index["recipes"], *extra]}
+    for api_path in sorted(examples_dir.glob("recipe-api-*.json")):
+        name = api_path.stem.removeprefix("recipe-api-")
+        entry = copy.deepcopy(base)
+        entry["document"] = json.loads(
+            (examples_dir / f"recipe-{name}.json").read_text(encoding="utf-8")
+        )
+        entry["api"] = json.loads(api_path.read_text(encoding="utf-8"))
+        extra.append(_renamed(entry, entry["document"]["identity"]["slug"]))
+    slugs = {entry["document"]["identity"]["slug"] for entry in extra}
+    return {**index, "recipes": [*index["recipes"], *extra]}, slugs
 
 
 def words_in(schema_document: Mapping[str, Any], vector: dict[str, Any]) -> set[str]:
@@ -423,10 +434,11 @@ def missing_fields(
 
 
 def build_future_vector(
-    index: dict[str, Any], schema_document: Mapping[str, Any]
+    index: dict[str, Any], schema_document: Mapping[str, Any], examples_dir: Path
 ) -> FutureVector:
     """The future vector for ``index``; raises ``ValueError`` if its reader would not survive it."""
-    vector = _select(Schema(schema_document), _with_examples(index))
+    extended, example_slugs = _with_examples(index, examples_dir)
+    vector = _select(Schema(schema_document), extended)
     sites = _word_sites(Schema(schema_document), vector)
     for where in sites.values():
         for section, position, target in where:
@@ -446,7 +458,12 @@ def build_future_vector(
         if kind == "object" and node.get("additionalProperties") is False:
             value[FIELD] = 1
     _rebind(vector)
-    vector["recipes"].append(_withhold(vector["recipes"][-1]))
+    real = next(
+        entry
+        for entry in reversed(vector["recipes"])
+        if entry["document"]["identity"]["slug"] not in example_slugs
+    )
+    vector["recipes"].append(_withhold(real))
     _check(vector, sites)
     return FutureVector(
         document=vector,

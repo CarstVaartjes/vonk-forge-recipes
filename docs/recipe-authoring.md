@@ -1700,7 +1700,7 @@ release commit. The release also ships `catalog-index-v2.schema.json`, the gener
 unknown word at every closed-word site outside an execution document (the build fails if the contract reader does not keep it), an unknown field on every closed object and
 one recipe entry with an unknown serving kind. A consumer reads it on its own release and must
 keep every entry but that one; `tests/tools/test_future_vector.py` runs the same proof against the
-contract reader, and a new tolerant site is found by the schema walk, never added by hand. Build them locally with one command when a tool or test outside
+contract reader, and a new tolerant site is found by the schema walk, never added by hand. The contract examples directory is an explicit input of `tools/build-future-vector`: each `recipe-<name>.json` with its `recipe-api-<name>.json` joins the vector as an entry, so a word no library recipe uses yet still has a site. Build them locally with one command when a tool or test outside
 the suite needs them:
 
 ```bash

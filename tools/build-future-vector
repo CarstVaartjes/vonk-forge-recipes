@@ -5,7 +5,9 @@ Starting from the built ``catalog-index.json`` and its generated schema, the vec
 an unknown word at every closed-word site outside an execution document, an unknown field on every closed
 object, and one recipe entry whose serving kind a reader cannot execute (it is withheld;
 the rest of the index applies). The release ships it as ``future-canary-index.json`` so a
-pinned and a stable consumer both prove they survive a newer minor. The code lives in
+pinned and a stable consumer both prove they survive a newer minor. The contract examples
+directory (``--examples``, an explicit input) adds each synthetic ``recipe-<name>.json`` with its
+``recipe-api-<name>.json`` as an entry, so a word no library recipe uses yet has a site. The code lives in
 ``src/recipe_tooling/future_vector.py``; the vector is a reader test, never a catalog.
 """
 
@@ -27,12 +29,19 @@ def main() -> int:
         "--schema", type=Path, required=True, help="catalog-index-v2.schema.json"
     )
     parser.add_argument(
+        "--examples",
+        type=Path,
+        required=True,
+        help="the contract examples directory: its recipe/API example pairs join the vector",
+    )
+    parser.add_argument(
         "--out", type=Path, required=True, help="future-canary-index.json"
     )
     arguments = parser.parse_args()
     result = build_future_vector(
         json.loads(arguments.index.read_text(encoding="utf-8")),
         json.loads(arguments.schema.read_text(encoding="utf-8")),
+        arguments.examples,
     )
     arguments.out.write_bytes(rendered_vector(result.document))
     print(

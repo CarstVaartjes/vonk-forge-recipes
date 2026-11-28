@@ -31,6 +31,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from recipe_tooling.added_lines import read_diff
 from recipe_tooling.qualification.api_checks import (
+    KIND_MODES,
     RecipeApiError,
     api_variants,
     check_api_models,
@@ -54,7 +55,7 @@ from vonk_forge_contracts.api import ApiReasoningNone, ApiToolsNone
 
 ROOT = Path(__file__).resolve().parents[1]
 
-SERVING_KINDS = frozenset({"generation", "decision", "embedding"})
+SERVING_KINDS = frozenset(KIND_MODES)
 
 
 def changed_slugs(paths: list[str], root: Path = ROOT) -> list[str]:

@@ -241,10 +241,12 @@ def mode_case_problems(
     templates: Mapping[str, Any],
 ) -> list[str]:
     """A non-chat route lists no smoke case on its mode's endpoint."""
+    if mode == "chat":
+        return []
     endpoint = MODE_ENDPOINTS.get(mode)
-    if endpoint is None or any(
-        templates[case]["path"] == endpoint for case in smoke_cases
-    ):
+    if endpoint is None:
+        return [f"{slug}: the {mode} mode has no endpoint in MODE_ENDPOINTS"]
+    if any(templates[case]["path"] == endpoint for case in smoke_cases):
         return []
     return [f"{slug}: a {mode} recipe needs a smoke case that calls {endpoint}"]
 
