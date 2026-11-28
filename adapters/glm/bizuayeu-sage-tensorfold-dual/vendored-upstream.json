@@ -4,7 +4,7 @@
     "tensorfold-serve"
   ],
   "source": {
-    "commit": "f56b1420ff3e17fa531d90eb97bef41053cd852d",
+    "commit": "b336654937bfbee9035af9459f77c8d6fc8aebf1",
     "line": "1",
     "repo": "ashhart/TensorFold"
   }
