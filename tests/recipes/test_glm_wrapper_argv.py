@@ -17,6 +17,7 @@ RECIPES = {
     "glm-5-2-quanttrio-vllm-four": "adapters/glm/eugr-four/vllm-wrapper.py",
     "glm-5-3-flash-exl3-dflash2-vllm-mia-four": "adapters/glm/mia-exl3-dflash2-four/vllm-wrapper.py",
     "glm-5-3-flash-exl3-dflash2-vllm-mia-triple": "adapters/glm/mia-exl3-dflash2-triple/vllm-wrapper.py",
+    "glm-5-3-flash-exlr8-kindlingai-vllm-dual": "adapters/glm/kindlingai-glm53f-exlr8-vllm-dual/vllm-wrapper.py",
     "glm-5-3-flash-nvfp4-vllm-dual": "adapters/glm/glm53-sm121/vllm-wrapper.py",
     "glm-5-3-flash-nvfp4-vllm-four": "adapters/glm/tonyd2wild-glm53-tp4-current/vllm-wrapper.py",
     "minimax-m3-1-flash-tonyd2wild-vllm-four": "adapters/minimax/tonyd2wild-m31-flash-tp4/vllm-wrapper.py",
@@ -101,7 +102,10 @@ class GlmWrapperArgvTests(unittest.TestCase):
                     return subprocess.CompletedProcess(
                         args,  # pyright: ignore[reportArgumentType]
                         0,
-                        stdout=f"VONK_ALIVE={_recipe['topology']['node_count']}\n",
+                        stdout=(
+                            f"VONK_ALIVE={_recipe['topology']['node_count']}\n"
+                            f"Resources: 0.0/{_recipe['topology']['node_count']}.0 GPU\n"
+                        ),
                     )
 
                 env = {
@@ -126,6 +130,7 @@ class GlmWrapperArgvTests(unittest.TestCase):
                     patch("pathlib.Path.is_file", return_value=True),
                     patch("os.access", return_value=True),
                     patch("subprocess.run", side_effect=fake_run),
+                    patch("subprocess.Popen"),
                     patch.object(Path, "rglob", return_value=[]),
                     patch.object(Path, "mkdir"),
                     patch.object(Path, "write_text"),
