@@ -14,6 +14,7 @@ from refresh_helpers import (
     OLD,
     classify,
     comparison,
+    complete,
     model_with,
     single_recipe_catalog,
 )
@@ -155,8 +156,7 @@ class NothingRunsTests(unittest.TestCase):
             catalog.recipes["recipe"] = document
         elif engine is not None:
             recipe = catalog.recipes["recipe"]
-            recipe["runtime"] = {"engine": engine}
-            recipe["topology"] = {"roles": []}
+            recipe["runtime"]["engine"] = engine
         assessor = refresh_assessment.Assessor(catalog, object(), None, {})  # pyright: ignore[reportArgumentType]
         assessor.target = lambda _provider, _repo: self.TARGET  # pyright: ignore[reportAttributeAccessIssue]
         patches = [
@@ -217,7 +217,7 @@ class NothingRunsTests(unittest.TestCase):
             self.assess(moved, engine="vllm")
             raised.assert_called_once()
             roles, _recipe, replaced, digest = raised.call_args.args
-            assert roles == []
+            assert roles
             assert len(digest) == 64  # the replaced document, in hand
             assert replaced is not None
         with patch(
@@ -650,16 +650,18 @@ class ReleaseAssetTests(unittest.TestCase):
         catalog = refresh_catalog_view.Catalog(
             root,
             recipes={
-                "recipe": {
-                    "identity": {"slug": "recipe"},
-                    "provenance": {
-                        "attribution": ["Ash Hart (TensorFold)"],
-                        "source_reference": f"https://github.com/{self.REPO}/tree/{OLD}",
-                    },
-                    "release": {"version": "1.2.3", "released_at": "2026-11-05"},
-                    "models": [],
-                    "execution": {"build": {"context": {"path": "adapters/tf"}}},
-                }
+                "recipe": complete(
+                    {
+                        "identity": {"slug": "recipe"},
+                        "provenance": {
+                            "attribution": ["Ash Hart (TensorFold)"],
+                            "source_reference": f"https://github.com/{self.REPO}/tree/{OLD}",
+                        },
+                        "release": {"version": "1.2.3", "released_at": "2026-11-05"},
+                        "models": [],
+                        "execution": {"build": {"context": {"path": "adapters/tf"}}},
+                    }
+                )
             },
         )
         assessor = refresh_assessment.Assessor(catalog, FakeHttp(), None, {})  # pyright: ignore[reportArgumentType]

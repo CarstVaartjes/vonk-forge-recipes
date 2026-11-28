@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import copy
 import json
 import tempfile
 from pathlib import Path
 from typing import Any
 
+import documents
 from repo_root import ROOT
 
 from recipe_tooling.catalog_model import file_id, roles_for
@@ -90,20 +92,38 @@ def model_with(paths: tuple[str, ...]):
     return document
 
 
+def complete(stub: dict[str, Any]) -> dict[str, Any]:
+    """A valid Recipe carrying the stub's slug, provenance, release, runtime and build context."""
+    document = copy.deepcopy(
+        documents.recipe_document("glm-5-3-exlr8-kindlingai-gr8-dual")
+    )
+    document["identity"]["slug"] = stub["identity"]["slug"]
+    document["provenance"].pop("source_reference", None)
+    for key in ("provenance", "release", "runtime", "topology"):
+        if key in stub:
+            document.setdefault(key, {}).update(stub[key])
+    document["execution"]["build"]["context"]["path"] = stub["execution"]["build"][
+        "context"
+    ]["path"]
+    return document
+
+
 def single_recipe_catalog(source_reference: str) -> Any:
     return refresh_catalog_view.Catalog(
         Path(tempfile.gettempdir()),
         recipes={
-            "recipe": {
-                "identity": {"slug": "recipe"},
-                "provenance": {
-                    "attribution": ["Example"],
-                    "source_reference": source_reference,
-                },
-                "release": {"version": "1.0.0", "released_at": "2026-01-01"},
-                "models": [],
-                "execution": {"build": {"context": {"path": "missing"}}},
-            }
+            "recipe": complete(
+                {
+                    "identity": {"slug": "recipe"},
+                    "provenance": {
+                        "attribution": ["Example"],
+                        "source_reference": source_reference,
+                    },
+                    "release": {"version": "1.0.0", "released_at": "2026-01-01"},
+                    "models": [],
+                    "execution": {"build": {"context": {"path": "missing"}}},
+                }
+            )
         },
     )
 

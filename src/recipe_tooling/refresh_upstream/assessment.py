@@ -27,7 +27,7 @@ from recipe_tooling.refresh_upstream import items as refresh_items
 from recipe_tooling.refresh_upstream import model as refresh_model
 from recipe_tooling.refresh_upstream import pinning as refresh_pinning
 from recipe_tooling.upstream_http import UpstreamBusy
-from vonk_forge_contracts import RecipeDefinition, document_sha256
+from vonk_forge_contracts import RecipeDefinition, document_sha256, read_recipe
 
 # ---------------------------------------------------------------------------
 # Assessment: decide, and prepare the edits for a mechanical refresh
@@ -315,7 +315,7 @@ class Assessor:
                     f"vendored file check at the new commit: {p}"
                     + ("" if why is None else f" ({why})")
                 )
-        context = self.catalog.root / recipe["execution"]["build"]["context"]["path"]
+        context = self.catalog.root / read_recipe(recipe).execution.build.context.path
         declared_kit = refresh_catalog_view.kit_directory(self.catalog.root, recipe)
         # A citation naming a subdirectory scopes the kit to it, declared or not: a
         # declared kit inside a monorepo judges every change there and nothing outside.
