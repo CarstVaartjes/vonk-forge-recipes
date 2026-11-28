@@ -1,5 +1,12 @@
 {
   "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:f6d09cca202bd56114fe93f8efdadd216a6c9ede079f002a601d692e90241b63",
+      "kind": "digest",
+      "ref": "sha256:e4e709eab32df3868b74b14c08b75fc89d891fde0f9650d0c4a42fcda54b9863",
+      "repo": "ghcr.io/kindlingai/gr8"
+    },
     "model": {
       "datasource": "hf-revision",
       "kind": "commit",
@@ -9,7 +16,7 @@
     }
   },
   "kit": {
-    "commit": "4038bf81f08ee049e6f12d51261b3db56a986f95",
-    "repo": "kindlingai/deepseek-v4.1-flash-exlr8-4x-spark"
+    "commit": "13c24ac483eaf8b2fcb828a62ae2604bcc038b92",
+    "repo": "kindlingai/recipes"
   }
 }
