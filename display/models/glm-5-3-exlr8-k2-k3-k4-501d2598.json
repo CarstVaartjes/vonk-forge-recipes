@@ -1,0 +1,40 @@
+{
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
+  "description": "Exact public KindlingAI GLM 5.3 exlr8 release (0.7: K2, K3 and K4 expert widths, TP=2 index slices, width manifests including the bit225 profile, dense files) at revision 501d2598, as pinned by KindlingAI's gr8 recipe for two Sparks. Each recipe selects the width files its manifest reads.",
+  "family_title": "GLM 5.3 EXLR8",
+  "identity": {
+    "publisher": "kindlingai",
+    "slug": "glm-5-3-exlr8-k2-k3-k4-501d2598"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "KindlingAI",
+      "Z.AI"
+    ],
+    "spdx": "LicenseRef-GLM-5.3",
+    "url": "https://huggingface.co/kindlingai/glm-5.3-exlr8-k2-k3-k4/blob/501d259894bf0de607ee4aa6f8a564a14d0c6b63/LICENSE"
+  },
+  "lineage": {
+    "base_model": "zai-org/GLM-5.3-BF16",
+    "family": "glm",
+    "generation": "GLM 5.3",
+    "line": "glm",
+    "model": "glm-5-3",
+    "variant_kind": "quantization"
+  },
+  "modalities": [
+    "text"
+  ],
+  "model_title": "GLM 5.3 EXLR8 K2 K3 K4",
+  "tags": [
+    "kindlingai",
+    "glm-5-3-exlr8"
+  ]
+}

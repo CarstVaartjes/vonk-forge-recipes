@@ -930,6 +930,8 @@ whose first start does the creator's prepare step into `/outputs/cache`. A kit w
 published image with its settings in `.env.example` (`adapters/glm/kindlingai-gr8-glm53-*`) declares that image from
 compose's `image:` line as an `oci-image` dependency and the Model from `.env.example`; the recipe's environment carries
 every active `.env.example` line (compose-only and placement lines excepted), its volume paths under `/outputs/cache`.
+A GLM53 TP=2 wrapper converts the DFlash2 drafter in native INT4 into `tp2-int4`, as gr8's launcher does at TP=2, so a
+pack of another mode is never reused.
 
 Bind generated rank/vision/model views to their checkpoint and engine inputs,
 reuse complete cached work and rebuild malformed/interrupted output
