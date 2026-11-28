@@ -8,7 +8,7 @@ FROM lmsysorg/sglang@sha256:bc811ac7ac68c6fca116a49750baca817b8613a30abface8a347
 # every start) is fetched here at the drafter revision, checked against the kit's
 # sha256 and run once as root, which patches the installed SGLang.
 LABEL org.opencontainers.image.source="https://github.com/knapcio/Inkling-2-Mini-1x-DGX-Spark" \
-      org.opencontainers.image.revision="09febfe16b34680ddc71bdb99dab0f1f821d29c6" \
+      org.opencontainers.image.revision="f74d6d8378c3e32b04d0d6ee3c2dc04ad7a6c010" \
       org.opencontainers.image.licenses="MIT AND Apache-2.0"
 
 ARG DFLASH2_FILE_SHA256=14223ae2f3aa1d661da67cf0143ec33070d952a6e28a119e6cec64fcc0bebe50

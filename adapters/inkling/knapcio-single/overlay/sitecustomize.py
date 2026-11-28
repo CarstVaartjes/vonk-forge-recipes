@@ -90,6 +90,9 @@ try:
     if _on("INKLING_RSFIX"):  # exact residual / bonus lane rule (+ SGLang PR #51681 / #51692 fixes)
         import inkling_rsfix
         inkling_rsfix.install()
+    if _on("INKLING_MM_MAX_IMAGE_TOKENS") or _on("INKLING_MM_INFLIGHT_TOKENS"):  # image input (MM=1): per-request and in-flight image bounds
+        import inkling_mm
+        inkling_mm.install()
 except BaseException as exc:  # noqa: BLE001
     sys.stderr.write("[inkling-overlay pid=%d] FATAL at startup: %r\n" % (os.getpid(), exc))
     sys.stderr.flush()

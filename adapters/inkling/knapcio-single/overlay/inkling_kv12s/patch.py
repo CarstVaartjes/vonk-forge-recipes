@@ -108,9 +108,10 @@ def _check_serving_args(spec):
             raise IncompatibleImage(f"inkling_kv12s: {name} must be 1 (side-slot decisions are per rank)")
     if getattr(args, "enable_streaming_session", False):
         raise IncompatibleImage("inkling_kv12s: --enable-streaming-session is unsupported (packed pages are immutable)")
-    if getattr(args, "enable_multimodal", False):
-        raise IncompatibleImage("inkling_kv12s: --enable-multimodal routes image prefill through an unbudgeted "
-                                "BF16 gather; unsupported")
+    # --enable-multimodal is supported (v2.9.8): Inkling2 image tokens are causal positions with vision-tower
+    # embeddings, so image prefill takes the same fused packed readers as text (inkling_attn's visit; image chunks
+    # run eager, where the reader is the pool-charged BF16 prefix scratch or the in-kernel packed loader). The vision
+    # side is bounded by inkling_mm (INKLING_MM_MAX_IMAGE_TOKENS per request).
     try:
         warps = int(os.environ.get("INKLING_ATTN_WARPS", "4"))
         w8_from = int(os.environ.get("INKLING_ATTN_W8_FROM", "131072"))
