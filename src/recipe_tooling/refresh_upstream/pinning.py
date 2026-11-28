@@ -155,8 +155,16 @@ def _github_target(
         url=commit["html_url"],
         notes=notes,
         committed_at=commit["commit"]["committer"]["date"],
-        archived=http.github(f"repos/{repo}").get("archived") is True,
+        archived=_archived(http, repo),
     )
+
+
+def _archived(http: refresh_http.Http, repo: str) -> bool:
+    """Advisory: a failed lookup means "not known to be archived", never a failed target."""
+    try:
+        return http.github(f"repos/{repo}").get("archived") is True
+    except (refresh_http.NotFound, RuntimeError, AttributeError):
+        return False
 
 
 def resolve_huggingface(http: refresh_http.Http, repo: str) -> refresh_model.Target:

@@ -319,15 +319,17 @@ class Assessor:
         declared_kit = refresh_catalog_view.kit_directory(self.catalog.root, recipe)
         # A citation naming a subdirectory scopes the kit to it, declared or not: a
         # declared kit inside a monorepo judges every change there and nothing outside.
+        # A declared kit may own its adapter (the pinned repository is the kit
+        # repository); its vendored files are still byte-checked above.
         cited = (
             None
-            if owns_adapter
+            if owns_adapter and declared_kit is None
             else refresh_catalog_view.kit_citation_scope(context, item.repo)
         )
         scope = cited or ()
         is_kit = (
             item.kind == "source"
-            and not owns_adapter
+            and (not owns_adapter or declared_kit is not None)
             and (refresh_catalog_view.whole_kit(declared_kit) or cited is not None)
         )
         mirrored: set[str] = set()

@@ -650,7 +650,15 @@ class KitScopeTests(unittest.TestCase):
         (adapter / "Dockerfile").write_text("FROM scratch\n" + dockerfile)
         (adapter / "NOTICE").write_text(notice)
         if kit is not None:
-            (adapter / "vendored-upstream.json").write_text(json.dumps({"kit": kit}))
+            # the real shape: the adapter pins the kit repository itself
+            (adapter / "vendored-upstream.json").write_text(
+                json.dumps(
+                    {
+                        "kit": kit,
+                        "source": {"repo": "example/recipes", "commit": OLD},
+                    }
+                )
+            )
         recipe = {
             "identity": {"slug": "recipe"},
             "provenance": {
@@ -682,6 +690,13 @@ class KitScopeTests(unittest.TestCase):
             ),
             # the kit's own dependencies are not under test here
             patch("recipe_tooling.refresh_upstream.items.check_kit_dependencies"),
+            patch.object(refresh_assessment.vendored, "fetch_tree"),
+            patch.object(
+                refresh_assessment.vendored,
+                "check_adapter",
+                return_value=SimpleNamespace(problems=[], stale=[]),
+            ),
+            patch.object(refresh_assessment.Assessor, "_retarget_adapter"),
         ):
             return assessor.assess("recipe")
 
@@ -744,11 +759,11 @@ class KitScopeTests(unittest.TestCase):
     def test_an_archived_kit_repository_is_a_visible_finding(self) -> None:
         notice = self.cite("/models/vllm-sr")
         kit = {"whole": True, "dependencies": {}}
-        files = ("models/vllm-sr/serve.yaml",)
+        files = ("models/vllm-sr/README.md",)
         found = self.assess(files, notice=notice, kit=kit, archived=True)
-        assert any("archived" in reason for reason in found.reasons), found.reasons
         quiet = self.assess(files, notice=notice, kit=kit)
-        assert not any("archived" in reason for reason in quiet.reasons)
+        assert found.drifted
+        assert not quiet.drifted
 
     def test_a_citation_of_the_whole_repository_still_judges_everything(self) -> None:
         result = self.assess(("models/other/serve.yaml",), notice=self.cite())

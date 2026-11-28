@@ -64,12 +64,6 @@ def observe_embedded_heads(inventory: dict[str, object], client: JsonClient) -> 
                     "default-branch observation failed; retained the embedded pin: "
                     + error_text
                 )
-            elif archived:
-                item["candidate_status"] = "archived"
-                item["candidate_reason"] = (
-                    "the repository is archived: its creator moved on, so follow the "
-                    "pointer in its README to the new repository"
-                )
             elif observed is None:
                 item["candidate_status"] = "unknown"
                 item["candidate_reason"] = "provider returned no advertised head"
@@ -88,6 +82,18 @@ def observe_embedded_heads(inventory: dict[str, object], client: JsonClient) -> 
                 item["candidate_reason"] = (
                     "default branch advanced; candidate is review evidence only. Retain specialized behavior until compatibility is established; no embedded pin was changed"
                 )
+            if archived:
+                # Keep the candidate evidence of an advanced pin; mark the rest.
+                note = (
+                    "the repository is archived: its creator moved on, so follow the "
+                    "pointer in its README to the new repository"
+                )
+                item["archived"] = True
+                if item["candidate_status"] == "advanced":
+                    item["candidate_reason"] += "; " + note
+                else:
+                    item["candidate_status"] = "archived"
+                    item["candidate_reason"] = note
             candidate_counts[str(item["candidate_status"])] += 1
     coverage = inventory.get("coverage")
     if isinstance(coverage, dict):
