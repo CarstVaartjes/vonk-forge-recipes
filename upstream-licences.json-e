@@ -1,0 +1,820 @@
+{
+  "upstreams": {
+    "0xSero/deepseek-spark": {
+      "license": "unlicensed-upstream",
+      "request": "https://github.com/0xSero/deepseek-spark/issues/6"
+    },
+    "0xSero/deepseek-v4-flash-0731-spark-sparkinfer": {
+      "license": "Apache-2.0",
+      "texts": [
+        "adapters/deepseek/sparkinfer-single/NOTICE"
+      ]
+    },
+    "0xSero/DeepSeek-V4.1-Flash-Two-Sparks": {
+      "license": "MIT",
+      "texts": [
+        "adapters/deepseek/0xsero-exl3-vllm-dual/LICENSE"
+      ]
+    },
+    "0xSero/GLM-5.3-Flash-EXL3-1x-DGX-Spark": {
+      "license": "NOASSERTION",
+      "texts": [
+        "adapters/glm/0xsero-exl3-k2-single/LICENSE"
+      ]
+    },
+    "0xSero/glm-5.3-flash-spark-mosaic": {
+      "license": "MIT",
+      "texts": [
+        "adapters/glm/0xsero-exl3-plain-sglang-single/LICENSE"
+      ]
+    },
+    "a3refaat/spark-vllm-docker": {
+      "license": "MIT",
+      "texts": [
+        "adapters/minimax/a3refaat-m3-b12x-dual/LICENSE.upstream"
+      ]
+    },
+    "ajensenwaud/inkspark-2dgx": {
+      "license": "BSD-3-Clause",
+      "texts": [
+        "adapters/inkling/ajensenwaud-inkspark-tensorfold-dual/licenses/LICENSE"
+      ]
+    },
+    "amarjeet/dgx-spark-recipes": {
+      "license": "MIT",
+      "texts": [
+        "licenses/amarjeet/dgx-spark-recipes/LICENSE"
+      ]
+    },
+    "atakann/dgx-spark-recipes": {
+      "license": "MIT",
+      "texts": [
+        "adapters/hy4/atakann-nvfp4-vllm-dual/LICENSE"
+      ]
+    },
+    "Bizuayeu/GLM-5.3-Flash-DGX-Sparks-BIZ": {
+      "license": "Apache-2.0",
+      "texts": [
+        "adapters/glm/bizuayeu-xsfp4-tensorfold-native/LICENSE",
+        "adapters/glm/bizuayeu-xsfp4-tensorfold-native/NOTICE"
+      ]
+    },
+    "Blackwellboy/DeepSeek-V4.1-Flash-1017-BLACKFOLD-TP2": {
+      "license": "Apache-2.0",
+      "texts": [
+        "licenses/Blackwellboy/DeepSeek-V4.1-Flash-1017-BLACKFOLD-TP2/LICENSE",
+        "licenses/Blackwellboy/DeepSeek-V4.1-Flash-1017-BLACKFOLD-TP2/NOTICE"
+      ]
+    },
+    "christopherowen/spark-ds41f": {
+      "license": "Apache-2.0",
+      "texts": [
+        "adapters/deepseek/christopherowen-ds41f-1107-triple/LICENSE"
+      ]
+    },
+    "drowzeys/Imagination-Studio-by-keys-Wasserman": {
+      "license": "Apache-2.0",
+      "texts": [
+        "licenses/drowzeys/Imagination-Studio-by-keys-Wasserman/LICENSE",
+        "licenses/drowzeys/Imagination-Studio-by-keys-Wasserman/NOTICE"
+      ]
+    },
+    "drowzeys/keys-1M-CTX-Inkling-Small-NVFP4-Dspark-NVFP4-KV-Cache-SGlang-SM121-optimized-on-Two-DGX-Sparks": {
+      "license": "unlicensed-upstream",
+      "request": "https://github.com/drowzeys/keys-vLLm.0.27-Qwen3.8-27B-ADay777Ablit-NVFP4-A4Q-NVFP4-KV-4M-KV-token-pool-MTP3-Single-DGX-Spark/issues/3"
+    },
+    "drowzeys/keys-Antirez-Dwarf-Star-DSV4-on-DGX-Spark-GB10-Q2bit": {
+      "license": "MIT",
+      "texts": [
+        "adapters/deepseek/drowzeys-ds4-dspark-port-single/LICENSE"
+      ]
+    },
+    "drowzeys/keys-DeepSeekV4.1-Flash-TR3-Hybrid-1M-Context-8M-KV-Four-DGX-Sparks-with-abliterated-option": {
+      "license": "NOASSERTION",
+      "texts": [
+        "adapters/deepseek/drowzeys-tr3-hybrid-four/LICENSE.upstream"
+      ]
+    },
+    "drowzeys/keys-GLM5.2-Quantrio-INT4-INT8-Mixed-Abliterated-C1-30toks-4x-DGX-Sparks": {
+      "license": "unlicensed-upstream",
+      "request": "https://github.com/drowzeys/keys-vLLm.0.27-Qwen3.8-27B-ADay777Ablit-NVFP4-A4Q-NVFP4-KV-4M-KV-token-pool-MTP3-Single-DGX-Spark/issues/3"
+    },
+    "drowzeys/keys-MiMo-V2.6-Pro-MOPD-C3-Jarrelscy-ARVQ-4-DGX-Sparks-1M-Context": {
+      "license": "MIT",
+      "texts": [
+        "adapters/mimo/drowzeys-pro-arvq-four/LICENSE.upstream"
+      ]
+    },
+    "drowzeys/keys-Qwen3.8-27B-NVFP4-DFlash2-Ablit-Cybersecurity-Unlock-1M-Context-YARN-Single-DGXSpark": {
+      "license": "NOASSERTION",
+      "texts": [
+        "adapters/qwen/drowzeys-aeon-dflash2-single/LICENSE"
+      ]
+    },
+    "drowzeys/keys-vLLm-0.24.0-Optimized-DeepSeekV4-Flash-DSpark-NVFP4-KV-1.5M-CTX-3M-Pool-C-12-on-2-DGX-Spark": {
+      "license": "Apache-2.0",
+      "texts": [
+        "adapters/deepseek/drowzeys-dspark-nvfp4-1-5m-dual/LICENSE",
+        "adapters/deepseek/drowzeys-dspark-nvfp4-1-5m-dual/NOTICE"
+      ]
+    },
+    "drowzeys/keys-vLLm.0.27-Qwen3.8-27B-ADay777Ablit-NVFP4-A4Q-NVFP4-KV-4M-KV-token-pool-MTP3-Single-DGX-Spark": {
+      "license": "unlicensed-upstream",
+      "request": "https://github.com/drowzeys/keys-vLLm.0.27-Qwen3.8-27B-ADay777Ablit-NVFP4-A4Q-NVFP4-KV-4M-KV-token-pool-MTP3-Single-DGX-Spark/issues/3"
+    },
+    "drowzeys/keys-vLLm.0.27-Qwen3.8-NVFP4-MTP3-Single-DGX-Spark": {
+      "license": "unlicensed-upstream",
+      "request": "https://github.com/drowzeys/keys-vLLm.0.27-Qwen3.8-27B-ADay777Ablit-NVFP4-A4Q-NVFP4-KV-4M-KV-token-pool-MTP3-Single-DGX-Spark/issues/3"
+    },
+    "drowzeys/vLLM-0.24-optimized-NVIDIA-Nemotron-Lab-Puzzle-75B-A9B-A4Q-MTP3-NVFP4-KV-2.7M-Pool-Single-DGX-Spark": {
+      "license": "NOASSERTION",
+      "texts": [
+        "adapters/nvidia/drowzeys-puzzle-75b-single/LICENSE"
+      ]
+    },
+    "drowzeys/vLLm-0.24-optimized-Tencent-Hy3-295B-A21B-NVFP4-A4Q-MTP2-4bit-KV-256K-ctx-2x-DGX-Spark": {
+      "license": "NOASSERTION",
+      "texts": [
+        "adapters/hunyuan/drowzeys-hy3-a4q-dual/LICENSE"
+      ]
+    },
+    "eugr/spark-vllm-docker": {
+      "license": "MIT",
+      "texts": [
+        "adapters/eugr/deepseek-v4-1-flash-four/LICENSE",
+        "adapters/eugr/deepseek-v4-1-flash-triple/LICENSE",
+        "adapters/eugr/deepseek-v4-flash/LICENSE"
+      ]
+    },
+    "ggml-org/llama.cpp": {
+      "license": "MIT",
+      "texts": [
+        "licenses/ggml-org/llama.cpp/LICENSE"
+      ]
+    },
+    "kindlingai/recipes": {
+      "license": "MIT",
+      "texts": [
+<<<<<<< HEAD
+        "licenses/kindlingai/recipes/LICENSE"
+=======
+        "adapters/glm/kindlingai-gr8-glm53-four/licenses/LICENSE.creator"
+>>>>>>> pr3232
+      ]
+    },
+    "kindlingai/sage-s2.1-flash-exlr8-2x-spark": {
+      "license": "MIT",
+      "texts": [
+        "adapters/sage/kindlingai-gr8-sage-dual/LICENSE"
+      ]
+    },
+    "kindlingai/sage-s2.1-flash-exlr8-4x-spark": {
+      "license": "MIT",
+      "texts": [
+        "adapters/sage/kindlingai-gr8-sage-four/LICENSE"
+      ]
+    },
+    "knapcio/GLM-5.3-Flash-4x-DGX-Spark-TP4": {
+      "license": "NOASSERTION",
+      "texts": [
+        "adapters/glm/tonyd2wild-knapcio-tp2-dual/overlay/glm_flashkda_csrc/LICENSE",
+        "adapters/glm/tonyd2wild-knapcio-tp2-dual/roce/b12x/LICENSE"
+      ]
+    },
+    "knapcio/Inkling-2-Mini-1x-DGX-Spark": {
+      "license": "MIT",
+      "texts": [
+        "adapters/inkling/knapcio-single/LICENSE.upstream",
+        "adapters/inkling/knapcio-single/NOTICE.upstream",
+        "adapters/inkling/knapcio-single/overlay/inkling_pico12/third_party/pico/LICENSE"
+      ]
+    },
+    "knapcio/MiniMax-H3-2x-DGX-Spark-TP2": {
+      "license": "MIT",
+      "texts": [
+        "adapters/video/minimax-h3-vllm-omni-dual/LICENSE",
+        "adapters/video/minimax-h3-vllm-omni-dual/NOTICE"
+      ]
+    },
+    "MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark": {
+      "license": "MIT",
+      "texts": [
+        "licenses/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark/LICENSE"
+      ]
+    },
+    "MiaAI-Lab/DeepSeek-v4-Flash-One-DGX-Spark": {
+      "license": "MIT",
+      "texts": [
+        "licenses/MiaAI-Lab/DeepSeek-v4-Flash-One-DGX-Spark/LICENSE"
+      ]
+    },
+    "MiaAI-Lab/DeepSeek-v4.1-Flash-1017-2x-DGX-Sparks": {
+      "license": "Apache-2.0",
+      "texts": [
+        "adapters/deepseek/mia-1017-tensorfold-dual/licenses/LICENSE",
+        "adapters/deepseek/mia-1017-tensorfold-dual/licenses/NOTICE"
+      ]
+    },
+    "MiaAI-Lab/DeepSeek-V4.1-Flash-1017-4x-DGX-Sparks-TensorFold": {
+      "license": "Apache-2.0",
+      "texts": [
+        "adapters/deepseek/mia-1017-tensorfold-four/licenses/LICENSE",
+        "adapters/deepseek/mia-1017-tensorfold-four/licenses/NOTICE"
+      ]
+    },
+    "MiaAI-Lab/DeepSeek-v4.1-Flash-DGX-Sparks": {
+      "license": "AGPL-3.0",
+      "texts": [
+        "adapters/deepseek/mia-1017-sglang/LICENSE"
+      ]
+    },
+    "MiaAI-Lab/DeepSeek-v4.1-Flash-EXL3-2x-DGX-Sparks": {
+      "license": "AGPL-3.0",
+      "texts": [
+        "adapters/deepseek/mia-exl3-v41-dual/upstream-LICENSE",
+        "adapters/deepseek/mia-exl3-v41-dual/upstream-LICENSE-MIT"
+      ]
+    },
+    "MiaAI-Lab/DGX_Spark_Qwen_3.6_27b_35b_GGUF_start_script": {
+      "license": "unlicensed-upstream",
+      "request": "https://github.com/MiaAI-Lab/Qwen3.6-35B-A3B-NVFP4-vLLM/issues/2"
+    },
+    "MiaAI-Lab/Dual-DGX-Spark-Step-3.7-Flash-NVFP4": {
+      "license": "MIT",
+      "texts": [
+        "adapters/stepfun/mia-vllm-dual/LICENSE"
+      ]
+    },
+    "MiaAI-Lab/Gemma-4-26B-A4B-DGX-Spark-18-concurrencies": {
+      "license": "unlicensed-upstream",
+      "request": "https://github.com/MiaAI-Lab/Qwen3.6-35B-A3B-NVFP4-vLLM/issues/2"
+    },
+    "MiaAI-Lab/Gemma-4-31B-IT-NVFP4-Recipe": {
+      "license": "unlicensed-upstream",
+      "request": "https://github.com/MiaAI-Lab/Qwen3.6-35B-A3B-NVFP4-vLLM/issues/2"
+    },
+    "MiaAI-Lab/GLM-5.3-Flash-DGX-Sparks-1104": {
+      "license": "Apache-2.0",
+      "texts": [
+        "adapters/glm/mia-1104-tensorfold-dual/licenses/LICENSE",
+        "adapters/glm/mia-1104-tensorfold-dual/licenses/NOTICE.md"
+      ]
+    },
+    "MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks": {
+      "license": "AGPL-3.0",
+      "texts": [
+        "adapters/glm/mia-exl3-dflash2-four/upstream-LICENSE",
+        "adapters/glm/mia-exl3-dflash2-four/upstream-LICENSE-MIT",
+        "adapters/glm/mia-exl3-dflash2-triple/upstream-LICENSE"
+      ]
+    },
+    "MiaAI-Lab/GLM-5.3-Flash-NVFP4-Dual-DGX-Spark": {
+      "license": "MIT",
+      "texts": [
+        "adapters/glm/glm53-sm121/LICENSE"
+      ]
+    },
+    "MiaAI-Lab/Hy3-Dual-DGX-Spark": {
+      "license": "unlicensed-upstream",
+      "request": "https://github.com/MiaAI-Lab/Qwen3.6-35B-A3B-NVFP4-vLLM/issues/2"
+    },
+    "MiaAI-Lab/Inkling-2-Mini-DGX-Spark-TensorFold": {
+      "license": "Apache-2.0",
+      "texts": [
+        "adapters/inkling/mia-tensorfold-single/licenses/LICENSE",
+        "adapters/inkling/mia-tensorfold-single/licenses/NOTICE"
+      ]
+    },
+    "MiaAI-Lab/Inkling-Small-NVFP4-Dual-DGX-Sparks": {
+      "license": "unlicensed-upstream",
+      "request": "https://github.com/MiaAI-Lab/Qwen3.6-35B-A3B-NVFP4-vLLM/issues/2"
+    },
+    "MiaAI-Lab/Laguna-S-2.1-DGX-Spark-RTX-6000-PRO": {
+      "license": "unlicensed-upstream",
+      "request": "https://github.com/MiaAI-Lab/Qwen3.6-35B-A3B-NVFP4-vLLM/issues/2"
+    },
+    "MiaAI-Lab/Leanstral-1.5-119B-A6B_2x_DGX_Sparks_vLLM": {
+      "license": "unlicensed-upstream",
+      "request": "https://github.com/MiaAI-Lab/Qwen3.6-35B-A3B-NVFP4-vLLM/issues/2"
+    },
+    "MiaAI-Lab/MiMo-V2.5-vLLM-Dual-DGX-Sparks": {
+      "license": "unlicensed-upstream",
+      "request": "https://github.com/MiaAI-Lab/Qwen3.6-35B-A3B-NVFP4-vLLM/issues/2"
+    },
+    "MiaAI-Lab/MiMo-V2.6-Flash-2x-DGX-Sparks": {
+      "license": "AGPL-3.0",
+      "texts": [
+        "adapters/mimo/mia-sglang-dual/LICENSE.upstream"
+      ]
+    },
+    "MiaAI-Lab/Muse-Glimmer-30B-DGX-Spark-RTX-5090-6000-PRO": {
+      "license": "MIT",
+      "texts": [
+        "adapters/llm/muse-glimmer-nvfp4-dflash-mia/LICENSE.upstream"
+      ]
+    },
+    "MiaAI-Lab/Nemotron-3.5-Bolt-TensorFold-DGX-Spark": {
+      "license": "MIT",
+      "texts": [
+        "licenses/MiaAI-Lab/Nemotron-3.5-Bolt-TensorFold-DGX-Spark/LICENSE",
+        "licenses/MiaAI-Lab/Nemotron-3.5-Bolt-TensorFold-DGX-Spark/NOTICE"
+      ]
+    },
+    "MiaAI-Lab/Nemotron-Labs-3-Puzzle-75B-DGX-Spark": {
+      "license": "unlicensed-upstream",
+      "request": "https://github.com/MiaAI-Lab/Qwen3.6-35B-A3B-NVFP4-vLLM/issues/2"
+    },
+    "MiaAI-Lab/Nemotron3.5-Lightning-DGX-Spark-RTX-5090-6000-PRO": {
+      "license": "MIT",
+      "texts": [
+        "adapters/nvidia/nemolight-mia-sglang-single/LICENSE.upstream"
+      ]
+    },
+    "MiaAI-Lab/Ornith-1.5-35B-A3B-DGX-Spark": {
+      "license": "MIT",
+      "texts": [
+        "adapters/llm/mia-ornith-b12x-single/LICENSE"
+      ]
+    },
+    "MiaAI-Lab/Qwen3.6-27B-NVFP4-DFlash-DGX-Spark": {
+      "license": "unlicensed-upstream",
+      "request": "https://github.com/MiaAI-Lab/Qwen3.6-35B-A3B-NVFP4-vLLM/issues/2"
+    },
+    "MiaAI-Lab/Qwen3.6-35B-A3B-NVFP4-vLLM": {
+      "license": "unlicensed-upstream",
+      "request": "https://github.com/MiaAI-Lab/Qwen3.6-35B-A3B-NVFP4-vLLM/issues/2"
+    },
+    "MiaAI-Lab/Qwen3.6-35B-A3B-UD-Q8_K_XL_DGX-Spark-Recipe": {
+      "license": "unlicensed-upstream",
+      "request": "https://github.com/MiaAI-Lab/Qwen3.6-35B-A3B-NVFP4-vLLM/issues/2"
+    },
+    "MiaAI-Lab/Qwen3.8-27B-DFlash2-EXL3-5.0bpw": {
+      "license": "MIT",
+      "texts": [
+        "adapters/qwen/mia-27b-exl3-dflash2-single/LICENSE"
+      ]
+    },
+    "MiaAI-Lab/Qwen3.8-27B-DGX-Spark-RTX-6000": {
+      "license": "MIT",
+      "texts": [
+        "adapters/qwen/mia-27b-vllm-single/LICENSE.upstream"
+      ]
+    },
+    "MiaAI-Lab/Qwen3.8-Flash-Next-Dual-DGX-Sparks": {
+      "license": "AGPL-3.0",
+      "texts": [
+        "adapters/qwen/flash-next-vllm-dual/LICENSE.upstream"
+      ]
+    },
+    "MiaAI-Lab/Qwen3.8-Flash-Next-Single-DGX-Spark": {
+      "license": "AGPL-3.0",
+      "texts": [
+        "adapters/qwen/flash-next-vllm-single/LICENSE.upstream"
+      ]
+    },
+    "MiaAI-Lab/Unsloth-Qwen3.6-35b-NVFP4-DGX-Spark": {
+      "license": "unlicensed-upstream",
+      "request": "https://github.com/MiaAI-Lab/Qwen3.6-35B-A3B-NVFP4-vLLM/issues/2"
+    },
+    "nv-tlabs/kimodo": {
+      "license": "Apache-2.0",
+      "texts": [
+        "adapters/three-d/gem-x-motion/LICENSE",
+        "adapters/three-d/kimodo/LICENSE"
+      ]
+    },
+    "NVIDIA/TensorRT-LLM": {
+      "license": "Apache-2.0",
+      "texts": [
+        "licenses/NVIDIA/TensorRT-LLM/LICENSE"
+      ]
+    },
+    "NVlabs/GEM-X": {
+      "license": "Apache-2.0",
+      "texts": [
+        "adapters/three-d/gem-x-motion/LICENSE"
+      ]
+    },
+    "NVlabs/GR00T-WholeBodyControl": {
+      "license": "NOASSERTION",
+      "texts": [
+        "adapters/three-d/motionbricks/LICENSE"
+      ]
+    },
+    "r0b0tlab/agents-a1-nvfp4-sm121-vllm": {
+      "license": "unlicensed-upstream",
+      "request": "https://github.com/r0b0tlab/deepseek-v4-flash-nvfp4-gb10-benchmark/issues/1"
+    },
+    "r0b0tlab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark": {
+      "license": "MIT",
+      "texts": [
+        "adapters/deepseek/r0b0tlab-vllm-025-dual/LICENSE"
+      ]
+    },
+    "r0b0tlab/DeepSeek-V4-Flash-DSpark-v026-SM121": {
+      "license": "MIT",
+      "texts": [
+        "adapters/deepseek/r0b0tlab-vllm-v026-dual/LICENSE",
+        "adapters/deepseek/r0b0tlab-vllm-v026-dual/NOTICE"
+      ]
+    },
+    "r0b0tlab/deepseek-v4-flash-nvfp4-gb10-benchmark": {
+      "license": "unlicensed-upstream",
+      "request": "https://github.com/r0b0tlab/deepseek-v4-flash-nvfp4-gb10-benchmark/issues/1"
+    },
+    "r0b0tlab/diffusiongemma-26b-nvfp4-sm121-vllm": {
+      "license": "NOASSERTION",
+      "texts": [
+        "adapters/llm/r0b0tlab-diffusiongemma-vllm-single/LICENSE"
+      ]
+    },
+    "r0b0tlab/dsv4-flash-vision-exp-vllm-sm121": {
+      "license": "unlicensed-upstream",
+      "request": "https://github.com/r0b0tlab/deepseek-v4-flash-nvfp4-gb10-benchmark/issues/1"
+    },
+    "r0b0tlab/dsv41-flash-tp4-sglang-sm121": {
+      "license": "MIT",
+      "texts": [
+        "adapters/deepseek/r0b0tlab-sglang-v41-four/LICENSE"
+      ]
+    },
+    "r0b0tlab/FastContext-1.0-4B-RL-NVFP4": {
+      "license": "MIT",
+      "texts": [
+        "adapters/llm/r0b0tlab-fastcontext-vllm-single/LICENSE"
+      ]
+    },
+    "r0b0tlab/glm53-flash-nvfp4-sm121": {
+      "license": "MIT",
+      "texts": [
+        "adapters/glm/r0b0tlab-nvfp4-dflash2-dual/LICENSE.upstream"
+      ]
+    },
+    "r0b0tlab/laguna-m1-nvfp4-sm121-vllm": {
+      "license": "unlicensed-upstream",
+      "request": "https://github.com/r0b0tlab/deepseek-v4-flash-nvfp4-gb10-benchmark/issues/1"
+    },
+    "r0b0tlab/laguna-s-2.1-nvfp4-sm121-vllm": {
+      "license": "MIT",
+      "texts": [
+        "adapters/llm/r0b0tlab-laguna-s-vllm-single/LICENSE"
+      ]
+    },
+    "r0b0tlab/ling30vl-nvfp4-mp-sm121": {
+      "license": "NOASSERTION",
+      "texts": [
+        "adapters/ling/r0b0tlab-ling30vl-vllm-single/LICENSE.upstream"
+      ]
+    },
+    "r0b0tlab/mimo26-nvfp4-sm121": {
+      "license": "MIT",
+      "texts": [
+        "adapters/mimo/r0b0tlab-sglang-nvfp4-dual/LICENSE",
+        "adapters/mimo/r0b0tlab-sglang-nvfp4-dual/NOTICE.md",
+        "adapters/mimo/r0b0tlab-sglang-nvfp4-dual/patches/sglang-582389ce/LICENSE-APACHE-2.0"
+      ]
+    },
+    "r0b0tlab/minicpm-v47-exl3-exllamav3-gb10": {
+      "license": "MIT",
+      "texts": [
+        "licenses/r0b0tlab/minicpm-v47-exl3-exllamav3-gb10/LICENSE"
+      ]
+    },
+    "r0b0tlab/minimax-m27-nvfp4-gb10-benchmark": {
+      "license": "MIT",
+      "texts": [
+        "adapters/minimax/r0b0tlab-vllm-nvfp4-dual/LICENSE"
+      ]
+    },
+    "r0b0tlab/muse-glimmer-30b-nvfp4-vllm": {
+      "license": "MIT",
+      "texts": [
+        "adapters/llm/r0b0tlab-muse-nvfp4-vllm-single/LICENSE.upstream"
+      ]
+    },
+    "r0b0tlab/nemotron-3.5-lightning-sglang-dflash-sm121": {
+      "license": "MIT",
+      "texts": [
+        "adapters/nvidia/r0b0tlab-lightning-sglang-dflash-single/LICENSE.upstream"
+      ]
+    },
+    "r0b0tlab/nemotron-3.5-lightning-sglang-sm121": {
+      "license": "MIT",
+      "texts": [
+        "adapters/nvidia/r0b0tlab-lightning-sglang-eagle-single/LICENSE.upstream"
+      ]
+    },
+    "r0b0tlab/nemotron-3.5-lightning-sm121-nvfp4": {
+      "license": "MIT",
+      "texts": [
+        "adapters/nvidia/r0b0tlab-lightning-vllm-mtp-single/LICENSE.upstream"
+      ]
+    },
+    "r0b0tlab/nex-n2-mini-nvfp4": {
+      "license": "NOASSERTION",
+      "texts": [
+        "adapters/llm/r0b0tlab-nex-n2-mini-vllm-single/LICENSE"
+      ]
+    },
+    "r0b0tlab/nvidia-qwen-3.6-27B-sm121-nvfp4": {
+      "license": "MIT",
+      "texts": [
+        "adapters/nvidia/r0b0tlab-qwen36-27b-vllm-single/LICENSE.upstream"
+      ]
+    },
+    "r0b0tlab/ornith-15-35b-nvfp4-w4a16-sm121-sglang": {
+      "license": "MIT",
+      "texts": [
+        "adapters/nvidia/r0b0tlab-ornith-sglang-single/LICENSE.upstream"
+      ]
+    },
+    "r0b0tlab/qwen36-35b-a3b-nvfp4-fast-sm121-vllm": {
+      "license": "MIT",
+      "texts": [
+        "adapters/nvidia/r0b0tlab-qwen36-fast-vllm-single/LICENSE.upstream"
+      ]
+    },
+    "r0b0tlab/qwen36-35b-a3b-nvfp4-gb10-native-mtp": {
+      "license": "unlicensed-upstream",
+      "request": "https://github.com/r0b0tlab/deepseek-v4-flash-nvfp4-gb10-benchmark/issues/1"
+    },
+    "r0b0tlab/qwen36-35b-a3b-nvfp4-sm121-vllm": {
+      "license": "MIT",
+      "texts": [
+        "adapters/nvidia/r0b0tlab-qwen36-35b-vllm-single/LICENSE.upstream"
+      ]
+    },
+    "r0b0tlab/qwen38-27b-nvfp4-sm121-sglang": {
+      "license": "MIT",
+      "texts": [
+        "adapters/qwen/r0b0tlab-27b-sglang-single/LICENSE.upstream"
+      ]
+    },
+    "r0b0tlab/qwen38-27b-nvfp4-sm121-vllm": {
+      "license": "MIT",
+      "texts": [
+        "adapters/qwen/r0b0tlab-27b-vllm-single/LICENSE.upstream"
+      ]
+    },
+    "r0b0tlab/qwen38-flash-next-nvidia-nvfp4-sm121-sglang": {
+      "license": "NOASSERTION",
+      "texts": [
+        "adapters/qwen/r0b0tlab-flash-next-sglang-single/LICENSE.upstream"
+      ]
+    },
+    "r0b0tlab/qwen38-flash-next-w4a16-sm121-sglang": {
+      "license": "MIT",
+      "texts": [
+        "adapters/qwen/r0b0tlab-flash-next-w4a16-sglang-dual/LICENSE.upstream"
+      ]
+    },
+    "r0b0tlab/step37-flash-nvfp4-sm121-vllm-docker": {
+      "license": "unlicensed-upstream",
+      "request": "https://github.com/r0b0tlab/deepseek-v4-flash-nvfp4-gb10-benchmark/issues/1"
+    },
+    "r0b0tlab/vibethinker-3b-nvfp4": {
+      "license": "unlicensed-upstream",
+      "request": "https://github.com/r0b0tlab/deepseek-v4-flash-nvfp4-gb10-benchmark/issues/1"
+    },
+    "r0b0tlab/xyz-aquila-mini-nvfp4-sm121-vllm": {
+      "license": "MIT",
+      "texts": [
+        "adapters/llm/r0b0tlab-xyz-aquila-mini-vllm-single/LICENSE"
+      ]
+    },
+    "Reederey87/deepseek-v41-flash-reap-2x-dgx-spark": {
+      "license": "NOASSERTION",
+      "texts": [
+        "adapters/deepseek/reederey87-reap256e-vllm-dual/LICENSE"
+      ]
+    },
+    "Reederey87/glm53-flash-exl3-2x-dgx-spark": {
+      "license": "Apache-2.0",
+      "texts": [
+        "adapters/glm/reederey87-exl3-dflash2-dual/LICENSE",
+        "adapters/glm/reederey87-exl3-dflash2-dual/NOTICE"
+      ]
+    },
+    "Reederey87/glm53-flash-fp4-b12x-2x-dgx-spark": {
+      "license": "Apache-2.0",
+      "texts": [
+        "adapters/glm/reederey87-fp4-b12x-dual/LICENSE",
+        "adapters/glm/reederey87-fp4-b12x-dual/NOTICE"
+      ]
+    },
+    "sfxnz/DeepSeek-V4-Flash-Vision-Exp-vLLM-2x-DGX-Spark": {
+      "license": "MIT",
+      "texts": [
+        "adapters/deepseek/sfxnz-vllm-vision-dual/LICENSE"
+      ]
+    },
+    "sfxnz/DeepSeek-V4.1-Flash-1017-EXL3-2.7bpw-vLLM-2x-DGX-Spark": {
+      "license": "MIT",
+      "texts": [
+        "adapters/deepseek/sfxnz-exl3-v41-vllm-dual/LICENSE"
+      ]
+    },
+    "sfxnz/GLM-5.3-Flash-NVFP4-vLLM-2x-DGX-Spark": {
+      "license": "MIT",
+      "texts": [
+        "adapters/glm/sfxnz-nvfp4-dflash2-vllm-dual/LICENSE"
+      ]
+    },
+    "sfxnz/Qwen3.8-Flash-Next-NVFP4-vLLM-2x-DGX-Spark": {
+      "license": "MIT",
+      "texts": [
+        "adapters/qwen/flash-next-sfxnz-vllm-dual/LICENSE"
+      ]
+    },
+    "Tencent-Hunyuan/HY-Motion-1.0": {
+      "license": "LicenseRef-Tencent-HY-Motion-1.0-Community",
+      "texts": [
+        "licenses/Tencent-Hunyuan/HY-Motion-1.0/License.txt"
+      ]
+    },
+    "Tencent/UI-Mate": {
+      "license": "NOASSERTION",
+      "texts": [
+        "adapters/llm/ui-mate-vllm/LICENSE.upstream"
+      ]
+    },
+    "tonyd2wild/2Wild-Vision-Mode": {
+      "license": "MIT",
+      "texts": [
+        "adapters/llama-cpp/tonyd2wild-llm-eyes-single/LICENSE.upstream"
+      ]
+    },
+    "tonyd2wild/DeepSeek-V4-Flash-2x-Spark-1M": {
+      "license": "MIT",
+      "texts": [
+        "adapters/deepseek/tonyd2wild-ds4-mtp-dual/LICENSE.upstream"
+      ]
+    },
+    "tonyd2wild/Deepseek-V4-Flash-TP4-4x-DGX-Spark": {
+      "license": "MIT",
+      "texts": [
+        "adapters/deepseek/tonyd2wild-ds4-mtp-four/LICENSE.upstream"
+      ]
+    },
+    "tonyd2wild/DeepSeek-v4-Flash-Vision-Exp-DSpark-1M-NVFP4-KV-2x-DGX-Spark": {
+      "license": "MIT",
+      "texts": [
+        "adapters/deepseek/tonyd2wild-dspark-dual/LICENSE.upstream"
+      ]
+    },
+    "tonyd2wild/DeepSeek-V4-Flash-Vision-SGLang-DGX-Spark": {
+      "license": "MIT",
+      "texts": [
+        "adapters/deepseek/tonyd2wild-sglang-vision-dual/LICENSE.upstream"
+      ]
+    },
+    "tonyd2wild/DeepSeek-V4.1-Flash-TP2-and-TP4-DGX-Sparks": {
+      "license": "MIT",
+      "texts": [
+        "licenses/tonyd2wild/DeepSeek-V4.1-Flash-TP2-and-TP4-DGX-Sparks/LICENSE"
+      ]
+    },
+    "tonyd2wild/DeepSeek-V4.1-Flash-vLLM-DGX-Spark": {
+      "license": "MIT",
+      "texts": [
+        "licenses/tonyd2wild/DeepSeek-V4.1-Flash-vLLM-DGX-Spark/LICENSE"
+      ]
+    },
+    "tonyd2wild/DS4-Jasl-Sparkrun-GB10-Fix": {
+      "license": "unlicensed-upstream",
+      "request": "https://github.com/tonyd2wild/Hy3-295B-NVFP4-MTP-2x-DGX-Spark/issues/3"
+    },
+    "tonyd2wild/GLM-5.2-NVFP4-KV-4x-DGX-Spark-300kctx-42tok-s": {
+      "license": "Apache-2.0",
+      "texts": [
+        "adapters/glm/tonyd2wild-glm52-nvfp4kv-four/LICENSE",
+        "adapters/glm/tonyd2wild-glm52-nvfp4kv-four/NOTICE"
+      ]
+    },
+    "tonyd2wild/GLM-5.2-QuantTrio-200K-4x-DGX-Spark--36tok-s": {
+      "license": "Apache-2.0",
+      "texts": [
+        "adapters/glm/tonyd2wild-glm52-quanttrio-four/LICENSE",
+        "adapters/glm/tonyd2wild-glm52-quanttrio-four/NOTICE",
+        "adapters/glm/tonyd2wild-glm52-quanttrio-four/kernels/NOTICE"
+      ]
+    },
+    "tonyd2wild/GLM-5.3-Flash-NVFP4-1M-KV-4x-DGX-Spark": {
+      "license": "unlicensed-upstream",
+      "request": "https://github.com/tonyd2wild/Hy3-295B-NVFP4-MTP-2x-DGX-Spark/issues/3"
+    },
+    "tonyd2wild/Hy3-295B-NVFP4-MTP-2x-DGX-Spark": {
+      "license": "unlicensed-upstream",
+      "request": "https://github.com/tonyd2wild/Hy3-295B-NVFP4-MTP-2x-DGX-Spark/issues/3"
+    },
+    "tonyd2wild/MiMo-V2.5-TP2-1M-NVFP4-KV-2xDGX-Spark": {
+      "license": "NOASSERTION",
+      "texts": [
+        "adapters/mimo/tonyd2wild-v25-nvfp4kv-dual/LICENSE.upstream"
+      ]
+    },
+    "tonyd2wild/MiMo-V2.5-TP3-NVFP4-KV-3xDGX-Spark": {
+      "license": "NOASSERTION",
+      "texts": [
+        "adapters/mimo/tonyd2wild-v25-nvfp4kv-triple/LICENSE.upstream"
+      ]
+    },
+    "tonyd2wild/MiMo-V2.6-Flash-DGX-Spark-Recipe": {
+      "license": "MIT",
+      "texts": [
+        "adapters/mimo/tonyd2wild-vllm-dual/LICENSE.upstream"
+      ]
+    },
+    "tonyd2wild/Minimax-M3-NVFP-3x-DGX-Sparks-TP-3": {
+      "license": "unlicensed-upstream",
+      "request": "https://github.com/tonyd2wild/Hy3-295B-NVFP4-MTP-2x-DGX-Spark/issues/3"
+    },
+    "tonyd2wild/MiniMax-M3.1-Flash-EXL3-TP2-2x-DGX-Spark": {
+      "license": "NOASSERTION",
+      "texts": [
+        "adapters/minimax/tonyd2wild-m31-flash-exl3-tp2/LICENSE"
+      ]
+    },
+    "tonyd2wild/MiniMax-M3.1-Flash-TP4-DGX-Sparks": {
+      "license": "MIT",
+      "texts": [
+        "adapters/minimax/tonyd2wild-m31-flash-tp4/LICENSE"
+      ]
+    },
+    "tonyd2wild/Qwen3.8-Flash-Next-NVFP4-DGX-Spark": {
+      "license": "Apache-2.0",
+      "texts": [
+        "adapters/qwen/flash-next-tonyd2wild-vllm/LICENSE.upstream",
+        "adapters/qwen/flash-next-tonyd2wild-vllm/NOTICE.upstream"
+      ]
+    },
+    "vcruz305/DSV4.1-Flash-1017-EXL3-Spark-recipe": {
+      "license": "MIT",
+      "texts": [
+        "adapters/deepseek/vcruz305-1017-exl3-sage-single/LICENSE",
+        "adapters/deepseek/vcruz305-1017-exl3-sage-single/base/LICENSE",
+        "adapters/deepseek/vcruz305-1017-exl3-sage-single/base/NOTICE"
+      ]
+    },
+    "vcruz305/GLM-5.3-EXL3-DGX-Spark-recipe": {
+      "license": "MIT",
+      "texts": [
+        "licenses/vcruz305/GLM-5.3-EXL3-DGX-Spark-recipe/LICENSE"
+      ]
+    },
+    "vcruz305/GLM-5.3-Flash-EXL3-SAGE-SGLang-Spark-recipe": {
+      "license": "Apache-2.0",
+      "texts": [
+        "adapters/glm/vcruz-sage-sglang-single/LICENSE"
+      ]
+    },
+    "vcruz305/GLM-5.3-Flash-SAGE-REXL3-DGX-Spark-recipe": {
+      "license": "NOASSERTION",
+      "texts": [
+        "adapters/glm/vcruz-sage-rexl3-vllm-single/LICENSE"
+      ]
+    },
+    "vcruz305/Inkling-2-Mini-SAGE-EXL3-recipe": {
+      "license": "MIT",
+      "texts": [
+        "adapters/inkling/vcruz305-exl3-tabby-single/LICENSE"
+      ]
+    },
+    "vcruz305/MiniCPM-V-4.7-35B-A3B-EXL3-DGX-Spark-recipe": {
+      "license": "MIT",
+      "texts": [
+        "licenses/vcruz305/MiniCPM-V-4.7-35B-A3B-EXL3-DGX-Spark-recipe/LICENSE"
+      ]
+    },
+    "vcruz305/MiniMax-M3.1-Flash-EXL3-Spark-recipe": {
+      "license": "MIT",
+      "texts": [
+        "adapters/minimax/vcruz-m31-flash-exl3-single/LICENSE"
+      ]
+    },
+    "vcruz305/Qwen3.8-Flash-Next-EXL3-DGX-Spark-recipe": {
+      "license": "MIT",
+      "texts": [
+        "adapters/qwen/vcruz305-flash-next-exl3-tabby-single/LICENSE"
+      ]
+    },
+    "vcruz305/Ripple-65B-Preview-EXL3-SGLang-recipe": {
+      "license": "MIT",
+      "texts": [
+        "adapters/ripple/vcruz-ripple-sglang-single/LICENSE"
+      ]
+    },
+    "vllm-project/vllm-omni": {
+      "license": "Apache-2.0",
+      "texts": [
+        "licenses/vllm-project/vllm-omni/LICENSE"
+      ]
+    },
+    "ZackSample/hy4-flash-dgx-sparks": {
+      "license": "Apache-2.0",
+      "texts": [
+        "adapters/hy4/zacksample-fp8-vllm-dual/LICENSE"
+      ]
+    }
+  }
+}
