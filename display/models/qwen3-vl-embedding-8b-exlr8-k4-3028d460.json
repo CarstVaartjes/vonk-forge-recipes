@@ -1,0 +1,39 @@
+{
+  "capabilities": [
+    "embedding",
+    "image-understanding"
+  ],
+  "description": "KindlingAI's calibrated exlr8-v2 K4 release of Qwen3-VL-Embedding-8B at revision 3028d460, as pinned by KindlingAI's gr8 recipe for one Spark: 4096-dimension vectors with Matryoshka truncation (64 to 4096), text and image input (the model takes both; the gateway route carries text only).",
+  "family_title": "Qwen3-VL-Embedding 8B EXLR8 K4",
+  "identity": {
+    "publisher": "kindlingai",
+    "slug": "qwen3-vl-embedding-8b-exlr8-k4-3028d460"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "KindlingAI",
+      "Qwen"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/kindlingai/Qwen3-VL-Embedding-8B-exlr8-k4/blob/3028d460328defb90f3a53f336258fed714b4f6e/LICENSE"
+  },
+  "lineage": {
+    "base_model": "Qwen/Qwen3-VL-Embedding-8B",
+    "family": "qwen",
+    "generation": "Qwen3-VL",
+    "line": "qwen-vl-embedding-8b",
+    "model": "qwen3-vl-embedding-8b",
+    "variant_kind": "quantization"
+  },
+  "modalities": [
+    "text",
+    "image",
+    "embeddings"
+  ],
+  "model_title": "Qwen3-VL-Embedding 8B EXLR8 K4",
+  "tags": [
+    "kindlingai",
+    "qwen3-vl-embedding-8b-exlr8-k4"
+  ]
+}

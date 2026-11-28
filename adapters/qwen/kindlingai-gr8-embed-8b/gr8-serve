@@ -1,0 +1,38 @@
+#!/bin/bash
+# The Vonk Forge placement wrapper for KindlingAI's Qwen3-VL-Embedding gr8 recipes (one Spark). It maps what the platform
+# gives a workload (the arguments in the recipe, the read-only /models mounts and the writable /outputs) onto the options
+# gr8's launcher reads (the creator's .env lines, which the recipe's environment carries), then runs gr8's own image
+# entrypoint, which starts the embedding engine (g6embed) and the front end that serves /v1/embeddings.
+#
+#   arguments    --host (accepted: the front end serves on every address), --port -> PORT. The sequence limit
+#                (MAX_MODEL_LEN) and batch budget (CAP) are the recipe's environment, the creator's .env lines.
+#   placement    One Spark only: PEERS=127.0.0.1, as the creator's .env.
+#   model        /models/target is the exlr8 release used in place (MODEL, a local path: nothing is fetched).
+#   writable     gr8's working directory and model cache are under /outputs/cache/gr8, where the creator's compose
+#                file mounts /var/lib/gr8/{home,cache}.
+set -euo pipefail
+
+state=/outputs/cache/gr8
+
+host= port=
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --host) host=$2; shift 2 ;;
+    --host=*) host=${1#*=}; shift ;;
+    --port) port=$2; shift 2 ;;
+    --port=*) port=${1#*=}; shift ;;
+    *) echo "gr8-serve: unknown argument $1" >&2; exit 2 ;;
+  esac
+done
+: "$host"
+[ -z "$port" ] || export PORT=$port
+
+mkdir -p "$state/home" "$state/cache" /outputs/tmp
+export GR8_WORK_DIR=$state/home MODEL_CACHE=$state/cache TMPDIR=/outputs/tmp
+
+export PEERS=127.0.0.1
+
+# the release is used in place; the creator's Hugging Face URL is not
+export MODEL=/models/target
+
+exec /opt/gr8/docker/entrypoint.sh

@@ -2044,6 +2044,52 @@
           "expected": "at least 1.5 s of speech"
         }
       ]
+    },
+    "EMB_TEXT": {
+      "method": "POST",
+      "path": "/embeddings",
+      "body": {
+        "model": "$ALIAS",
+        "input": [
+          "A dog running in a sunny park.",
+          "TCP congestion control window size."
+        ]
+      },
+      "timeout_seconds": 120,
+      "max_response_bytes": 4194304,
+      "assertions": [
+        {
+          "kind": "path.count",
+          "path": "data",
+          "value": 2
+        },
+        {
+          "kind": "path.nonempty",
+          "path": "data.0.embedding"
+        },
+        {
+          "kind": "path.nonempty",
+          "path": "data.1.embedding"
+        }
+      ]
+    },
+    "EMB_DIMS": {
+      "method": "POST",
+      "path": "/embeddings",
+      "body": {
+        "model": "$ALIAS",
+        "input": "Matryoshka dimension test",
+        "dimensions": 256
+      },
+      "timeout_seconds": 120,
+      "max_response_bytes": 4194304,
+      "assertions": [
+        {
+          "kind": "path.count",
+          "path": "data.0.embedding",
+          "value": 256
+        }
+      ]
     }
   }
 }

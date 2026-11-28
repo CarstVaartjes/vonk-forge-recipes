@@ -1,0 +1,20 @@
+{
+  "alignment": "unspecified",
+  "description": "Qwen3-VL-Embedding 8B on one DGX Spark with KindlingAI's gr8, a from-scratch CUDA inference engine (no vLLM, PyTorch or NCCL at serve time), at tensor parallel 1. The weights are KindlingAI's calibrated exlr8-v2 K4 release at revision 3028d460 (4.67 GB), served by gr8's g6embed engine and its Rust front end on POST /v1/embeddings: 4096-dimension vectors, Matryoshka truncation to any size from 1 up to 4096 through the request's dimensions field (the creator measures 64 to 4096), float or base64 output, and a sequence limit of 16,384 tokens. The recipe runs the creator's published image (gr8 v1.5.0 at dd253a4f, by digest) with a placement wrapper that uses the release in place from the read-only model mounts and keeps gr8's working files under /outputs/cache/gr8. The gateway route takes text input only: the model and the engine also embed images through a vLLM-style messages field, but the gateway's /v1/embeddings carries no image path yet, so image input is declared off. Creator claims, unmeasured here: 6.73 GiB GPU peak. Licences, for information: the weights are Apache-2.0; the engine and recipe are MIT.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "qwen3-vl-embedding-8b-exlr8-kindlingai-gr8-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "embedding",
+    "engine",
+    "exlr8",
+    "gr8",
+    "matryoshka",
+    "qwen3-vl-embedding",
+    "single",
+    "spark"
+  ],
+  "title": "Qwen3-VL-Embedding 8B EXLR8 gr8 one Spark"
+}
