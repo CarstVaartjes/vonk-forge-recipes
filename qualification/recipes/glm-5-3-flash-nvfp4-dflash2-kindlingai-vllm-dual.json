@@ -1,0 +1,20 @@
+{
+  "id": "vonk-forge/glm-5-3-flash-nvfp4-dflash2-kindlingai-vllm-dual",
+  "service_recipes": {
+    "alias": "glm-5.3-flash-nvfp4",
+    "higher_tiers": {
+      "recovery": [
+        "Controller-only rank-loss and snapshot-restore recovery; head restart must start a fresh mentat daemon and a worker rejoin"
+      ],
+      "stress": [
+        "8K, 32K and 160K cold-prefill ladder plus bounded concurrency canaries (16 requests at the creator's RecoverSSM cap); thinking is always on, so use budgets of at least 8K tokens; first start writes the weight snapshot, record it apart from the restore start"
+      ]
+    },
+    "smoke_cases": [
+      "M0",
+      "A391",
+      "T_REPORT",
+      "V_RED"
+    ]
+  }
+}

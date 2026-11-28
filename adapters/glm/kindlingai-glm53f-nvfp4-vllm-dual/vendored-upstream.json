@@ -1,0 +1,38 @@
+{
+  "kit": {
+    "dependencies": {
+      "cutlass": {
+        "datasource": "git-ref",
+        "file": "image/Dockerfile",
+        "pattern": "^ARG CUTLASS_REF=(?P<version>[0-9a-f]{40})$",
+        "repo": "NVIDIA/cutlass"
+      },
+      "flashkda": {
+        "datasource": "git-ref",
+        "file": "image/Dockerfile",
+        "pattern": "^ARG FLASHKDA_REF=(?P<version>[0-9a-f]{40})$",
+        "repo": "vllm-project/FlashKDA"
+      },
+      "image": {
+        "datasource": "oci-image",
+        "file": "image/Dockerfile",
+        "pattern": "^ARG BASE=mmastrac/vllm-openai:(?P<version>nightly-[0-9a-f]{40})$",
+        "repo": "docker.io/mmastrac/vllm-openai"
+      },
+      "vllm": {
+        "datasource": "git-ref",
+        "file": "image/Dockerfile",
+        "pattern": "^ARG VLLM_REF=(?P<version>[0-9a-f]{40})$",
+        "repo": "vllm-project/vllm"
+      }
+    },
+    "whole": true
+  },
+  "ours": [
+    "vllm-wrapper.py"
+  ],
+  "source": {
+    "commit": "0f96475969a84c4fdef51f73680c5534b4f59487",
+    "repo": "kindlingai/glm-5.3-flash-gx10"
+  }
+}
