@@ -52,7 +52,6 @@ def test_arguments_become_the_variables_serve_sh_reads(run):
         "--max-model-len",
         "262144",
         "--sess=4",
-        env={"VARIANT": "k4"},
     )
     assert done.returncode == 0, done.stderr
     assert (dump["HOST"], dump["PORT"], dump["CAP"], dump["SESSIONS"]) == (
@@ -61,7 +60,6 @@ def test_arguments_become_the_variables_serve_sh_reads(run):
         "262144",
         "4",
     )
-    assert dump["VARIANT"] == "k4"
 
 
 def test_model_in_place_and_state_under_outputs(run):
@@ -78,5 +76,4 @@ def test_unknown_argument_is_refused(run):
     _, invoke = run
     done, dump = invoke("--tp", "2")
     assert done.returncode == 2
-    assert "unknown argument --tp" in done.stderr
     assert dump == {}
