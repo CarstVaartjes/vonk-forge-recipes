@@ -48,6 +48,7 @@ KIND: Final = "zz.future-kind"
 SLUG: Final = "zz-future-recipe"
 MODE_SLUG: Final = "zz-future-mode"
 MODE_FIELD: Final = "api.api.mode"
+MODE_CHOICE_FIELD: Final = "api.option_choices.api.mode"
 _OPEN: Final = frozenset({WORD, KIND})
 _DIGEST: Final = re.compile(r"[0-9a-f]{64}")
 _ENTRY_SCHEMAS: Final = {
@@ -407,18 +408,22 @@ def _with_examples(
     return {**index, "recipes": [*index["recipes"], *extra]}, slugs
 
 
-def _real_entries(
-    vector: dict[str, Any], example_slugs: set[str]
-) -> list[dict[str, Any]]:
-    """The vector's library recipe entries that state a chat API block (no option choices: one block, one mode)."""
-    return [
+class NoRealEntryError(ValueError):
+    """The index holds no library recipe entry with a chat API block to copy."""
+
+
+def _real_entry(vector: dict[str, Any], example_slugs: set[str]) -> dict[str, Any]:
+    """A library recipe entry that states a chat API block, one with option choices first."""
+    entries = [
         entry
         for entry in vector["recipes"]
         if entry["document"]["identity"]["slug"] not in example_slugs
         and isinstance(entry.get("api"), dict)
         and entry["api"]["api"]["mode"] == "chat"
-        and not entry["api"]["option_choices"]
     ]
+    if not entries:
+        raise NoRealEntryError("no library recipe states a chat API block")
+    return max(entries, key=lambda entry: bool(entry["api"]["option_choices"]))
 
 
 def _unknown_mode(pristine: dict[str, Any], opened: Schema) -> dict[str, Any]:
@@ -435,6 +440,8 @@ def _unknown_mode(pristine: dict[str, Any], opened: Schema) -> dict[str, Any]:
             value[FIELD] = 1
     extra = _renamed(entry, MODE_SLUG)
     extra["api"]["api"]["mode"] = WORD
+    for choice in extra["api"]["option_choices"]:
+        choice["api"]["mode"] = WORD  # a choice never changes the mode
     return extra
 
 
@@ -475,7 +482,7 @@ def build_future_vector(
     extended, example_slugs = _with_examples(index, examples_dir)
     vector = _select(Schema(schema_document), extended)
     # Taken before any word goes in: the unknown-mode entry carries that one word only.
-    pristine = copy.deepcopy(_real_entries(vector, example_slugs)[-1])
+    pristine = copy.deepcopy(_real_entry(vector, example_slugs))
     sites = _word_sites(Schema(schema_document), vector)
     for where in sites.values():
         for section, position, target in where:
@@ -495,9 +502,10 @@ def build_future_vector(
         if kind == "object" and node.get("additionalProperties") is False:
             value[FIELD] = 1
     _rebind(vector)
-    vector["recipes"].append(_withhold(_real_entries(vector, example_slugs)[-1]))
-    vector["recipes"].append(_unknown_mode(pristine, opened))
-    _check(vector, sites)
+    vector["recipes"].append(_withhold(_real_entry(vector, example_slugs)))
+    unknown_mode = _unknown_mode(pristine, opened)
+    vector["recipes"].append(unknown_mode)
+    _check(vector, sites, unknown_mode)
     return FutureVector(
         document=vector,
         sites=tuple(sorted(sites)),
@@ -505,7 +513,9 @@ def build_future_vector(
     )
 
 
-def _check(vector: dict[str, Any], sites: Mapping[str, Any]) -> None:
+def _check(
+    vector: dict[str, Any], sites: Mapping[str, Any], unknown_mode: dict[str, Any]
+) -> None:
     """The reader must keep everything but the withheld entry, and every word."""
     problems = read_catalog(vector).problems
     skipped = [problem for problem in problems if isinstance(problem, SkippedEntry)]
@@ -533,6 +543,8 @@ def _check(vector: dict[str, Any], sites: Mapping[str, Any]) -> None:
         for _section, _position, target in where
     }
     fields.add(MODE_FIELD)
+    if unknown_mode["api"]["option_choices"]:
+        fields.add(MODE_CHOICE_FIELD)
     if reported != fields:
         raise ValueError(
             f"words not kept: {sorted(fields - reported)}; unexpected: {sorted(reported - fields)}"

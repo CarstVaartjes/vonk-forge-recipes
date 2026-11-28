@@ -47,6 +47,7 @@ from pydantic import BaseModel, ConfigDict, Field, StrictStr, ValidationError
 from pydantic_core import ErrorDetails
 
 from vonk_forge_contracts._version import CONTRACT_MAJOR
+from vonk_forge_contracts.api import UnrecognisedApiBlock
 from vonk_forge_contracts.canonical import document_sha256
 from vonk_forge_contracts.catalog_index import (
     CatalogIndex,
@@ -462,6 +463,8 @@ def _fault(error: ErrorDetails | None) -> tuple[str, FaultReason]:
 def _unrecognised(value: object, path: tuple[str, ...]) -> Iterator[tuple[str, str]]:
     if isinstance(value, UnrecognisedWord):
         yield ".".join(path), str(value)
+    elif isinstance(value, UnrecognisedApiBlock):
+        yield ".".join((*path, "mode")), str(value.mode)
     elif isinstance(value, BaseModel):
         for name in type(value).model_fields:
             yield from _unrecognised(getattr(value, name), (*path, name))

@@ -16,6 +16,7 @@ from repo_root import ROOT
 from recipe_tooling.catalog_index import MAX_INDEX_BYTES, rendered_vector
 from recipe_tooling.future_vector import (
     KIND,
+    MODE_CHOICE_FIELD,
     MODE_FIELD,
     MODE_SLUG,
     SLUG,
@@ -192,9 +193,16 @@ def test_the_reader_keeps_the_entry_whose_api_mode_is_unknown(
         for slug, block in blocks.items()
         if isinstance(block, UnrecognisedApiBlock)
     ] == [MODE_SLUG]
-    assert any(
-        isinstance(problem, UnrecognisedWordReport)
-        and problem.field == MODE_FIELD
-        and problem.entries == (f"vonk-forge/{MODE_SLUG}",)
-        for problem in read.problems
+    mine = next(e for e in read.index.recipes if e.document.identity.slug == MODE_SLUG)
+    assert mine.api is not None
+    assert all(
+        isinstance(choice.api, UnrecognisedApiBlock)
+        for choice in mine.api.option_choices
     )
+    wanted = {MODE_FIELD} | ({MODE_CHOICE_FIELD} if mine.api.option_choices else set())
+    assert wanted == {
+        problem.field
+        for problem in read.problems
+        if isinstance(problem, UnrecognisedWordReport)
+        and problem.entries == (f"vonk-forge/{MODE_SLUG}",)
+    }

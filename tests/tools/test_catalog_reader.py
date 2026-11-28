@@ -156,6 +156,10 @@ def _mutable_image_tag(recipe: dict[str, Any]) -> None:
     }
 
 
+def _chat_input_limit_not_a_number(recipe: dict[str, Any]) -> None:
+    recipe["api"]["api"]["max_input_tokens"] = "many"
+
+
 def _display_title_not_text(recipe: dict[str, Any]) -> None:
     recipe["display"]["title"] = 5
 
@@ -168,6 +172,12 @@ def _display_title_not_text(recipe: dict[str, Any]) -> None:
             CatalogBlock.PREBUILT_IMAGE,
             "prebuilt_image.reference",
             FaultReason.INVALID_VALUE,
+        ),
+        (
+            _chat_input_limit_not_a_number,
+            CatalogBlock.API,
+            "api.api.chat.max_input_tokens",
+            FaultReason.WRONG_TYPE,
         ),
         (
             _display_title_not_text,

@@ -233,7 +233,7 @@ by `mode`, and every field is written down, "not applicable" included (`false`,
   the `embeddings` modality and the `embedding` capability (`check_api_models`).
   Its smoke cases must include one that calls `/embeddings` (see below).
 
-A newer minor may add an API mode. A consumer reader (`read_catalog`) keeps the entry and holds the block as `UnrecognisedApiBlock`, a marker that carries the word and no facts (`RecipeApi.for_choices` raises `ApiModeTooNewError` for it); producers' strict validation still refuses an unknown mode. The future vector holds one such entry.
+A newer minor may add an API mode. A consumer reader (`read_catalog`) keeps the entry and holds the block as `UnrecognisedApiBlock`, a marker that carries the word and no facts (`RecipeApi.for_choices` raises `TypeError` for it); producers' strict validation still refuses an unknown mode. The future vector holds one such entry.
 
 An option choice that changes any of these facts carries its own complete
 block in `option_choices` (`{option, value, api}`); it replaces the base block as

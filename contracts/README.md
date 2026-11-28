@@ -29,7 +29,9 @@ API entry points:
   ships in every release) and [its consumer reader](src/vonk_forge_contracts/catalog_reader.py):
   `read_catalog` returns the entries this release reads plus typed problems. An unknown
   word outside the execution document (a capability, modality, alignment, API endpoint or
-  format, or qualification word) keeps its entry as an `UnrecognisedWord`. An unreadable
+  format, or qualification word) keeps its entry as an `UnrecognisedWord`. An API block whose
+  `mode` is unknown keeps its entry too, holding the block as an `UnrecognisedApiBlock`
+  marker (the word, no facts); producers still refuse the mode. An unreadable
   optional block (display, API facts, qualification, prebuilt image, measured memory) is
   dropped and reported while its entry stays. An entry whose document, package, digests or
   source path are malformed is skipped and reported. A wrong envelope or contract major, or

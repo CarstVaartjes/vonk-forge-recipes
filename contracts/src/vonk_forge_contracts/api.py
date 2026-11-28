@@ -34,24 +34,26 @@ must agree with a recipe's runtime or its Models are checked in ``api_checks``.
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import Annotated, Literal, get_args
+from typing import Annotated, Any, Literal, get_args
 
 from pydantic import (
     BaseModel,
     ConfigDict,
+    Discriminator,
     Field,
+    GetCoreSchemaHandler,
     GetJsonSchemaHandler,
     StrictBool,
     StrictInt,
     StrictStr,
+    Tag,
+    TypeAdapter,
     ValidationInfo,
-    ValidatorFunctionWrapHandler,
-    WrapValidator,
     field_validator,
     model_validator,
 )
 from pydantic.json_schema import JsonSchemaValue
-from pydantic_core import PydanticOmit, core_schema
+from pydantic_core import core_schema
 
 from vonk_forge_contracts.recipe import (
     Identifier,
@@ -90,7 +92,8 @@ Iso639_1 = Annotated[StrictStr, Field(pattern=r"^[a-z]{2}$")]
 VoiceName = Annotated[StrictStr, Field(min_length=1, max_length=64)]
 _Key = Annotated[StrictStr, Field(min_length=1, max_length=64)]
 # A word a newer minor may add: a consumer reader keeps it (``UnrecognisedWord``)
-# and does not act on it. Discriminators (``mode``, ``kind``) stay closed. Lists
+# and does not act on it. Discriminators (``kind``) stay closed; a reader keeps an
+# unknown API ``mode`` as an ``UnrecognisedApiBlock`` marker. Lists
 # of these words carry no length cap (their uniqueness bounds them), so a newer
 # minor's extra word never overflows an older reader's list.
 _EndpointWord = Annotated[Endpoint | UnrecognisedWord, KeepUnrecognised]
@@ -397,51 +400,83 @@ _KNOWN_MODES = frozenset(
 )
 
 
-class UnrecognisedApiBlock(BaseModel):
+class UnrecognisedApiBlock:
     """A block whose ``mode`` a newer contract minor added: the word, no facts.
 
-    Only a consumer reader yields one (``KeepUnrecognised``'s rule for a word the
-    block cannot stand without, since no neutral value exists); a producer's
-    strict validation still refuses the mode. A consumer treats it as a block
-    with no usable facts, so the route publishes none.
+    Only a consumer reader yields one (the rule for a word a block cannot stand
+    without, since no neutral value exists); a producer's strict validation
+    refuses the mode with the one error below. A consumer treats it as a block
+    with no usable facts, so the route publishes none. It is no model, so no
+    published schema names it.
     """
 
-    model_config = ConfigDict(extra="forbid")
-    mode: UnrecognisedWord
+    __slots__ = ("mode",)
+
+    def __init__(self, mode: UnrecognisedWord) -> None:
+        self.mode = mode
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, UnrecognisedApiBlock) and self.mode == other.mode
+
+    def __hash__(self) -> int:
+        return hash(self.mode)
+
+    def model_dump(self, **_options: object) -> dict[str, str]:
+        """The block as every other one dumps: its word and nothing else."""
+        return {"mode": str(self.mode)}
+
+    def __repr__(self) -> str:
+        return f"UnrecognisedApiBlock(mode={self.mode!r})"
 
     @classmethod
+    def __get_pydantic_core_schema__(
+        cls, source: type[Any], handler: GetCoreSchemaHandler
+    ) -> core_schema.CoreSchema:
+        def validate(value: object, info: ValidationInfo) -> UnrecognisedApiBlock:
+            if isinstance(value, cls):
+                return value
+            mode = value.get("mode") if isinstance(value, dict) else None
+            if is_reading(info) and isinstance(mode, str) and mode not in _KNOWN_MODES:
+                return cls(UnrecognisedWord(mode))
+            raise ValueError(f"unknown API mode {mode!r}")
+
+        return core_schema.with_info_plain_validator_function(
+            validate,
+            serialization=core_schema.plain_serializer_function_ser_schema(
+                lambda block: block.model_dump()
+            ),
+        )
+
+
+def _mode_tag(value: object) -> str:
+    """The union member for a block: its mode if known, else the marker."""
+    mode = (
+        value.get("mode") if isinstance(value, dict) else getattr(value, "mode", None)
+    )
+    return mode if isinstance(mode, str) and mode in _KNOWN_MODES else "unrecognised"
+
+
+class _PublishedAsKnownModes:
+    """The published schema names only the modes this release defines."""
+
     def __get_pydantic_json_schema__(
-        cls, schema: core_schema.CoreSchema, handler: GetJsonSchemaHandler
+        self, schema: core_schema.CoreSchema, handler: GetJsonSchemaHandler
     ) -> JsonSchemaValue:
-        # The published schema names only the modes this release defines.
-        raise PydanticOmit
-
-
-def _keep_unrecognised_mode(
-    value: object, handler: ValidatorFunctionWrapHandler, info: ValidationInfo
-) -> object:
-    try:
-        return handler(value)
-    except ValueError:
-        if (
-            is_reading(info)
-            and isinstance(value, dict)
-            and isinstance(value.get("mode"), str)
-            and value["mode"] not in _KNOWN_MODES
-        ):
-            return UnrecognisedApiBlock.model_construct(
-                mode=UnrecognisedWord(value["mode"])
-            )
-        raise
-
-
-class ApiModeTooNewError(ValueError):
-    """A route's API block has a mode this release does not know: it has no facts."""
+        return handler(TypeAdapter(ApiBlock).core_schema)
 
 
 # The block as a consumer reader holds it: an unknown mode becomes a marker.
+# A producer's strict validation refuses it, and a known mode reports its
+# errors at the same location as ``ApiBlock``.
 ReadApiBlock = Annotated[
-    ApiBlock | UnrecognisedApiBlock, WrapValidator(_keep_unrecognised_mode)
+    Annotated[ChatApi, Tag("chat")]
+    | Annotated[DecisionApi, Tag("decision")]
+    | Annotated[AudioTranscriptionApi, Tag("audio_transcription")]
+    | Annotated[AudioSpeechApi, Tag("audio_speech")]
+    | Annotated[EmbeddingApi, Tag("embedding")]
+    | Annotated[UnrecognisedApiBlock, Tag("unrecognised")],
+    Discriminator(_mode_tag),
+    _PublishedAsKnownModes(),
 ]
 
 
@@ -487,9 +522,7 @@ class RecipeApi(_ApiContract):
                 block = entry.api
                 break
         if isinstance(block, UnrecognisedApiBlock):
-            raise ApiModeTooNewError(
-                f"the API mode {block.mode!r} is newer than this release"
-            )
+            raise TypeError(f"the API mode {block.mode!r} is newer than this release")
         return block
 
 

@@ -38,7 +38,11 @@ from vonk_forge_contracts import (
     read_recipe_api,
     recipe_api_json_schema,
 )
-from vonk_forge_contracts.api import ApiTokenArgument
+from vonk_forge_contracts.api import (
+    ApiTokenArgument,
+    AudioTranscriptionApi,
+    ChatApi,
+)
 from vonk_forge_contracts.resolver import (
     ContractResolutionError,
 )
@@ -385,6 +389,7 @@ def test_default_output_tokens_names_a_runtime_argument() -> None:
     api = recipe_api(slug)
     assert api.api.default_output_tokens.model_dump() == {"argument": "max-tokens"}  # type: ignore[union-attr]
     check_recipe_api(document, api)
+    assert isinstance(api.api, ChatApi)
     other = api.model_copy(
         update={
             "api": api.api.model_copy(
@@ -395,6 +400,7 @@ def test_default_output_tokens_names_a_runtime_argument() -> None:
     with pytest.raises(RecipeApiError, match="--nope, which has no integer value"):
         check_recipe_api(document, other)
     # A setting-bound argument resolves through the recipe's settings.
+    assert isinstance(api.api, ChatApi)
     bound = api.api.model_copy(
         update={"default_output_tokens": ApiTokenArgument(argument="context")}
     )
@@ -479,6 +485,7 @@ def test_a_speech_route_needs_a_model_that_produces_audio() -> None:
 
 def test_vllm_audio_limits_are_checked_only_where_the_recipe_sets_them() -> None:
     document, api = _audio_example("transcription")
+    assert isinstance(api.api, AudioTranscriptionApi)
     longer = api.model_copy(
         update={"api": api.api.model_copy(update={"max_audio_seconds": 3600})}
     )
@@ -852,7 +859,7 @@ def test_a_marker_gives_no_facts_and_the_models_capabilities_stay() -> None:
     api = RecipeApi.model_validate(
         _api_of_a_newer_mode(), extra="ignore", context=read_context()
     )
-    with pytest.raises(ValueError, match="newer than this release"):
+    with pytest.raises(TypeError, match="newer than this release"):
         api.for_choices(document)
     assert served_capabilities([CapabilityName.IMAGE_UNDERSTANDING], api) == (
         CapabilityName.IMAGE_UNDERSTANDING,
