@@ -2269,6 +2269,11 @@
         "value": 4
       },
       {
+        "name": "distributed-executor-backend",
+        "setting": null,
+        "value": "mp"
+      },
+      {
         "name": "dtype",
         "setting": null,
         "value": "float16"

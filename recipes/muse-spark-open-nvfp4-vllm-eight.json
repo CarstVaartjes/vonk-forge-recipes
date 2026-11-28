@@ -1658,6 +1658,11 @@
         "value": 8
       },
       {
+        "name": "distributed-executor-backend",
+        "setting": null,
+        "value": "mp"
+      },
+      {
         "name": "quantization",
         "setting": null,
         "value": "modelopt_fp4"

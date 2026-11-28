@@ -1307,6 +1307,11 @@
         "value": 4
       },
       {
+        "name": "distributed-executor-backend",
+        "setting": null,
+        "value": "mp"
+      },
+      {
         "name": "disable-custom-all-reduce",
         "setting": null,
         "value": true

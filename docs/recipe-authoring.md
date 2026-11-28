@@ -949,6 +949,10 @@ Model files are mounted read-only and identical files may be hard links to one
 cached copy; a creator launcher that refuses linked or read-only files gets an
 adapter fix, never a per-install copy.
 
+A distributed launcher exports the engine's host-address variable from `VONK_LOCAL_ADDR` (vLLM: `VLLM_HOST_IP`), so
+nothing advertises the LAN address; `tests/recipes/test_adapter_rendezvous.py` runs each multi-node vLLM launcher with
+faked exec and asserts `VLLM_HOST_IP` equals `VONK_LOCAL_ADDR` (a launcher that cannot run there is listed with a source check).
+
 An engine whose wrapper takes its placement from the platform (`gr8`, `ds4`) reads `VONK_RANK`,
 `VONK_WORLD_SIZE`, `VONK_LOCAL_ADDR`, `VONK_MASTER_ADDR`, `VONK_MASTER_PORT` and, in rank order,
 `VONK_PEER_ADDRS`; the recipe's arguments carry no rank. A wrapper over a creator's launcher maps them onto the
