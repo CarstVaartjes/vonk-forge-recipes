@@ -52,7 +52,16 @@ def sandbox(name: str, tmp_path: Path):
     return run
 
 
-ARGS = ("--host", "0.0.0.0", "--port", "8100", "--max-model-len", "262144", "--sess", "6")
+ARGS = (
+    "--host",
+    "0.0.0.0",
+    "--port",
+    "8100",
+    "--max-model-len",
+    "262144",
+    "--sess",
+    "6",
+)
 
 
 def test_both_kits_ship_one_wrapper():
@@ -64,12 +73,21 @@ def test_both_kits_ship_one_wrapper():
 def test_arguments_paths_and_engine_flags(name, tmp_path):
     run = sandbox(name, tmp_path)
     done, seen = run(
-        {"EXTRA_ENV": "GR8_QW38_PLE_CACHE_MIB=1024", "VISION": "1", "NO_MTP": "1", "DFL": "0"},
+        {
+            "EXTRA_ENV": "GR8_QW38_PLE_CACHE_MIB=1024",
+            "VISION": "1",
+            "NO_MTP": "1",
+            "DFL": "0",
+        },
         *ARGS,
     )
     assert done.returncode == 0, done.stderr
     assert seen["MODEL"] == f"{tmp_path}/models/target"
-    assert (seen["PORT"], seen["MAX_MODEL_LEN"], seen["SESS"]) == ("8100", "262144", "6")
+    assert (seen["PORT"], seen["MAX_MODEL_LEN"], seen["SESS"]) == (
+        "8100",
+        "262144",
+        "6",
+    )
     assert seen["GR8_WORK_DIR"] == f"{tmp_path}/outputs/cache/gr8/home"
     assert seen["MODEL_CACHE"] == f"{tmp_path}/outputs/cache/gr8/cache"
     assert seen["EXTRA_ENV"] == (
