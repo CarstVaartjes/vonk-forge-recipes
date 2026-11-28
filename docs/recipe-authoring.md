@@ -1325,8 +1325,7 @@ repository's newest revision or an image repository's newest tag.
   image. A kit that publishes no image of its own but takes its engine binaries unchanged from
   the engine's published image of the commit it pins (gr8's `ENGINE_SRC=image`) builds nothing:
   the adapter is `FROM` that engine image (an `oci-image` dependency on the kit's declaration)
-  plus the kit's runtime files vendored at the kit's paths, and the unpublished kit image is
-  recorded in the exceptions file (`adapters/sage/kindlingai-gr8-sage-*`). `tools/kit-pins check` scans every cited kit at its pinned commit for the container
+  plus the kit's runtime files vendored at the kit's paths. `tools/kit-pins check` scans every cited kit at its pinned commit for the container
   images it runs or pulls (Dockerfile `FROM`/`ARG` image defaults, `IMG=`/`IMAGE=`
   assignments, `docker run|pull|create`, compose `image:`; docs, tests and CI files are not
   scanned; engine and base images such as `vllm/vllm-openai`, `lmsysorg/sglang`, `nvcr.io/*`
