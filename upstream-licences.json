@@ -152,6 +152,13 @@
         "licenses/ggml-org/llama.cpp/LICENSE"
       ]
     },
+    "kindlingai/recipes": {
+      "license": "MIT",
+      "texts": [
+        "adapters/stepfun/kindlingai-vllm-four/licenses/LICENSE.creator",
+        "adapters/stepfun/kindlingai-vllm-four/licenses/LICENSE.fp8kv"
+      ]
+    },
     "kindlingai/sage-s2.1-flash-exlr8-2x-spark": {
       "license": "MIT",
       "texts": [
