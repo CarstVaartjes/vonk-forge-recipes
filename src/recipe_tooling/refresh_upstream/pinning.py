@@ -155,6 +155,7 @@ def _github_target(
         url=commit["html_url"],
         notes=notes,
         committed_at=commit["commit"]["committer"]["date"],
+        archived=http.github(f"repos/{repo}").get("archived") is True,
     )
 
 

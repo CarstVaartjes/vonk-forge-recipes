@@ -46,6 +46,31 @@ from vonk_forge_contracts import RecipeDefinition
 
 
 class EmbeddedSourceReviewTests(unittest.TestCase):
+    def test_an_archived_repository_is_reported_as_archived(self) -> None:
+        class FakeProvider:
+            def json(self, url: str, _provider: str):
+                if url.endswith("/repos/example/kit"):
+                    return {"default_branch": "main", "archived": True}
+                return {
+                    "sha": NEW,
+                    "html_url": "https://github.com/example/kit/commit/new",
+                    "commit": {"committer": {"date": "2026-09-30T00:00:00Z"}},
+                }
+
+        embedded = {
+            "coverage": {},
+            "recipes": [
+                {
+                    "recipe_id": "r",
+                    "inputs": [{"repository": "example/kit", "revision": NEW}],
+                }
+            ],
+        }
+        drift_heads.observe_embedded_heads(embedded, FakeProvider())
+        item = embedded["recipes"][0]["inputs"][0]
+        assert item["candidate_status"] == "archived"
+        assert embedded["coverage"]["counts_by_candidate_status"] == {"archived": 1}
+
     def test_unrelated_default_head_advance_does_not_block_safe_refresh(
         self,
     ) -> None:

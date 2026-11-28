@@ -317,19 +317,18 @@ class Assessor:
                 )
         context = self.catalog.root / recipe["execution"]["build"]["context"]["path"]
         declared_kit = refresh_catalog_view.kit_directory(self.catalog.root, recipe)
-        scope: tuple[str, ...] = ()
-        if declared_kit is None and not owns_adapter:
-            cited = refresh_catalog_view.kit_citation_scope(context, item.repo)
-            scope = cited or ()
-        else:
-            cited = None
+        # A citation naming a subdirectory scopes the kit to it, declared or not: a
+        # declared kit inside a monorepo judges every change there and nothing outside.
+        cited = (
+            None
+            if owns_adapter
+            else refresh_catalog_view.kit_citation_scope(context, item.repo)
+        )
+        scope = cited or ()
         is_kit = (
             item.kind == "source"
             and not owns_adapter
-            and (
-                refresh_catalog_view.whole_kit(declared_kit)
-                or (declared_kit is None and cited is not None)
-            )
+            and (refresh_catalog_view.whole_kit(declared_kit) or cited is not None)
         )
         mirrored: set[str] = set()
         judged = comparison
@@ -407,6 +406,11 @@ class Assessor:
         else:
             # A move that does happen must keep every vendored copy byte-identical.
             reasons += stale_docs
+        if item.target.archived and (is_kit or declared_kit is not None):
+            reasons.append(
+                f"{item.label}: the kit repository is archived upstream; the creator "
+                "moved, so follow the pointer in its README to the new repository"
+            )
         result.reasons.extend(reasons)
         self._retarget_reference(new_recipe, item)
         if owns_adapter:

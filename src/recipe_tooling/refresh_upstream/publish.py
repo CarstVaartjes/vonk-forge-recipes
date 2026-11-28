@@ -1070,6 +1070,7 @@ def write_summary(
                 "pinned_untracked",
             } and item.get("candidate_status") not in {
                 "advanced",
+                "archived",
                 "unknown",
                 "no-immutable-pin",
             }:

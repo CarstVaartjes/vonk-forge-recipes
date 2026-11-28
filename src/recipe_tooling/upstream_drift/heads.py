@@ -23,7 +23,7 @@ def observe_embedded_heads(inventory: dict[str, object], client: JsonClient) -> 
     records = inventory.get("recipes", [])
     if not isinstance(records, list):
         return
-    memo: dict[str, tuple[str | None, str | None, str | None, str | None]] = {}
+    memo: dict[str, tuple[str | None, str | None, str | None, str | None, bool]] = {}
     candidate_counts: Counter[str] = Counter()
     for recipe in records:
         if not isinstance(recipe, dict) or not isinstance(recipe.get("inputs"), list):
@@ -43,10 +43,16 @@ def observe_embedded_heads(inventory: dict[str, object], client: JsonClient) -> 
                     revision, observed_at, url = _github_commit(
                         head_client, repository, branch
                     )
-                    memo[repository] = (revision, observed_at, url, None)
+                    memo[repository] = (
+                        revision,
+                        observed_at,
+                        url,
+                        None,
+                        isinstance(repo, dict) and repo.get("archived") is True,
+                    )
                 except (RemoteNotFound, RuntimeError, KeyError, TypeError) as error:
-                    memo[repository] = (None, None, None, str(error)[:256])
-            observed, observed_at, url, error_text = memo[repository]
+                    memo[repository] = (None, None, None, str(error)[:256], False)
+            observed, observed_at, url, error_text, archived = memo[repository]
             item["candidate_channel"] = "advertised-default-branch"
             item["candidate_revision"] = observed
             item["candidate_observed_at"] = observed_at
@@ -57,6 +63,12 @@ def observe_embedded_heads(inventory: dict[str, object], client: JsonClient) -> 
                 item["candidate_reason"] = (
                     "default-branch observation failed; retained the embedded pin: "
                     + error_text
+                )
+            elif archived:
+                item["candidate_status"] = "archived"
+                item["candidate_reason"] = (
+                    "the repository is archived: its creator moved on, so follow the "
+                    "pointer in its README to the new repository"
                 )
             elif observed is None:
                 item["candidate_status"] = "unknown"

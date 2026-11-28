@@ -80,7 +80,7 @@ BLOCKING_SUFFIXES = {
     ".jinja",
 }
 BLOCKING_NAMES = re.compile(
-    r"^(dockerfile.*|docker-compose.*|compose.*|makefile|"
+    r"^(dockerfile.*|docker-compose.*|compose.*|makefile|\.env(\.[\w-]+)?|"
     r"(requirements|constraints).*\.txt)$",
     re.IGNORECASE,
 )
@@ -165,6 +165,7 @@ class Target:
     access_status: str | None = None
     branch: str | None = None  # non-default branch the pin follows, when it does
     committed_at: str | None = None  # the commit's own timestamp (ISO 8601), when known
+    archived: bool = False  # the GitHub repository is archived: its creator moved on
 
 
 # ---------------------------------------------------------------------------
