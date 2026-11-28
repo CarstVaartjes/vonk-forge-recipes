@@ -1,0 +1,27 @@
+{
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "qwen3.8-flash-next/dgx-spark/1x/exlr8-gr8/compose.yaml",
+        "pattern": "^\\s+image: \\$\\{GR8_IMAGE:-ghcr\\.io/kindlingai/gr8:[\\w.-]+@(?P<version>sha256:[0-9a-f]{64})\\}\\s*$",
+        "repo": "ghcr.io/kindlingai/gr8"
+      },
+      "model": {
+        "binds": "primary",
+        "datasource": "hf-revision",
+        "file": "qwen3.8-flash-next/dgx-spark/1x/exlr8-gr8/.env.example",
+        "pattern": "^MODEL=https://huggingface\\.co/(?P<repo>[\\w.-]+/[\\w.-]+)@(?P<version>[0-9a-f]{40})\\s*$"
+      }
+    },
+    "whole": true
+  },
+  "ours": [
+    "gr8-serve",
+    "licenses/"
+  ],
+  "source": {
+    "commit": "13c24ac483eaf8b2fcb828a62ae2604bcc038b92",
+    "repo": "kindlingai/recipes"
+  }
+}

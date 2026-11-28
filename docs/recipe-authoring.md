@@ -562,6 +562,9 @@ backend is specified.
 gr8's DeepSeek engine reads its disk Engram rows through io_uring by default (`GR8_DS_ENGRAM_IO_URING=128`); its
 wrapper puts `GR8_DS_ENGRAM_IO_URING=0` (the pread pool, gr8 `engine/engram/rowstore.h`) last in `EXTRA_ENV`
 (`adapters/deepseek/kindlingai-gr8-ds41f-four`, `tests/recipes/test_gr8_deepseek_wrapper.py`).
+gr8's Qwen3.8 engine reads its Layer-1 PLE rowstore through io_uring at a fixed queue depth (no knob); under the
+default seccomp `io_uring_setup` fails and its reader falls back to a 64-thread pread pool, so the recipe needs no
+switch (`adapters/qwen/kindlingai-gr8-qw38-*`; the hardware log line `qw38 PLE opened ... uring=0` shows it).
 The separate `--load-format b12x` checkpoint reader also selects io_uring bounce
 I/O on GB10; `B12X_DISK_BACKEND` does not control it. Use `--load-format safetensors`
 at the image launcher handoff for checkpoint loading while retaining the B12X
@@ -938,6 +941,13 @@ A kit of that shape that runs its own launcher script instead of the image's ent
 `vendored-upstream.json`); its wrapper maps the arguments onto the variables the script reads and execs it, with the
 script's working directory under `/outputs/cache/gr8`. A monorepo kit names its subdirectory in `provenance.source_reference`
 and the Dockerfile header, and declares the Model from the file that holds its pin (`repo_pattern` for the repository line).
+
+A kit that is one directory of `kindlingai/recipes` (`adapters/qwen/kindlingai-gr8-qw38-*`) cites a blob URL of its
+`compose.yaml` and keeps `"whole": true`, so a creator edit to `CAP` or `SESS` still raises a review. Its options that
+only add a word to `EXTRA_ENV` are wrapper variables the wrapper appends and unsets (`VISION`, `NO_MTP`, `DFL`); options
+that move `--sess` with them are one option, because two options may not change one argument. A kit that pins an older
+revision of a Model whose newer revision holds the same files plus a file the recipe does not select binds the one
+catalogued Model through the dependency's `override`.
 
 Bind generated rank/vision/model views to their checkpoint and engine inputs,
 reuse complete cached work and rebuild malformed/interrupted output

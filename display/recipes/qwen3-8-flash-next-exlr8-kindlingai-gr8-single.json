@@ -1,0 +1,22 @@
+{
+  "alignment": "unspecified",
+  "description": "Qwen3.8 Flash Next on one DGX Spark with KindlingAI's gr8, a from-scratch CUDA inference engine (no vLLM, PyTorch or NCCL at serve time), at tensor parallel 1. The weights are KindlingAI's exlr8 release v0.3 at its bit300 manifest (every routed expert at K3, 3.00 bits a weight, the shared expert at K4), six dedicated 262,144-token chats at once (SESS=6, 1,573,248 KV rows), the release's DFlash drafter for a request that runs alone and Layer-48 MTP=3 for several, a prefix cache backed by a 32 GiB O_DIRECT SSD KV store, and a 102.4 GB Layer-1 per-layer-embedding rowstore read from disk with a 1 GiB host cache. The recipe runs the creator's published image (gr8 main at fa5d82d3, by digest) with a placement wrapper that uses the release in place from the read-only model mounts and keeps gr8's working files under /outputs/cache/gr8. Options: K3 or K4 width with the creator's slot counts, image input, or no MTP weights for one more chat (one option, because the creator moves the slot count with each); and DFlash on or off. Creator claims, unmeasured here: 5.59 GiB lowest free memory at K3 and 4.55 GiB at K4, about 28 s to boot from local NVMe. Each Spark needs about 226 GB of model files (whole width files, where the creator's launcher fetches about 164 GB for K3) and a 32 GiB KV store. The PLE rowstore is read through gr8's pread pool: the sandbox blocks io_uring, which the engine's reader falls back from. Thinking is on by default and a request turns it off with chat_template_kwargs enable_thinking false; the efforts are low, medium and xhigh. Tool calls (auto, required or a named tool, several in one reply) and reasoning are parsed by the front end. A response_format of json_object or json_schema is enforced after generation (the engine has no constrained decoding): a reply that misses the schema comes back unchanged with a warning, and JSON mode streams nothing until the reply ends. Licences, for information: the weights are under the Qwen community licence and KindlingAI's exlr8 additions; the engine and recipe are MIT.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "qwen3-8-flash-next-exlr8-kindlingai-gr8-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "dflash",
+    "engine",
+    "exlr8",
+    "gr8",
+    "qwen3.8-flash-next",
+    "reasoning",
+    "single",
+    "spark",
+    "structured-outputs",
+    "tool-use"
+  ],
+  "title": "Qwen3.8 Flash Next EXLR8 gr8 one Spark"
+}
