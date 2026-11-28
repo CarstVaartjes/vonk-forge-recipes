@@ -1,0 +1,34 @@
+{
+  "kit": {
+    "dependencies": {
+      "drafter": {
+        "binds": "draft",
+        "datasource": "hf-revision",
+        "file": "nemotron-3.5-super-vl/dgx-spark/1x/nvfp4-vllm/compose.yaml",
+        "pattern": "^\\s+: \"\\$\\$\\{DRAFTER_REVISION:=(?P<version>[0-9a-f]{40})\\}\"$",
+        "repo_pattern": "^\\s+: \"\\$\\$\\{DRAFTER:=(?P<repo>[^}\\s]+)\\}\"$"
+      },
+      "image": {
+        "datasource": "oci-image",
+        "file": "nemotron-3.5-super-vl/dgx-spark/1x/nvfp4-vllm/compose.yaml",
+        "pattern": "^\\s+image: \\$\\{VLLM_IMAGE:-vllm/vllm-openai:[\\w.-]+@(?P<version>sha256:[0-9a-f]{64})\\}\\s*$",
+        "repo": "vllm/vllm-openai"
+      },
+      "model": {
+        "binds": "primary",
+        "datasource": "hf-revision",
+        "file": "nemotron-3.5-super-vl/dgx-spark/1x/nvfp4-vllm/.env.example",
+        "override": {
+          "reason": "The kit pins nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4 at ae136832; the library keeps one Model per weights, catalogued at da5b2650. Both revisions list the same 113 files and every file, weights, configuration and tokenizer alike, has the same Git or LFS object id; only README.md differs. Evidence: Hugging Face API file listing of each revision, 2026-11-28. Refresh reports this dependency as overridden and proposes nothing for it.",
+          "revision": "da5b2650a835292c678994a1fa3fb653250fb508"
+        },
+        "pattern": "^MODEL_REVISION=(?P<version>[0-9a-f]{40})$",
+        "repo_pattern": "^MODEL=(?P<repo>[^\\s]+)$"
+      }
+    },
+    "whole": true
+  },
+  "ours": [
+    "launcher"
+  ]
+}
