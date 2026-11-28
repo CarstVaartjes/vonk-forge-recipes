@@ -1,0 +1,30 @@
+{
+  "dependencies": {
+    "drafter": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "292bf1efc06ba39567da7351f2ad7a522afa3959",
+      "repo": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4-LiLiCorr",
+      "revision": "292bf1efc06ba39567da7351f2ad7a522afa3959"
+    },
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:e40eb98263fa13418dda684147d73e8ec4a2b0e056a37e955dc189cd1b11dd16",
+      "kind": "digest",
+      "ref": "sha256:20fdb089454afbb324efa4110a2c025ff7b27cc1a086e07aa580b18df8ad1ce1",
+      "repo": "vllm/vllm-openai"
+    },
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "overridden": "The kit pins nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4 at ae136832; the library keeps one Model per weights, catalogued at da5b2650. Both revisions list the same 113 files and every file, weights, configuration and tokenizer alike, has the same Git or LFS object id; only README.md differs. Evidence: Hugging Face API file listing of each revision, 2026-11-28. Refresh reports this dependency as overridden and proposes nothing for it.",
+      "ref": "da5b2650a835292c678994a1fa3fb653250fb508",
+      "repo": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4",
+      "revision": "da5b2650a835292c678994a1fa3fb653250fb508"
+    }
+  },
+  "kit": {
+    "commit": "13c24ac483eaf8b2fcb828a62ae2604bcc038b92",
+    "repo": "kindlingai/recipes"
+  }
+}

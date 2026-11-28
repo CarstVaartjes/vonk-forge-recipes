@@ -1,13 +1,14 @@
-# KindlingAI's GLM-5.3 exlr8 recipe for three DGX Sparks (kindlingai/glm-5.3-exlr8-3x-spark at commit 8c455f20, MIT) runs
+# KindlingAI's GLM-5.3 exlr8 recipe for three DGX Sparks (kindlingai/recipes at commit 13c24ac4, MIT, directory glm-5.3/dgx-spark/3x/exlr8-gr8) runs
 # gr8's published engine image as it is, with the recipe's settings in the environment: gr8 v1.1.1 (commit a3f44a07),
 # its from-scratch CUDA engine for every TP width (g6m4-int4 here), the Rust front end, the loader and the launcher on
 # nvidia/cuda 13.0.1 (arm64). The kit compiles nothing and names this image by tag and digest in its compose.yaml. This
 # layer only adds the Controller placement wrapper at the platform's launcher path, the licence text and the non-root user.
+# Kit: https://github.com/kindlingai/recipes/tree/13c24ac483eaf8b2fcb828a62ae2604bcc038b92/glm-5.3/dgx-spark/3x/exlr8-gr8
 # Base: the linux/arm64 image ghcr.io/kindlingai/gr8:v1.1.1, by digest.
 FROM ghcr.io/kindlingai/gr8@sha256:fa5c9f66fbfa55d162782578b3262893b782e6365a76562bcab951b54acc6d96
 
-LABEL org.opencontainers.image.source="https://github.com/kindlingai/glm-5.3-exlr8-3x-spark" \
-      org.opencontainers.image.revision="8c455f20f6b96eb5c7402a9693207e407e9d2af4" \
+LABEL org.opencontainers.image.source="https://github.com/kindlingai/recipes" \
+      org.opencontainers.image.revision="13c24ac483eaf8b2fcb828a62ae2604bcc038b92" \
       org.opencontainers.image.licenses="MIT" \
       ai.vonkforge.runtime-interface="v1"
 

@@ -1,0 +1,26 @@
+{
+  "alignment": "unspecified",
+  "component_bindings": [
+    "draft"
+  ],
+  "description": "KindlingAI's digest-pinned vLLM v0.34.0 kit (kindlingai/recipes at 13c24ac4, nemotron-3.5-super-vl/dgx-spark/1x/nvfp4-vllm; MIT, for information) for NVIDIA's Nemotron 3.5 Super VL 120B-A12B NVFP4 (checkpoint ae136832, byte-identical to the catalogued da5b2650 apart from the README) with the LiLiCorr DFlash drafter at 292bf1ef, on the stock vllm/vllm-openai image with bundled b12x and FlashInfer kernels, nothing installed at boot. The creator's values are kept: GPU memory utilization 0.75, 8,192 batched tokens, the Mamba flashinfer backend with float16 state, stochastic rounding (5 philox rounds), the shared prefix checkpoint, 64-token blocks, video pruning 0.5 with 2 fps and 256 frames, the qwen3_coder tool parser and the nemotron_v3 reasoning parser. The creator sets no context length, so vLLM serves the model's 1,048,576 tokens; the recipe states that value. Two Sparks: vLLM tensor-parallel 2 on the mp backend (no Ray), placement from the platform. Options are the creator's TP2_PROFILE presets: balanced (default, b12x kernels, 4 draft tokens, 4 sequences), decode, prefill and nospec. Nothing here has run on a Vonk Spark pair yet. The declared per-rank peak is the utilization budget plus the 10.4 GB multi-Spark margin, an estimate; the creator reports no MemAvailable floor, and the hardware try decides (its numbers were measured on an earlier vLLM nightly, with re-confirmation on this image pending).",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "nemotron-3-5-super-vl-nvfp4-kindlingai-vllm-dual"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "dflash",
+    "executable",
+    "kindlingai",
+    "multimodal",
+    "nemotron",
+    "nvfp4",
+    "reasoning",
+    "spark",
+    "tool-use",
+    "two-spark",
+    "vllm"
+  ],
+  "title": "Nemotron 3.5 Super VL 120B-A12B NVFP4 KindlingAI vLLM two Sparks"
+}

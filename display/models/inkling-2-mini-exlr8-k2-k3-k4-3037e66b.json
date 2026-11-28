@@ -1,0 +1,45 @@
+{
+  "capabilities": [
+    "chat",
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
+  "description": "KindlingAI's exlr8 v2 release of Thinking Machines' Inkling 2 Mini at revision 3037e66b, as pinned by KindlingAI's gr8 recipe: every routed expert of all 24 physical layers stored at the K2, K3 and K4 trellis widths (the serving width is chosen at load time: bit325, k4, bit225, bit250 or k2), dense, attention, router and vocabulary weights in BF16, a bundled 279 MB DFlash speculative drafter derived from incoai/Inkling-2-Mini-DFlash2 (Apache-2.0), and per-TP index slices for one to four ranks. The vision tower's weights are in the pack, but the gr8 front end takes text only. Its card reports a mean KL of 0.015019 for bit325 and 0.010460 for k4 against BF16.",
+  "family_title": "Inkling",
+  "identity": {
+    "publisher": "kindlingai",
+    "slug": "inkling-2-mini-exlr8-k2-k3-k4-3037e66b"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "KindlingAI",
+      "Thinking Machines Lab",
+      "IncoAI"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/kindlingai/inkling-2-mini-exlr8-k2-k3-k4/blob/3037e66b3f01003ddf2c62b7e1d9469c59104609/README.md"
+  },
+  "lineage": {
+    "base_model": "thinkingmachines/Inkling-2-Mini",
+    "family": "inkling",
+    "generation": "Inkling 2",
+    "line": "inkling-2-mini",
+    "model": "inkling-2-mini",
+    "variant_kind": "quantization"
+  },
+  "modalities": [
+    "text",
+    "image"
+  ],
+  "model_title": "Inkling 2 Mini",
+  "tags": [
+    "kindlingai",
+    "thinkingmachines",
+    "inkling",
+    "exlr8",
+    "dflash"
+  ]
+}

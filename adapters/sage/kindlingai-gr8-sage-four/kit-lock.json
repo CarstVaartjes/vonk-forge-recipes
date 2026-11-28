@@ -2,9 +2,9 @@
   "dependencies": {
     "image": {
       "datasource": "oci-image",
-      "digest": "sha256:d140aca32886d2055b7ff11d88c8860c6bb9c108c626f8f3a4f3cebdfe5fcfc6",
-      "kind": "tag",
-      "ref": "sha-ca7e874",
+      "digest": "sha256:3de05aab8cda21fd5d6b4af89ccdba6ff5abdbd704729601fd348fa638ade9fd",
+      "kind": "digest",
+      "ref": "sha256:3de05aab8cda21fd5d6b4af89ccdba6ff5abdbd704729601fd348fa638ade9fd",
       "repo": "ghcr.io/kindlingai/gr8"
     },
     "model": {
@@ -16,7 +16,7 @@
     }
   },
   "kit": {
-    "commit": "1f1062775e075c1746c97cf64b38fa8f3046cd1c",
-    "repo": "kindlingai/sage-s2.1-flash-exlr8-4x-spark"
+    "commit": "13c24ac483eaf8b2fcb828a62ae2604bcc038b92",
+    "repo": "kindlingai/recipes"
   }
 }

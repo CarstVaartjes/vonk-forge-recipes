@@ -4,23 +4,30 @@
       "drafter": {
         "binds": "drafter",
         "datasource": "hf-revision",
-        "file": ".env.example",
+        "file": "glm-5.3/dgx-spark/4x/exlr8-k4-gr8/.env.example",
         "pattern": "^DRAFTER=https://huggingface\\.co/(?P<repo>[\\w.-]+/[\\w.-]+)@(?P<version>[0-9a-f]{40})\\s*$"
+      },
+      "image": {
+        "datasource": "oci-image",
+        "file": "glm-5.3/dgx-spark/4x/exlr8-k4-gr8/compose.yaml",
+        "pattern": "^\\s+image: \\$\\{GR8_IMAGE:-ghcr\\.io/kindlingai/gr8:[\\w.-]+@(?P<version>sha256:[0-9a-f]{64})\\}\\s*$",
+        "repo": "ghcr.io/kindlingai/gr8"
       },
       "model": {
         "binds": "primary",
         "datasource": "hf-revision",
-        "file": "Dockerfile",
-        "pattern": "^[ \\t]+MODEL=https://huggingface\\.co/(?P<repo>[\\w.-]+/[\\w.-]+)@(?P<version>[0-9a-f]{40})\\s*$"
+        "file": "glm-5.3/dgx-spark/4x/exlr8-k4-gr8/.env.example",
+        "pattern": "^MODEL=https://huggingface\\.co/(?P<repo>[\\w.-]+/[\\w.-]+)@(?P<version>[0-9a-f]{40})\\s*$"
       }
-    }
+    },
+    "whole": true
   },
   "ours": [
     "gr8-serve",
     "licenses/"
   ],
   "source": {
-    "commit": "edde1cc1a8f1ba8b46ec86bd51d509a85a848cf1",
-    "repo": "kindlingai/glm-5.3-exlr8-k4-4x-spark"
+    "commit": "13c24ac483eaf8b2fcb828a62ae2604bcc038b92",
+    "repo": "kindlingai/recipes"
   }
 }

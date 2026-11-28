@@ -3711,11 +3711,11 @@
       "KindlingAI",
       "Z.AI"
     ],
-    "source_reference": "https://github.com/kindlingai/glm-5.3-exlr8-4x-spark/tree/1e1ca7ee8ac4fd6b3756b6969109449c2d6ec8cd"
+    "source_reference": "https://github.com/kindlingai/recipes/blob/13c24ac483eaf8b2fcb828a62ae2604bcc038b92/glm-5.3/dgx-spark/4x/exlr8-gr8/compose.yaml"
   },
   "release": {
-    "released_at": "2026-11-22",
-    "version": "8ffb1e06"
+    "released_at": "2026-11-28",
+    "version": "13c24ac4"
   },
   "runtime": {
     "arguments": [

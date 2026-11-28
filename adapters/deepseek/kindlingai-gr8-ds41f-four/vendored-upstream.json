@@ -1,20 +1,30 @@
 {
   "kit": {
     "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "deepseek-v4.1-flash/dgx-spark/4x/exlr8-gr8/compose.yaml",
+        "pattern": "^\\s+image: \\$\\{GR8_IMAGE:-ghcr\\.io/kindlingai/gr8:[\\w.-]+@(?P<version>sha256:[0-9a-f]{64})\\}\\s*$",
+        "repo": "ghcr.io/kindlingai/gr8"
+      },
       "model": {
         "binds": "primary",
         "datasource": "hf-revision",
-        "file": "Dockerfile",
-        "pattern": "^[ \\t]+RELEASE=https://huggingface\\.co/(?P<repo>[\\w.-]+/[\\w.-]+)@(?P<version>[0-9a-f]{40})"
+        "file": "deepseek-v4.1-flash/dgx-spark/4x/exlr8-gr8/.env.example",
+        "pattern": "^RELEASE=https://huggingface\\.co/(?P<repo>[\\w.-]+/[\\w.-]+)@(?P<version>[0-9a-f]{40})\\s*$"
       }
-    }
+    },
+    "whole": true
   },
   "ours": [
     "gr8-serve",
     "licenses/"
   ],
+  "renamed": {
+    "knobs.sh": "deepseek-v4.1-flash/dgx-spark/4x/exlr8-gr8/knobs.sh"
+  },
   "source": {
-    "commit": "4038bf81f08ee049e6f12d51261b3db56a986f95",
-    "repo": "kindlingai/deepseek-v4.1-flash-exlr8-4x-spark"
+    "commit": "13c24ac483eaf8b2fcb828a62ae2604bcc038b92",
+    "repo": "kindlingai/recipes"
   }
 }

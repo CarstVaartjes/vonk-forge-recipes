@@ -2,8 +2,8 @@
   "execution": {
     "build": {
       "base_image": {
-        "digest": "c5f655619bcc8e5000f20eaece9cbb992eddbf15b54329dd54b7cd0083565089",
-        "repository": "ghcr.io/kindlingai/deepseek-v4.1-flash-exlr8-4x-spark"
+        "digest": "f6d09cca202bd56114fe93f8efdadd216a6c9ede079f002a601d692e90241b63",
+        "repository": "ghcr.io/kindlingai/gr8"
       },
       "context": {
         "path": "adapters/deepseek/kindlingai-gr8-ds41f-four"
@@ -2595,11 +2595,11 @@
       "DeepSeek-AI",
       "KindlingAI"
     ],
-    "source_reference": "https://github.com/kindlingai/deepseek-v4.1-flash-exlr8-4x-spark/tree/4038bf81f08ee049e6f12d51261b3db56a986f95"
+    "source_reference": "https://github.com/kindlingai/recipes/blob/13c24ac483eaf8b2fcb828a62ae2604bcc038b92/deepseek-v4.1-flash/dgx-spark/4x/exlr8-gr8/compose.yaml"
   },
   "release": {
-    "released_at": "2026-11-13",
-    "version": "4038bf81"
+    "released_at": "2026-11-28",
+    "version": "13c24ac4"
   },
   "runtime": {
     "arguments": [
@@ -2630,16 +2630,36 @@
     ],
     "environment": [
       {
+        "name": "FRONT_BIN",
+        "value": "/opt/gr8/bin/g6front-rs"
+      },
+      {
         "name": "GEN_CACHE",
         "value": "1"
+      },
+      {
+        "name": "GR8_MODEL",
+        "value": "ds41"
+      },
+      {
+        "name": "GROUP",
+        "value": "gr8-ds41-4x"
       },
       {
         "name": "HF_HUB_OFFLINE",
         "value": "1"
       },
       {
+        "name": "TP",
+        "value": "4"
+      },
+      {
         "name": "TRANSFORMERS_OFFLINE",
         "value": "1"
+      },
+      {
+        "name": "TUNE",
+        "value": "speed"
       }
     ],
     "lifecycle": {

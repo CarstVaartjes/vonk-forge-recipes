@@ -107,7 +107,7 @@ jobs:
           actionable = []
           for recipe in embedded.get("recipes", []):
               for item in recipe.get("inputs", []):
-                  if item.get("status") in {"mutable", "unknown", "pin_only", "pinned_untracked", "untracked"} or item.get("candidate_status") in {"advanced", "unknown", "no-immutable-pin"}:
+                  if item.get("status") in {"mutable", "unknown", "pin_only", "pinned_untracked", "untracked"} or item.get("candidate_status") in {"advanced", "archived", "unknown", "no-immutable-pin"}:
                       actionable.append((recipe.get("recipe_id", "?"), item))
           lines.append(f"### Embedded inputs requiring visibility: {len(actionable)}")
           lines.append("")

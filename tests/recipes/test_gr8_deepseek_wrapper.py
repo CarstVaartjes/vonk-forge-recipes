@@ -32,7 +32,6 @@ def sandbox(tmp_path):
     creator = tmp_path / "opt/ds41-4x"
     creator.mkdir(parents=True)
     (creator / "knobs.sh").write_text(FAKE_KNOBS)
-    (creator / "ds41.engram.cmap").write_bytes(b"token map")
     entrypoint = tmp_path / "opt/gr8/docker/entrypoint.sh"
     entrypoint.parent.mkdir(parents=True)
     entrypoint.write_text(FAKE_ENTRYPOINT)
@@ -91,25 +90,9 @@ def test_placement_paths_and_settings(sandbox):
     assert not {"IPS", "IPS2", "SHAPE"} & dump.keys()
     assert dump["GR8_WORK_DIR"] == home
     assert dump["ENGRAM_PREFIX"] == f"{home}/engram/ds41"
-    assert Path(f"{home}/engram/ds41.engram.cmap").read_bytes() == b"token map"
-    # the creator's knobs see the gen cache first and the pread Engram reader last
-    assert dump["KNOBS_SAW_EXTRA_ENV"].split() == [
-        f"GR8_GEN_CACHE={home}/gen-cache",
-        "GR8_DS_ENGRAM_IO_URING=0",
-    ]
-
-
-def test_a_differing_token_map_is_replaced_and_a_whole_one_kept(sandbox):
-    root, run = sandbox
-    cmap = root / "outputs/cache/gr8/home/engram/ds41.engram.cmap"
-    cmap.parent.mkdir(parents=True)
-    cmap.write_bytes(b"token")  # an interrupted copy
-    done, _ = run(PLACEMENT)
-    assert done.returncode == 0, done.stderr
-    assert cmap.read_bytes() == b"token map"
-    inode = cmap.stat().st_ino
-    run(PLACEMENT)
-    assert cmap.stat().st_ino == inode
+    assert Path(f"{home}/engram").is_dir()
+    # the creator's knobs see the gen cache and nothing else
+    assert dump["KNOBS_SAW_EXTRA_ENV"].split() == [f"GR8_GEN_CACHE={home}/gen-cache"]
 
 
 def test_missing_placement_and_unknown_arguments_are_refused(sandbox):

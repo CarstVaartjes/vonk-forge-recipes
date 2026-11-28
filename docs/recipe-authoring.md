@@ -559,9 +559,12 @@ image. Never request relaxed seccomp. Enforce image-owned transport policy in
 the launcher before exec, including when a kit declares an unsafe backend. b12x
 defaults a bfloat16 PLE table and a disk Engram table to io_uring even when no
 backend is specified.
-gr8's DeepSeek engine reads its disk Engram rows through io_uring by default (`GR8_DS_ENGRAM_IO_URING=128`); its
-wrapper puts `GR8_DS_ENGRAM_IO_URING=0` (the pread pool, gr8 `engine/engram/rowstore.h`) last in `EXTRA_ENV`
-(`adapters/deepseek/kindlingai-gr8-ds41f-four`, `tests/recipes/test_gr8_deepseek_wrapper.py`).
+gr8's DeepSeek engine reads its disk Engram rows through io_uring; under the default seccomp the setup fails and its
+rowstore falls back to the pread pool by itself, so the wrapper needs no switch (gr8 `engine/engram/rowstore.h`,
+`adapters/deepseek/kindlingai-gr8-ds41f-four`).
+gr8's Qwen3.8 engine reads its Layer-1 PLE rowstore through io_uring at a fixed queue depth (no knob); under the
+default seccomp `io_uring_setup` fails and its reader falls back to a 64-thread pread pool, so the recipe needs no
+switch (`adapters/qwen/kindlingai-gr8-qw38-*`; the hardware log line `qw38 PLE opened ... uring=0` shows it).
 The separate `--load-format b12x` checkpoint reader also selects io_uring bounce
 I/O on GB10; `B12X_DISK_BACKEND` does not control it. Use `--load-format safetensors`
 at the image launcher handoff for checkpoint loading while retaining the B12X
@@ -930,6 +933,21 @@ whose first start does the creator's prepare step into `/outputs/cache`. A kit w
 published image with its settings in `.env.example` (`adapters/glm/kindlingai-gr8-glm53-*`) declares that image from
 compose's `image:` line as an `oci-image` dependency and the Model from `.env.example`; the recipe's environment carries
 every active `.env.example` line (compose-only and placement lines excepted), its volume paths under `/outputs/cache`.
+A GLM53 TP=2 wrapper converts the DFlash2 drafter in native INT4 into `tp2-int4`, as gr8's launcher does at TP=2, so a
+pack of another mode is never reused.
+
+A kit of that shape that runs its own launcher script instead of the image's entrypoint (`adapters/inkling/kindlingai-gr8-ink2-single`,
+`tests/recipes/test_gr8_ink2_wrapper.py`) ships that script byte for byte at the kit's path (`renamed` in
+`vendored-upstream.json`); its wrapper maps the arguments onto the variables the script reads and execs it, with the
+script's working directory under `/outputs/cache/gr8`. A monorepo kit names its subdirectory in `provenance.source_reference`
+and the Dockerfile header, and declares the Model from the file that holds its pin (`repo_pattern` for the repository line).
+
+A kit that is one directory of `kindlingai/recipes` (`adapters/qwen/kindlingai-gr8-qw38-*`) cites a blob URL of its
+`compose.yaml` and keeps `"whole": true`, so a creator edit to `CAP` or `SESS` still raises a review. Its options that
+only add a word to `EXTRA_ENV` are wrapper variables the wrapper appends and unsets (`VISION`, `NO_MTP`, `DFL`); options
+that move `--sess` with them are one option, because two options may not change one argument. A kit that pins an older
+revision of a Model whose newer revision holds the same files plus a file the recipe does not select binds the one
+catalogued Model through the dependency's `override`.
 
 Bind generated rank/vision/model views to their checkpoint and engine inputs,
 reuse complete cached work and rebuild malformed/interrupted output
@@ -1278,7 +1296,12 @@ repository's newest revision or an image repository's newest tag.
 - **Monorepo kits.** A kit that is one directory of a creator's repository, of which the
   recipe uses only the declared values (NVIDIA's playbooks name their TensorRT-LLM image in a
   README), sets `"whole": false` on the `kit` block: only the declarations are checked, and
-  the repository's other changes are judged as for any source.
+  the repository's other changes are judged as for any source. A kit whose citation
+  (`.../tree/<commit>/<directory>`) names a subdirectory is scoped to it either way: every
+  change inside that directory is judged and nothing outside it.
+- **Archived kit repository.** The refresh scanner and `tools/check-upstream-drift` report an
+  archived repository as a finding (a refresh review reason, candidate status `archived`):
+  the creator moved, so follow the pointer in its README to the new repository.
 - **Refresh.** The scanner watches the kit and what it declares, never the dependency's own
   channel. A kit move that changes a declared value is a review (the patches were rebased,
   the image is another build; run `tools/kit-pins lock`), except one case: a kit that moves a
@@ -1302,8 +1325,7 @@ repository's newest revision or an image repository's newest tag.
   image. A kit that publishes no image of its own but takes its engine binaries unchanged from
   the engine's published image of the commit it pins (gr8's `ENGINE_SRC=image`) builds nothing:
   the adapter is `FROM` that engine image (an `oci-image` dependency on the kit's declaration)
-  plus the kit's runtime files vendored at the kit's paths, and the unpublished kit image is
-  recorded in the exceptions file (`adapters/sage/kindlingai-gr8-sage-*`). `tools/kit-pins check` scans every cited kit at its pinned commit for the container
+  plus the kit's runtime files vendored at the kit's paths. `tools/kit-pins check` scans every cited kit at its pinned commit for the container
   images it runs or pulls (Dockerfile `FROM`/`ARG` image defaults, `IMG=`/`IMAGE=`
   assignments, `docker run|pull|create`, compose `image:`; docs, tests and CI files are not
   scanned; engine and base images such as `vllm/vllm-openai`, `lmsysorg/sglang`, `nvcr.io/*`

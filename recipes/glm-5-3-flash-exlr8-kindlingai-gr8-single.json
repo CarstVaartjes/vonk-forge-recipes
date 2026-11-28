@@ -2,8 +2,8 @@
   "execution": {
     "build": {
       "base_image": {
-        "digest": "83035720871697937af33892fb900ddebce3020c6fb444d018c4037b2ea4f3a8",
-        "repository": "ghcr.io/kindlingai/glm-5.3-flash-exlr8-1x-spark"
+        "digest": "3de05aab8cda21fd5d6b4af89ccdba6ff5abdbd704729601fd348fa638ade9fd",
+        "repository": "ghcr.io/kindlingai/gr8"
       },
       "context": {
         "path": "adapters/glm/kindlingai-gr8-flash-single"
@@ -2031,11 +2031,11 @@
       "KindlingAI",
       "Z.AI"
     ],
-    "source_reference": "https://github.com/kindlingai/glm-5.3-flash-exlr8-1x-spark/tree/ad0c7148e3ea73b40f639a1a891357aff0e3d14b"
+    "source_reference": "https://github.com/kindlingai/recipes/blob/13c24ac483eaf8b2fcb828a62ae2604bcc038b92/glm-5.3-flash/dgx-spark/1x/exlr8-gr8/compose.yaml"
   },
   "release": {
-    "released_at": "2026-11-16",
-    "version": "ad0c7148"
+    "released_at": "2026-11-28",
+    "version": "13c24ac4"
   },
   "runtime": {
     "arguments": [
@@ -2066,16 +2066,88 @@
     ],
     "environment": [
       {
+        "name": "CAP",
+        "value": "700032"
+      },
+      {
+        "name": "DEFAULT_MAX_TOKENS",
+        "value": "32768"
+      },
+      {
+        "name": "DEFAULT_PRESENCE_PENALTY",
+        "value": "greedy=0.2,greedy.thinking=0.5,nongreedy.thinking=0.5"
+      },
+      {
+        "name": "DEFAULT_THINKING_BUDGET",
+        "value": "28672"
+      },
+      {
+        "name": "DEFAULT_THINK_END_BOOST",
+        "value": "start=16384,per1k=4,max=10"
+      },
+      {
         "name": "DFLASH",
         "value": "1"
+      },
+      {
+        "name": "EXTRA_ARGS",
+        "value": "--pf-lanes 1"
+      },
+      {
+        "name": "EXTRA_ENV",
+        "value": "GR8_MEM_MIN=5"
+      },
+      {
+        "name": "FLASH_CACHE",
+        "value": "aligned"
+      },
+      {
+        "name": "FRONT_BIN",
+        "value": "/opt/gr8/bin/g6front-rs"
+      },
+      {
+        "name": "GR8_MODEL",
+        "value": "glm53f"
+      },
+      {
+        "name": "GROUP",
+        "value": "gr8-glm53f-1x"
       },
       {
         "name": "HF_HUB_OFFLINE",
         "value": "1"
       },
       {
+        "name": "KV_FORMAT",
+        "value": "int4"
+      },
+      {
+        "name": "KV_STORE",
+        "value": "@/etc/gr8/kv-store.yaml"
+      },
+      {
+        "name": "MENTAT",
+        "value": "0"
+      },
+      {
+        "name": "TP",
+        "value": "1"
+      },
+      {
         "name": "TRANSFORMERS_OFFLINE",
         "value": "1"
+      },
+      {
+        "name": "TUNE",
+        "value": "speed"
+      },
+      {
+        "name": "UNDECLARED_TOOL_CALLS",
+        "value": "emit"
+      },
+      {
+        "name": "VARIANT",
+        "value": "bit201"
       }
     ],
     "lifecycle": {

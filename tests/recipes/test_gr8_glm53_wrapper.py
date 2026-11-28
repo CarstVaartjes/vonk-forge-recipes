@@ -14,6 +14,12 @@ ADAPTERS = tuple(sorted(path.name for path in GLM.glob("kindlingai-gr8-glm53-*")
 DRAFTER_ADAPTERS = tuple(
     name for name in ADAPTERS if "DFLASH_DIR=" in (GLM / name / "gr8-serve").read_text()
 )
+# the wrappers that prepare the creator's compact expert copies; the two-Spark kit offers none
+COMPACT_ADAPTERS = tuple(
+    name
+    for name in ADAPTERS
+    if "COMPACT_EXPERTS" in (GLM / name / "gr8-serve").read_text()
+)
 
 FAKE_ENTRYPOINT = """#!/bin/bash
 env > "$DUMP"
@@ -27,10 +33,10 @@ import json, os
 def converter():
     return ['converter']
 
-def convert_drafter(convert, src, out, tp, rank, ident, log, label, scratch):
+def convert_drafter(convert, src, out, tp, rank, ident, log, label, scratch, int4=False):
     os.makedirs(out, exist_ok=True)
     with open(os.path.join(out, 'rank%d.COMPLETE' % rank), 'w') as f:
-        json.dump({'src': src, 'tp': tp, 'scratch': scratch}, f)
+        json.dump({'src': src, 'tp': tp, 'scratch': scratch, 'int4': int4}, f)
 """
 
 
@@ -98,6 +104,11 @@ def sandbox(request, tmp_path):
     return make_sandbox(request.param, tmp_path)
 
 
+@pytest.fixture(params=COMPACT_ADAPTERS)
+def compact_sandbox(request, tmp_path):
+    return make_sandbox(request.param, tmp_path)
+
+
 @pytest.fixture(params=DRAFTER_ADAPTERS)
 def drafter_sandbox(request, tmp_path):
     return make_sandbox(request.param, tmp_path)
@@ -105,7 +116,9 @@ def drafter_sandbox(request, tmp_path):
 
 def test_both_wrapper_shapes_are_covered():
     assert DRAFTER_ADAPTERS
+    assert COMPACT_ADAPTERS
     assert set(ADAPTERS) - set(DRAFTER_ADAPTERS)
+    assert set(DRAFTER_ADAPTERS) - set(COMPACT_ADAPTERS)
 
 
 def test_placement_paths_and_drafter(drafter_sandbox):
@@ -166,8 +179,22 @@ def test_tp_from_the_recipe_names_the_drafter_pack(drafter_sandbox):
     assert dump["DFLASH_DIR"].endswith("/cache/dflash/tp6")
 
 
-def test_compact_copies_are_prepared_once(sandbox):
-    root, run = sandbox
+def test_two_spark_drafter_is_converted_in_native_int4(tmp_path):
+    """At TP=2 gr8's launcher converts GLM-5.3's drafter in INT4 into tp2-int4; TP=4 stays non-INT4."""
+    for name, tp, pack, int4 in (
+        ("kindlingai-gr8-glm53-dual", 2, "tp2-int4", True),
+        ("kindlingai-gr8-glm53-four", 4, "tp4", False),
+    ):
+        root, run = make_sandbox(name, tmp_path / name)
+        done, dump = run({**placement(tp, 1), "TP": str(tp)})
+        assert done.returncode == 0, done.stderr
+        assert dump["DFLASH_DIR"] == f"{root}/outputs/cache/gr8/cache/dflash/{pack}"
+        complete = json.loads(Path(dump["DFLASH_DIR"], "rank1.COMPLETE").read_text())
+        assert complete["int4"] is int4
+
+
+def test_compact_copies_are_prepared_once(compact_sandbox):
+    root, run = compact_sandbox
     cache = root / "outputs/cache/gr8/cache"
     stale = cache / ".compact-tp4.partial-1234"
     stale.mkdir(parents=True)
@@ -188,8 +215,8 @@ def test_compact_copies_are_prepared_once(sandbox):
     assert len((root / "prepare.log").read_text().splitlines()) == 1
 
 
-def test_compact_copies_need_a_directory(sandbox):
-    root, run = sandbox
+def test_compact_copies_need_a_directory(compact_sandbox):
+    root, run = compact_sandbox
     done, dump = run({**placement(4, 0), "DFLASH": "0", "COMPACT_EXPERTS": "1"})
     assert done.returncode == 2
     assert not dump

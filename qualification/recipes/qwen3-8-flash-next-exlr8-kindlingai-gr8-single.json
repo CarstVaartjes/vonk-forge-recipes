@@ -1,0 +1,16 @@
+{
+  "id": "vonk-forge/qwen3-8-flash-next-exlr8-kindlingai-gr8-single",
+  "service_recipes": {
+    "alias": "qwen3.8-flash-next",
+    "higher_tiers": {
+      "stress": [
+        "Long-context canary with the page-cache warm-up recorded separately; several concurrent streams, with the prefix-cache restore line checked"
+      ]
+    },
+    "smoke_cases": [
+      "M0",
+      "A323",
+      "T_PRODUCT"
+    ]
+  }
+}
