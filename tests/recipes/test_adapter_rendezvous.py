@@ -213,6 +213,59 @@ def test_multi_node_vllm_recipes_bind_the_controller_placement() -> None:
     assert not unbound, f"multi-node vLLM recipes without a rendezvous bind: {unbound}"
 
 
+# A launcher assigns the engine's host variable (python `environ[...] =`, shell `VLLM_HOST_IP=`).
+HOST_ASSIGNMENT = re.compile(
+    r"""(?:["']VLLM_HOST_IP["']\s*\]\s*=|(?<![\w-])VLLM_HOST_IP=)"""
+)
+
+
+def _advertises_fabric_address(sources: list[str]) -> bool:
+    return any(
+        HOST_ASSIGNMENT.search(source) and "VONK_LOCAL_ADDR" in source
+        for source in sources
+    )
+
+
+@pytest.mark.parametrize(
+    ("sources", "expected"),
+    [
+        (['os.environ["VLLM_HOST_IP"] = os.environ["VONK_LOCAL_ADDR"]'], True),
+        (['export VLLM_HOST_IP="${VONK_LOCAL_ADDR:?placement}"'], True),
+        (['export VLLM_HOST_IP="$HOST_IP"'], False),
+        (['os.environ["VLLM_HOST_IP"] = "10.0.0.1"'], False),
+        (["only reads VONK_LOCAL_ADDR"], False),
+        (['os.environ["VLLM_HOST_IP"] = a', "b = VONK_LOCAL_ADDR"], False),
+    ],
+)
+def test_host_address_guard_accepts_only_fabric_advertising_launchers(
+    sources: list[str], expected: bool
+) -> None:
+    assert _advertises_fabric_address(sources) is expected
+
+
+def test_distributed_vllm_launchers_advertise_the_fabric_address() -> None:
+    # vLLM's message queue advertises VLLM_HOST_IP, or else the default-route
+    # source address, which is the LAN. Every launcher must set it from the
+    # platform's fabric address so peers never dial the LAN.
+    lan_advertising = []
+    for path in sorted((ROOT / "recipes").glob("*.json")):
+        document = recipe(path.stem)
+        if document.topology.node_count < 2 or document.runtime.engine != "vllm":
+            continue
+        context = ROOT / document.execution.build.context.path
+        sources = [
+            file.read_text(encoding="utf-8", errors="ignore")
+            for file in sorted(context.rglob("*"))
+            if file.is_file()
+        ]
+        if not _advertises_fabric_address(sources):
+            lan_advertising.append(path.stem)
+    assert not lan_advertising, (
+        f"distributed vLLM launchers must set VLLM_HOST_IP from VONK_LOCAL_ADDR: "
+        f"{lan_advertising}"
+    )
+
+
 def _run_llama_405b_wrapper(tmp_path: Path, env: dict[str, str]):
     stub = tmp_path / "vllm"
     stub.write_text('#!/bin/sh\nprintf "%s\\n" "$VLLM_HOST_IP" "$@"\n')
