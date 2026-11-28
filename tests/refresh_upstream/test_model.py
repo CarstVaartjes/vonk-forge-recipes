@@ -13,7 +13,7 @@ from unittest.mock import patch
 
 import pytest
 from documents import json_document
-from refresh_helpers import NEW, OLD, classify, comparison, complete, files, model_with
+from refresh_helpers import NEW, OLD, classify, comparison, files, model_with
 
 from recipe_tooling import catalog_hf_model, vendored_upstream
 from recipe_tooling.catalog_model import file_id
@@ -671,9 +671,7 @@ class KitScopeTests(unittest.TestCase):
             "execution": {"build": {"context": {"path": "adapters/x"}}},
             "runtime": {},
         }
-        catalog = refresh_catalog_view.Catalog(
-            root, recipes={"recipe": complete(recipe)}
-        )
+        catalog = refresh_catalog_view.Catalog(root, recipes={"recipe": recipe})
         http = SimpleNamespace(kit_source=object())  # never asked: see the patch below
         assessor = refresh_assessment.Assessor(catalog, http, None, {})  # pyright: ignore[reportArgumentType]
         assessor.target = lambda _provider, _repo: refresh_model.Target(  # pyright: ignore[reportAttributeAccessIssue]

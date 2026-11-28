@@ -22,7 +22,7 @@ from urllib.request import Request
 import documents
 import pytest
 from catalog_documents import catalog_models
-from refresh_helpers import NEW, OLD, OLD_YAML, comparison, complete, model_with
+from refresh_helpers import NEW, OLD, OLD_YAML, comparison, model_with
 from repo_root import ROOT
 from warning_asserts import assert_not_warns, assert_warns
 
@@ -108,21 +108,19 @@ class EmbeddedSourceReviewTests(unittest.TestCase):
         catalog = refresh_catalog_view.Catalog(
             Path(tempfile.gettempdir()),
             recipes={
-                "recipe": complete(
-                    {
-                        "identity": {"slug": "recipe"},
-                        "provenance": {
-                            "attribution": ["Example"],
-                            "source_reference": f"https://github.com/example/recipe/tree/{OLD}",
-                        },
-                        "release": {
-                            "version": "1.0.0",
-                            "released_at": "2026-01-01",
-                        },
-                        "models": [],
-                        "execution": {"build": {"context": {"path": "missing"}}},
-                    }
-                )
+                "recipe": {
+                    "identity": {"slug": "recipe"},
+                    "provenance": {
+                        "attribution": ["Example"],
+                        "source_reference": f"https://github.com/example/recipe/tree/{OLD}",
+                    },
+                    "release": {
+                        "version": "1.0.0",
+                        "released_at": "2026-01-01",
+                    },
+                    "models": [],
+                    "execution": {"build": {"context": {"path": "missing"}}},
+                }
             },
         )
         assessor = refresh_assessment.Assessor(catalog, object(), None, embedded)  # pyright: ignore[reportArgumentType]
@@ -258,9 +256,7 @@ class ImageLabelClaimTests(unittest.TestCase):
             "models": [],
             "execution": {"build": {"context": {"path": "adapter"}}},
         }
-        catalog = refresh_catalog_view.Catalog(
-            directory, recipes={"recipe": complete(recipe)}
-        )
+        catalog = refresh_catalog_view.Catalog(directory, recipes={"recipe": recipe})
 
         def targets(provider: str, repo: str):
             asked.append(repo)
@@ -455,9 +451,7 @@ class VendoredCreatorMoveTests(unittest.TestCase):
         if engine is not None:
             recipe["runtime"]["engine"] = engine
             recipe["topology"] = {"roles": []}
-        catalog = refresh_catalog_view.Catalog(
-            root, recipes={"recipe": complete(recipe)}
-        )
+        catalog = refresh_catalog_view.Catalog(root, recipes={"recipe": recipe})
         assessor = refresh_assessment.Assessor(catalog, object(), None, {})  # pyright: ignore[reportArgumentType]
         assessor.target = lambda _provider, _repo: refresh_model.Target(  # pyright: ignore[reportAttributeAccessIssue]
             "github", "example/recipe", NEW, "2026-10-13", None, None, "u"

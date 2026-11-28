@@ -3,7 +3,6 @@
 import json
 import os
 import subprocess
-import tempfile
 from pathlib import Path
 
 import pytest
@@ -180,21 +179,18 @@ def test_tp_from_the_recipe_names_the_drafter_pack(drafter_sandbox):
     assert dump["DFLASH_DIR"].endswith("/cache/dflash/tp6")
 
 
-def test_two_spark_drafter_is_converted_in_native_int4():
+def test_two_spark_drafter_is_converted_in_native_int4(tmp_path):
     """At TP=2 gr8's launcher converts GLM-5.3's drafter in INT4 into tp2-int4; TP=4 stays non-INT4."""
     for name, tp, pack, int4 in (
         ("kindlingai-gr8-glm53-dual", 2, "tp2-int4", True),
         ("kindlingai-gr8-glm53-four", 4, "tp4", False),
     ):
-        with tempfile.TemporaryDirectory() as tmp:
-            root, run = make_sandbox(name, Path(tmp))
-            done, dump = run({**placement(tp, 1), "TP": str(tp)})
-            assert done.returncode == 0, done.stderr
-            assert dump["DFLASH_DIR"] == f"{root}/outputs/cache/gr8/cache/dflash/{pack}"
-            complete = json.loads(
-                Path(dump["DFLASH_DIR"], "rank1.COMPLETE").read_text()
-            )
-            assert complete["int4"] is int4
+        root, run = make_sandbox(name, tmp_path / name)
+        done, dump = run({**placement(tp, 1), "TP": str(tp)})
+        assert done.returncode == 0, done.stderr
+        assert dump["DFLASH_DIR"] == f"{root}/outputs/cache/gr8/cache/dflash/{pack}"
+        complete = json.loads(Path(dump["DFLASH_DIR"], "rank1.COMPLETE").read_text())
+        assert complete["int4"] is int4
 
 
 def test_compact_copies_are_prepared_once(compact_sandbox):
