@@ -105,6 +105,11 @@ def sandbox(request, tmp_path):
     return make_sandbox(request.param, tmp_path)
 
 
+@pytest.fixture(params=COMPACT_ADAPTERS)
+def compact_sandbox(request, tmp_path):
+    return make_sandbox(request.param, tmp_path)
+
+
 @pytest.fixture(params=DRAFTER_ADAPTERS)
 def drafter_sandbox(request, tmp_path):
     return make_sandbox(request.param, tmp_path)
