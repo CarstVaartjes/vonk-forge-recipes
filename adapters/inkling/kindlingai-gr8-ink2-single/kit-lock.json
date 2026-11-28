@@ -1,0 +1,22 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:dfa8eb1a4e967338f3ab087f980479b40587ba6362da61950fff3ddd7d7717ce",
+      "kind": "digest",
+      "ref": "sha256:b50f14c667fb7877e21c05669494807f612d57073adc3efde79024acef1dbfc1",
+      "repo": "ghcr.io/kindlingai/gr8"
+    },
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "3037e66b3f01003ddf2c62b7e1d9469c59104609",
+      "repo": "kindlingai/inkling-2-mini-exlr8-k2-k3-k4",
+      "revision": "3037e66b3f01003ddf2c62b7e1d9469c59104609"
+    }
+  },
+  "kit": {
+    "commit": "13c24ac483eaf8b2fcb828a62ae2604bcc038b92",
+    "repo": "kindlingai/recipes"
+  }
+}
