@@ -7,6 +7,7 @@ import shutil
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any, ClassVar
 from unittest.mock import patch
 
@@ -632,7 +633,15 @@ class ModelReExportTests(unittest.TestCase):
 class KitScopeTests(unittest.TestCase):
     """A kit is the subdirectory the adapter cites or the files it vendors, not a monorepo."""
 
-    def assess(self, files: tuple[str, ...], *, notice: str = "", dockerfile: str = ""):
+    def assess(
+        self,
+        files: tuple[str, ...],
+        *,
+        notice: str = "",
+        dockerfile: str = "",
+        kit: dict[str, Any] | None = None,
+        archived: bool = False,
+    ):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         root = Path(temporary.name)
@@ -640,6 +649,17 @@ class KitScopeTests(unittest.TestCase):
         adapter.mkdir(parents=True)
         (adapter / "Dockerfile").write_text("FROM scratch\n" + dockerfile)
         (adapter / "NOTICE").write_text(notice)
+        if kit is not None:
+            # the real shape: the adapter pins the kit repository itself
+            (adapter / "vendored-upstream.json").write_text(
+                json.dumps(
+                    {
+                        "kit": kit,
+                        "source": {"repo": "example/recipes", "commit": OLD},
+                        "ours": ["NOTICE"],
+                    }
+                )
+            )
         recipe = {
             "identity": {"slug": "recipe"},
             "provenance": {
@@ -652,13 +672,30 @@ class KitScopeTests(unittest.TestCase):
             "runtime": {},
         }
         catalog = refresh_catalog_view.Catalog(root, recipes={"recipe": recipe})
-        assessor = refresh_assessment.Assessor(catalog, object(), None, {})  # pyright: ignore[reportArgumentType]
+        http = SimpleNamespace(kit_source=object())  # never asked: see the patch below
+        assessor = refresh_assessment.Assessor(catalog, http, None, {})  # pyright: ignore[reportArgumentType]
         assessor.target = lambda _provider, _repo: refresh_model.Target(  # pyright: ignore[reportAttributeAccessIssue]
-            "github", "example/recipes", NEW, "2026-10-13", None, None, "u"
+            "github",
+            "example/recipes",
+            NEW,
+            "2026-10-13",
+            None,
+            None,
+            "u",
+            archived=archived,
         )
-        with patch(
-            "recipe_tooling.refresh_upstream.items.compare_commits",
-            return_value=comparison(files=files),
+        with (
+            patch(
+                "recipe_tooling.refresh_upstream.items.compare_commits",
+                return_value=comparison(files=files),
+            ),
+            # the kit's own dependencies are not under test here
+            patch("recipe_tooling.refresh_upstream.items.check_kit_dependencies"),
+            patch.object(
+                refresh_assessment.vendored,
+                "fetch_tree",
+                return_value=refresh_assessment.vendored.Tree({}, True),
+            ),
         ):
             return assessor.assess("recipe")
 
@@ -698,6 +735,42 @@ class KitScopeTests(unittest.TestCase):
         reasons = " ".join(result.reasons)
         assert "models/vllm-sr/serve.yaml" in reasons
         assert "models/other" not in reasons
+
+    def test_a_declared_kit_judges_its_cited_directory_and_nothing_outside(
+        self,
+    ) -> None:
+        notice = self.cite("/models/vllm-sr")
+        for whole in (True, False):
+            kit = {"whole": whole, "dependencies": {}}
+            outside = self.assess(
+                ("models/other/serve.yaml", "recipes/x.json"), notice=notice, kit=kit
+            )
+            assert not outside.drifted, (whole, outside.reasons)
+            inside = self.assess(
+                ("models/other/serve.yaml", "models/vllm-sr/.env.example"),
+                notice=notice,
+                kit=kit,
+            )
+            reasons = " ".join(inside.reasons)
+            assert "models/vllm-sr/.env.example" in reasons, (whole, reasons)
+            assert "models/other" not in reasons
+
+    def test_an_archived_kit_repository_is_a_visible_finding(self) -> None:
+        notice = self.cite("/models/vllm-sr")
+        kit = {"whole": True, "dependencies": {}}
+        files = ("models/vllm-sr/README.md",)
+        found = self.assess(files, notice=notice, kit=kit, archived=True)
+        quiet = self.assess(files, notice=notice, kit=kit)
+        assert found.drifted
+        assert not quiet.drifted
+
+    def test_an_owned_kit_without_a_subdirectory_citation_is_judged_as_before(
+        self,
+    ) -> None:
+        kit = {"whole": True, "dependencies": {}}
+        for notice in ("", self.cite()):
+            result = self.assess(("models/other/serve.yaml",), notice=notice, kit=kit)
+            assert not result.drifted, (notice, result.reasons)
 
     def test_a_citation_of_the_whole_repository_still_judges_everything(self) -> None:
         result = self.assess(("models/other/serve.yaml",), notice=self.cite())

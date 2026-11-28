@@ -1296,7 +1296,12 @@ repository's newest revision or an image repository's newest tag.
 - **Monorepo kits.** A kit that is one directory of a creator's repository, of which the
   recipe uses only the declared values (NVIDIA's playbooks name their TensorRT-LLM image in a
   README), sets `"whole": false` on the `kit` block: only the declarations are checked, and
-  the repository's other changes are judged as for any source.
+  the repository's other changes are judged as for any source. A kit whose citation
+  (`.../tree/<commit>/<directory>`) names a subdirectory is scoped to it either way: every
+  change inside that directory is judged and nothing outside it.
+- **Archived kit repository.** The refresh scanner and `tools/check-upstream-drift` report an
+  archived repository as a finding (a refresh review reason, candidate status `archived`):
+  the creator moved, so follow the pointer in its README to the new repository.
 - **Refresh.** The scanner watches the kit and what it declares, never the dependency's own
   channel. A kit move that changes a declared value is a review (the patches were rebased,
   the image is another build; run `tools/kit-pins lock`), except one case: a kit that moves a
