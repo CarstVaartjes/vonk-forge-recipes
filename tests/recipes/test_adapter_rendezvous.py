@@ -235,7 +235,7 @@ class _Stop(BaseException):
     pass
 
 
-def _advertised_host(slug: str) -> list[str | None]:
+def _advertised_host(slug: str, home: Path) -> list[str | None]:
     """VLLM_HOST_IP each process spawn of the rank-1 launcher would carry."""
     document = json.loads((ROOT / "recipes" / f"{slug}.json").read_text())
     launcher = launcher_source(document)
@@ -254,7 +254,6 @@ def _advertised_host(slug: str) -> list[str | None]:
         spawn(*args, **kwargs)
         raise _Stop
 
-    backend = document["topology"]["parallelism"]["backend"]
     authored: list[str] = []
     for item in document["runtime"]["arguments"]:
         value = item.get("value")
@@ -264,19 +263,22 @@ def _advertised_host(slug: str) -> list[str | None]:
             authored.append(f"--{item['name']}")
         elif value is not None and value is not False:
             authored.extend((f"--{item['name']}", str(value)))
-    argv = [
-        str(launcher),
-        *document["runtime"]["entrypoint"][1:],
-        *authored,
-        "--nnodes",
-        str(document["topology"]["node_count"]),
-        "--node-rank",
-        "1",
-        "--headless",
-        "--distributed-executor-backend",
-        # `native` recipes are launched with the multiprocessing backend.
-        backend if backend != "native" else "mp",
-    ]
+    argv = [str(launcher), *document["runtime"]["entrypoint"][1:], *authored]
+    parallelism = document["topology"]["parallelism"]
+
+    def add(name: str, *value: str) -> None:
+        # The Controller appends placement only where the recipe did not author it.
+        if f"--{name}" not in argv:
+            argv.extend((f"--{name}", *value))
+
+    add("tensor-parallel-size", str(parallelism["tensor"]))
+    add("pipeline-parallel-size", str(parallelism["pipeline"]))
+    if parallelism["backend"] in {"mp", "ray"}:
+        add("distributed-executor-backend", parallelism["backend"])
+    add("nnodes", str(document["topology"]["node_count"]))
+    add("node-rank", "1")
+    if "--headless" not in argv:
+        argv.append("--headless")
     environment = {k: v for k, v in os.environ.items() if k != "VLLM_HOST_IP"}
     ok = subprocess.CompletedProcess(
         [], 0, "VONK_ALIVE=9\nResources: 0.0/9.0 GPU\n", ""
@@ -305,7 +307,11 @@ def _advertised_host(slug: str) -> list[str | None]:
         mock.patch("io.open", read_only_open),
         mock.patch("pathlib.Path.read_text", read_text),
         mock.patch.object(sys, "argv", argv),
-        mock.patch.dict(os.environ, {**environment, **FABRIC_ENV}, clear=True),
+        mock.patch.dict(
+            os.environ,
+            {**environment, **FABRIC_ENV, "HOME": str(home), "TMPDIR": str(home)},
+            clear=True,
+        ),
         *(
             mock.patch(f"os.{name}", side_effect=execed)
             for name in ("execv", "execve", "execvp", "execvpe")
@@ -331,6 +337,18 @@ def _advertised_host(slug: str) -> list[str | None]:
         mock.patch("os.replace"),
         mock.patch("pathlib.Path.replace"),
         mock.patch("shutil.rmtree"),
+        mock.patch("os.unlink"),
+        mock.patch("os.rename"),
+        mock.patch("os.rmdir"),
+        mock.patch("os.chmod"),
+        mock.patch("os.system"),
+        mock.patch("pathlib.Path.rename"),
+        mock.patch("pathlib.Path.rmdir"),
+        mock.patch("pathlib.Path.chmod"),
+        mock.patch("shutil.copytree"),
+        mock.patch("shutil.move"),
+        mock.patch("shutil.copy"),
+        mock.patch("shutil.copyfile"),
     ]
     with contextlib.ExitStack() as stack:
         for patch in patches:
@@ -350,7 +368,7 @@ def _distributed_vllm_slugs() -> list[str]:
     ]
 
 
-# Launchers whose image-only inputs (EXL3 plan, safetensors header) the fakes
+# Launchers whose image-only inputs (an EXL3 plan; derived views built by real tools) the fakes
 # cannot stand in for: only their launcher source is checked.
 SOURCE_ONLY = {
     "deepseek-v4-1-flash-exl3-0xsero-vllm-dual",
@@ -363,16 +381,19 @@ FROM_FABRIC = re.compile(
 
 
 @pytest.mark.parametrize("slug", _distributed_vllm_slugs())
-def test_distributed_vllm_launcher_advertises_the_fabric_address(slug: str) -> None:
+def test_distributed_vllm_launcher_advertises_the_fabric_address(
+    slug: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
     # vLLM's message queue advertises VLLM_HOST_IP, or else the default-route
     # source address, which is the LAN.
     if slug in SOURCE_ONLY:
         document = json.loads((ROOT / "recipes" / f"{slug}.json").read_text())
         assert FROM_FABRIC.search(launcher_source(document).read_text())  # type: ignore[union-attr]
         return
-    seen = _advertised_host(slug)
+    seen = _advertised_host(slug, tmp_path)
     assert seen, "launcher never reached an exec"
-    assert FABRIC in seen
+    assert seen[-1] == FABRIC  # the exec itself, not an earlier probe
     assert set(seen) <= {FABRIC, None}
 
 
