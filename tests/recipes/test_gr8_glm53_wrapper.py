@@ -115,11 +115,6 @@ def drafter_sandbox(request, tmp_path):
     return make_sandbox(request.param, tmp_path)
 
 
-@pytest.fixture(params=COMPACT_ADAPTERS)
-def compact_sandbox(request, tmp_path):
-    return make_sandbox(request.param, tmp_path)
-
-
 def test_both_wrapper_shapes_are_covered():
     assert DRAFTER_ADAPTERS
     assert COMPACT_ADAPTERS
