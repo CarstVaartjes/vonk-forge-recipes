@@ -19,7 +19,7 @@ from unittest import mock
 import pytest
 from repo_root import ROOT
 
-from tests.documents import recipe
+from tests.documents import recipe, recipe_document
 from tests.recipes.test_ray_poll_interpreter import launcher_source
 
 MOVA = "video/mova-pytorch/run.py"
@@ -237,7 +237,7 @@ class _Stop(BaseException):
 
 def _advertised_host(slug: str, home: Path) -> list[str | None]:
     """VLLM_HOST_IP each process spawn of the rank-1 launcher would carry."""
-    document = json.loads((ROOT / "recipes" / f"{slug}.json").read_text())
+    document = recipe_document(slug)
     launcher = launcher_source(document)
     assert launcher is not None, slug
     seen: list[str | None] = []
@@ -388,7 +388,7 @@ def test_distributed_vllm_launcher_advertises_the_fabric_address(
     # vLLM's message queue advertises VLLM_HOST_IP, or else the default-route
     # source address, which is the LAN.
     if slug in SOURCE_ONLY:
-        document = json.loads((ROOT / "recipes" / f"{slug}.json").read_text())
+        document = recipe_document(slug)
         assert FROM_FABRIC.search(launcher_source(document).read_text())  # type: ignore[union-attr]
         return
     seen = _advertised_host(slug, tmp_path)
