@@ -1,0 +1,42 @@
+{
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
+  "description": "Exact public KindlingAI Qwen3.8 Flash Next exlr8 release (v0.3: K2, K3 and K4 expert widths, width manifests, dense files, vision tower, Layer-1 PLE rowstore and the Q4_0 DFlash drafter) at revision 9eac06b3, as pinned by KindlingAI's gr8 recipes for one and two Sparks. Each recipe selects the files its width manifest reads.",
+  "family_title": "Qwen3.8 Flash Next EXLR8",
+  "identity": {
+    "publisher": "kindlingai",
+    "slug": "qwen3-8-flash-next-exlr8-k2-k3-k4-9eac06b3"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "KindlingAI",
+      "Qwen"
+    ],
+    "spdx": "LicenseRef-Qwen-Community-1.0",
+    "url": "https://huggingface.co/kindlingai/Qwen3.8-Flash-Next-exlr8/blob/9eac06b31c42a4e3a2811823d66e3dddf13ac019/LICENSE"
+  },
+  "lineage": {
+    "base_model": "Qwen/Qwen3.8-Flash-Next",
+    "family": "qwen",
+    "generation": "Qwen3.8",
+    "line": "qwen-flash-next",
+    "model": "qwen3-8-flash-next",
+    "variant_kind": "quantization"
+  },
+  "modalities": [
+    "text",
+    "image"
+  ],
+  "model_title": "Qwen3.8 Flash Next EXLR8 K2 K3 K4",
+  "tags": [
+    "kindlingai",
+    "qwen3-8-flash-next-exlr8"
+  ]
+}

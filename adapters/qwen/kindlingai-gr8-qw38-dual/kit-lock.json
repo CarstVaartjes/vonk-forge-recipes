@@ -1,0 +1,23 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:3de05aab8cda21fd5d6b4af89ccdba6ff5abdbd704729601fd348fa638ade9fd",
+      "kind": "digest",
+      "ref": "sha256:3de05aab8cda21fd5d6b4af89ccdba6ff5abdbd704729601fd348fa638ade9fd",
+      "repo": "ghcr.io/kindlingai/gr8"
+    },
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "overridden": "The kit pins v0.2 (4943478f), and v0.3 holds byte-identical files except the added drafter/dflash.q4_0.pack (0.52 GB) and its hash file, README.md and .gitattributes. The dual does not select drafter/ (gr8 v1.2.0 predates DFlash auto-discovery), so it runs v0.2's bytes from the one Model, with one set of weights in the cache.",
+      "ref": "9eac06b31c42a4e3a2811823d66e3dddf13ac019",
+      "repo": "kindlingai/Qwen3.8-Flash-Next-exlr8",
+      "revision": "9eac06b31c42a4e3a2811823d66e3dddf13ac019"
+    }
+  },
+  "kit": {
+    "commit": "13c24ac483eaf8b2fcb828a62ae2604bcc038b92",
+    "repo": "kindlingai/recipes"
+  }
+}
