@@ -70,6 +70,9 @@ class EmbeddedSourceReviewTests(unittest.TestCase):
         item = embedded["recipes"][0]["inputs"][0]
         assert item["candidate_status"] == "archived"
         assert embedded["coverage"]["counts_by_candidate_status"] == {"archived": 1}
+        embedded["recipes"][0]["inputs"][0]["revision"] = OLD
+        drift_heads.observe_embedded_heads(embedded, FakeProvider())
+        assert embedded["recipes"][0]["inputs"][0]["candidate_status"] == "advanced"
 
     def test_unrelated_default_head_advance_does_not_block_safe_refresh(
         self,

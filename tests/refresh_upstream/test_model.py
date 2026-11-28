@@ -656,6 +656,7 @@ class KitScopeTests(unittest.TestCase):
                     {
                         "kit": kit,
                         "source": {"repo": "example/recipes", "commit": OLD},
+                        "ours": ["NOTICE"],
                     }
                 )
             )
@@ -690,13 +691,11 @@ class KitScopeTests(unittest.TestCase):
             ),
             # the kit's own dependencies are not under test here
             patch("recipe_tooling.refresh_upstream.items.check_kit_dependencies"),
-            patch.object(refresh_assessment.vendored, "fetch_tree"),
             patch.object(
                 refresh_assessment.vendored,
-                "check_adapter",
-                return_value=SimpleNamespace(problems=[], stale=[]),
+                "fetch_tree",
+                return_value=refresh_assessment.vendored.Tree({}, True),
             ),
-            patch.object(refresh_assessment.Assessor, "_retarget_adapter"),
         ):
             return assessor.assess("recipe")
 
@@ -764,6 +763,14 @@ class KitScopeTests(unittest.TestCase):
         quiet = self.assess(files, notice=notice, kit=kit)
         assert found.drifted
         assert not quiet.drifted
+
+    def test_an_owned_kit_without_a_subdirectory_citation_is_judged_as_before(
+        self,
+    ) -> None:
+        kit = {"whole": True, "dependencies": {}}
+        for notice in ("", self.cite()):
+            result = self.assess(("models/other/serve.yaml",), notice=notice, kit=kit)
+            assert not result.drifted, (notice, result.reasons)
 
     def test_a_citation_of_the_whole_repository_still_judges_everything(self) -> None:
         result = self.assess(("models/other/serve.yaml",), notice=self.cite())

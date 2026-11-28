@@ -327,10 +327,17 @@ class Assessor:
             else refresh_catalog_view.kit_citation_scope(context, item.repo)
         )
         scope = cited or ()
-        is_kit = (
-            item.kind == "source"
-            and (not owns_adapter or declared_kit is not None)
-            and (refresh_catalog_view.whole_kit(declared_kit) or cited is not None)
+        # Only a citation naming a subdirectory widens an owning kit's judging.
+        is_kit = item.kind == "source" and (
+            bool(cited)
+            or (
+                not owns_adapter
+                and (
+                    refresh_catalog_view.whole_kit(declared_kit)
+                    if declared_kit is not None
+                    else cited is not None
+                )
+            )
         )
         mirrored: set[str] = set()
         judged = comparison

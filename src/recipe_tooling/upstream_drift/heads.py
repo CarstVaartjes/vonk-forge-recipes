@@ -88,7 +88,6 @@ def observe_embedded_heads(inventory: dict[str, object], client: JsonClient) -> 
                     "the repository is archived: its creator moved on, so follow the "
                     "pointer in its README to the new repository"
                 )
-                item["archived"] = True
                 if item["candidate_status"] == "advanced":
                     item["candidate_reason"] += "; " + note
                 else:
