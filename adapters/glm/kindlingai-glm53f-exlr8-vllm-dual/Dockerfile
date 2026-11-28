@@ -154,6 +154,7 @@ COPY image/patches/LICENSE.MiaAI-Lab /opt/vonk/licenses/LICENSE.MiaAI-Lab
 COPY experimental/megamoe/LICENSE /opt/vonk/licenses/LICENSE.megamoe
 COPY tree/vllm/model_executor/layers/quantization/exlr8/csrc/LICENSE-exllamav3 /opt/vonk/licenses/LICENSE.exllamav3
 COPY --chmod=0755 vllm-wrapper.py /opt/vonk/bin/vllm
+COPY ray_ready.py /opt/vonk/lib/ray_ready.py
 
 # Every overlay's marker file is in place, and the launcher's executables exist.
 RUN test -e ${VLLM_ROOT}/distributed/device_communicators/arx.py \

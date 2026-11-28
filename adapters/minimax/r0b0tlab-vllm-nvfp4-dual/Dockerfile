@@ -18,6 +18,7 @@ RUN python3 -m pip install --no-cache-dir --no-deps --require-hashes --only-bina
 
 COPY LICENSE /opt/vonk/licenses/r0b0tlab-LICENSE
 COPY --chmod=0755 vllm-wrapper.py /opt/vonk/bin/vllm
+COPY ray_ready.py /opt/vonk/lib/ray_ready.py
 # The parent drops vLLM's _vllm_fa2_C/_vllm_fa3_C extensions, and vLLM v0.21.0
 # then refuses to import vllm.vllm_flash_attn, which every model import reaches
 # on CUDA. Make the missing extensions a warning (FlashInfer serves attention)

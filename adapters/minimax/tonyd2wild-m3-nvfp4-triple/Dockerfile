@@ -9,6 +9,7 @@ LABEL org.opencontainers.image.source="https://github.com/tonyd2wild/Minimax-M3-
 # clobber it). The runtime root is read-only here, so the same steps run once at
 # build time, in the same order, with the same pins.
 COPY --chmod=0755 vllm-wrapper.py /opt/vonk/bin/vllm
+COPY ray_ready.py /opt/vonk/lib/ray_ready.py
 COPY verify-runtime.py /opt/vonk/build/verify-runtime.py
 
 RUN pip install --no-cache-dir "ray==2.55.1" \

@@ -6,9 +6,11 @@ from __future__ import annotations
 import os
 import subprocess
 import sys
-import time
 from ipaddress import ip_address
 from pathlib import Path
+
+sys.path.insert(0, "/opt/vonk/lib")
+import ray_ready  # noqa: E402
 
 
 def _value(arguments: list[str], option: str) -> str | None:
@@ -36,11 +38,11 @@ def _executable(*candidates: str) -> str:
     raise SystemExit(f"runtime executable is missing: {candidates}")
 
 
-def _alive_ray_nodes(address: str) -> int:
+def _ray_gpus(address: str) -> int:
     program = (
         "import ray; "
         f"ray.init(address={address!r}, logging_level='ERROR'); "
-        "print('VONK_ALIVE=' + str(sum(n.get('Alive') is True for n in ray.nodes()))); "
+        "print('VONK_GPU=' + str(ray.cluster_resources().get('GPU', 0))); "
         "ray.shutdown()"
     )
     result = subprocess.run(
@@ -51,8 +53,8 @@ def _alive_ray_nodes(address: str) -> int:
         timeout=30,
     )
     for line in reversed(result.stdout.splitlines()):
-        if line.startswith("VONK_ALIVE="):
-            return int(line.split("=", 1)[1])
+        if line.startswith("VONK_GPU="):
+            return int(float(line.split("=", 1)[1]))
     return 0
 
 
@@ -141,11 +143,9 @@ if mechanism == "ray":
         check=True,
         timeout=120,
     )
-    deadline = time.monotonic() + 900
-    while _alive_ray_nodes(address) != int(node_count):
-        if time.monotonic() >= deadline:
-            raise SystemExit("Ray cluster did not reach the declared node count")
-        time.sleep(2)
+    ray_ready.wait_for_gpus(
+        lambda: _ray_gpus(address), ray_ready.required_gpus(arguments)
+    )
 else:
     arguments.extend(("--master-addr", master_address, "--master-port", master_port))
 

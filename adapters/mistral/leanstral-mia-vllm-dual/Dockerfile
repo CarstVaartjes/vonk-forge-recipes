@@ -11,6 +11,7 @@ RUN python3 -m pip install --no-cache-dir "ray[default]==2.58.0"
 
 COPY verify-runtime.py /opt/vonk/build/verify-runtime.py
 COPY --chmod=0755 vllm-wrapper.py /opt/vonk/bin/vllm
+COPY ray_ready.py /opt/vonk/lib/ray_ready.py
 
 RUN python3 /opt/vonk/build/verify-runtime.py \
     && rm -rf /opt/vonk/build \

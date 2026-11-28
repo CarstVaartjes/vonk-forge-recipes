@@ -17,6 +17,7 @@ COPY recipe /opt/vonk/build/recipe
 COPY patches /opt/vonk/build/patches
 COPY verify-runtime.py /opt/vonk/build/verify-runtime.py
 COPY --chmod=0755 vllm-wrapper.py /opt/vonk/bin/vllm
+COPY ray_ready.py /opt/vonk/lib/ray_ready.py
 
 RUN set -u \
     && for mod in ray-keep-node-nccl-hca fix-prometheus-instrumentator-router fix-mimo-v2-vllm fix-mimo-mtp-patches fix-modelopt-mixed-mxfp8 nvfp4-kv-diffkv; do \

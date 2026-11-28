@@ -13,6 +13,7 @@ from unittest.mock import patch
 
 import pytest
 from repo_root import ROOT
+from test_ray_poll_interpreter import launcher_helpers
 
 RECIPES = {
     "glm-5-2-quanttrio-vllm-four": "adapters/glm/eugr-four/vllm-wrapper.py",
@@ -106,6 +107,7 @@ class GlmWrapperArgvTests(unittest.TestCase):
                         0,
                         stdout=(
                             f"VONK_ALIVE={_recipe['topology']['node_count']}\n"
+                            f"VONK_GPU={_recipe['topology']['node_count']}\n"
                             f"Resources: 0.0/{_recipe['topology']['node_count']}.0 GPU\n"
                         ),
                     )
@@ -138,6 +140,7 @@ class GlmWrapperArgvTests(unittest.TestCase):
                     patch.object(Path, "write_text"),
                     patch.object(Path, "replace"),
                     patch.object(Path, "read_text", new=fake_read_text),
+                    launcher_helpers(ROOT / wrapper),
                     pytest.raises(StopExec),
                 ):
                     runpy.run_path(str(ROOT / wrapper))
@@ -246,6 +249,7 @@ def run_mentat_launcher(
         ),
         patch.object(Path, "read_text", new=lambda *args, **kwargs: ""),
         patch("time.sleep"),
+        launcher_helpers(ROOT / wrapper),
         pytest.raises(expect),
     ):
         runpy.run_path(str(ROOT / wrapper))

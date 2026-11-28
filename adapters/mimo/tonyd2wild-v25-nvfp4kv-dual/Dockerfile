@@ -13,6 +13,7 @@ LABEL org.opencontainers.image.source="https://github.com/tonyd2wild/MiMo-V2.5-T
 COPY mods /opt/vonk/build/mods
 COPY verify-runtime.py /opt/vonk/verify-runtime.py
 COPY --chmod=0755 vllm-wrapper.py /opt/vonk/bin/vllm
+COPY ray_ready.py /opt/vonk/lib/ray_ready.py
 
 RUN set -eu; for mod in fix-prometheus-instrumentator-router fix-mimo-v2-vllm fix-modelopt-mixed-mxfp8 nvfp4-kv-diffkv; do bash "/opt/vonk/build/mods/$mod/run.sh"; done \
     && rm -rf /opt/vonk/build \

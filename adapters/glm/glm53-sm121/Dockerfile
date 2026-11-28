@@ -15,6 +15,7 @@ LABEL org.opencontainers.image.source="https://github.com/MiaAI-Lab/GLM-5.3-Flas
 
 COPY LICENSE /opt/vonk/licenses/LICENSE.upstream
 COPY --chmod=0755 vllm-wrapper.py /opt/vonk/bin/vllm
+COPY ray_ready.py /opt/vonk/lib/ray_ready.py
 COPY chat_template_mm.jinja /opt/vonk/templates/glm53-chat-template-mm.jinja
 COPY verify-runtime.py /opt/vonk/build/verify-runtime.py
 

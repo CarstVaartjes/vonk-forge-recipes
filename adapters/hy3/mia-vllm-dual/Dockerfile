@@ -9,6 +9,7 @@ LABEL org.opencontainers.image.source="https://github.com/MiaAI-Lab/Hy3-Dual-DGX
 # sed commands run once at build time so the image is read-only at run time.
 COPY patch-opensource-tokens.sh verify-runtime.py /opt/vonk/build/
 COPY --chmod=0755 vllm-wrapper.py /opt/vonk/bin/vllm
+COPY ray_ready.py /opt/vonk/lib/ray_ready.py
 
 RUN bash /opt/vonk/build/patch-opensource-tokens.sh \
     && python3 /opt/vonk/build/verify-runtime.py \

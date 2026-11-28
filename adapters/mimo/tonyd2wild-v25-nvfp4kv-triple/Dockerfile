@@ -19,6 +19,7 @@ COPY mods-external/MiMo-V2.5-TP2-1M-NVFP4-KV-2xDGX-Spark@6dae0a60/ /opt/vonk/bui
 COPY mods-external/MiMo-V2.5-Omni-3x-DGX-Spark-TP-3-MTP@12c731f5/mimo-v2-tp3-virtual-heads /opt/vonk/build/mods/mimo-v2-tp3-virtual-heads
 COPY verify-runtime.py /opt/vonk/verify-runtime.py
 COPY --chmod=0755 vllm-wrapper.py /opt/vonk/bin/vllm
+COPY ray_ready.py /opt/vonk/lib/ray_ready.py
 
 RUN set -eu; for mod in fix-prometheus-instrumentator-router fix-mimo-v2-vllm fix-modelopt-mixed-mxfp8 nvfp4-kv-diffkv mimo-v2-tp3-virtual-heads; do bash "/opt/vonk/build/mods/$mod/run.sh"; done \
     && rm -rf /opt/vonk/build \

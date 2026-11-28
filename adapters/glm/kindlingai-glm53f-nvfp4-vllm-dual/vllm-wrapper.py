@@ -13,9 +13,11 @@ import re
 import resource
 import subprocess
 import sys
-import time
 from ipaddress import ip_address
 from pathlib import Path
+
+sys.path.insert(0, "/opt/vonk/lib")
+import ray_ready  # noqa: E402
 
 GROUP = "glm53"
 # What the creator's entrypoint exports for every rank (and the preflight's headroom beyond weights and KV).
@@ -202,13 +204,11 @@ subprocess.run(
     check=True,
     timeout=120,
 )
-deadline = time.monotonic() + 900
-while _gpu_total(ray, local) < int(node_count):
-    if daemon.poll() is not None:
-        raise SystemExit("the mentat daemon exited")
-    if time.monotonic() >= deadline:
-        raise SystemExit("the mentat group did not reach the declared GPU count")
-    time.sleep(2)
+ray_ready.wait_for_gpus(
+    lambda: _gpu_total(ray, local),
+    ray_ready.required_gpus(arguments),
+    alive=lambda: daemon.poll() is None,
+)
 
 vllm = _executable("/usr/local/bin/vllm")
 os.execv(vllm, (vllm, *arguments))

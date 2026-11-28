@@ -10,6 +10,7 @@ LABEL org.opencontainers.image.source="https://github.com/r0b0tlab/step37-flash-
 # docker/Dockerfile.publish in this directory is upstream's recipe for it. This layer only adds the
 # placement wrapper (Ray head/worker) and the non-root user.
 COPY --chmod=0755 vllm-wrapper.py /opt/vonk/bin/vllm
+COPY ray_ready.py /opt/vonk/lib/ray_ready.py
 
 RUN test -x "$(command -v vllm)" && test -x "$(command -v ray)" \
     && if ! getent group 10001 >/dev/null; then groupadd --gid 10001 vonk; fi \

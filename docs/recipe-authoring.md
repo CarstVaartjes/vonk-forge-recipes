@@ -506,13 +506,20 @@ launcher in the built image (`/opt/vonk/bin/vllm`, `sglang-serve`,
 `exllamav3-serve`, and so on), so the Dockerfile installs your wrapper at that
 exact path and `runtime.entrypoint` names it. A launcher for the `ray`
 parallelism backend starts Ray, so a build step must check the Ray CLI or
-package it uses (`tests/recipes/test_ray_vllm_launchers.py`). When the parent image
+package it uses (`tests/recipes/test_ray_vllm_launchers.py`). Rank 0 starts the Ray head, then
+waits until the cluster has registered `tensor-parallel-size x pipeline-parallel-size` GPUs (a node
+is alive before its GPU has registered, so counting alive nodes is too weak) and only then execs
+vLLM. Every Ray launcher does that through one helper, `ray_ready.py`: copy it byte-identical into
+the build context, `COPY ray_ready.py /opt/vonk/lib/ray_ready.py`, and call
+`ray_ready.wait_for_gpus(probe, ray_ready.required_gpus(arguments))`. The helper's 900 s bound is
+the backstop under the platform's own stall window; a parity test keeps the copies equal. When the parent image
 has no Ray, install it from a hash lock as described in
 [Dependency locks and build-time smokes](#dependency-locks-and-build-time-smokes).
 A mentat-shim image (KindlingAI's Ray replacement, `adapters/glm/kindlingai-glm53f-nvfp4-vllm-dual`)
 needs no host daemon: its launcher starts `mentatd daemon` in rank 0 on the rendezvous port
-(`VONK_MASTER_PORT`), every rank's agent (`ray start`) registers with it, rank 0 waits until the
-group reports one GPU per rank, then execs `vllm serve`, and a worker execs `ray start --block`
+(`VONK_MASTER_PORT`), every rank's agent (`ray start`) registers with it, rank 0 waits (through
+the same `ray_ready.py`, and stops if the daemon exits) until the group reports
+tensor x pipeline GPUs, then execs `vllm serve`, and a worker execs `ray start --block`
 against rank 0. `ray` there is a symlink to `mentatd`, which the `/bin/ray` build check accepts.
 A daemon that exits stops the launch, and the platform restarts the run. The image workflow lists, in each
 run summary, why a recipe has no prebuilt image. Every image builds on a hosted
@@ -1516,7 +1523,7 @@ review policies; no static guard can prove upstream completeness or honesty.
 | validate.yml "Contract change class", `tests/tools/test_contract_version.py` | `_version.py` holds `CONTRACT_MAJOR` and the placeholder `"<CONTRACT_MAJOR>.0.0"` (never a hand-set version), and a breaking change raises `CONTRACT_MAJOR` by one. Restore the placeholder, make a new field optional, or raise the major for an intended break. |
 | `tests/tools/test_catalog_reader.py` | The consumer reader keeps every readable entry: an unknown word stays as an `UnrecognisedWord`, an unreadable optional block is dropped while its entry stays, an entry with malformed execution data is skipped, and only a wrong envelope or major or a digest mismatch refuses the index. Keep producer validation strict; change the reader's rules in `catalog_reader.py` only. |
 | `tests/recipes/test_recipe_executability.py` | Unique normalized titles, executable metadata/entrypoint, actual shebang/ELF for copied executables. A multi-node recipe that sets `NCCL_NET=IB` (no socket fallback) on an `nvidia/cuda` adapter must install `ibverbs-providers` in the Dockerfile's final stage. Repair the launcher, display or image packages; do not publish placeholder tags. |
-| `tests/recipes/test_ray_poll_interpreter.py` | A launcher that starts a Ray head polls the cluster with `sys.executable`: the image's `python3`, the interpreter a build-time `import ray` check runs under. Never name an interpreter path the image may lack. |
+| `tests/recipes/test_ray_poll_interpreter.py` | A launcher that starts a Ray head polls the cluster with `sys.executable`: the image's `python3`, the interpreter a build-time `import ray` check runs under. Never name an interpreter path the image may lack. Every Ray-backend launcher execs vLLM only after the cluster reports tensor x pipeline GPUs, and ships the one byte-identical `ray_ready.py`. |
 | `tests/recipes/test_recipe_model_mounts.py`, `tests/recipes/test_adapter_model_mounts.py` | Model mounts and adapter paths agree and all ranks receive files. Repair targets/roles and local loader paths. |
 | `tools/check-build-context-sources`, `tests/tools/test_check_build_context_sources.py` | Every COPY source is shipped. Add the actual local file or fix the context-relative reference. |
 | `tests/recipes/test_recipe_build_inputs.py`, `tests/tools/test_build_network_hosts.py` | All external build stages are immutable and declared once; URL hosts are allowed. Pin every external base and declare real egress. |

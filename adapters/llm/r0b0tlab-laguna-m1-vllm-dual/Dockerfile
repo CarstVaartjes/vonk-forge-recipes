@@ -8,6 +8,7 @@ LABEL org.opencontainers.image.source="https://github.com/r0b0tlab/laguna-m1-nvf
 # vLLM dda4668b), pinned by registry digest. This layer only adds the placement wrapper (Ray head/worker)
 # and the non-root user.
 COPY --chmod=0755 vllm-wrapper.py /opt/vonk/bin/vllm
+COPY ray_ready.py /opt/vonk/lib/ray_ready.py
 
 RUN test -x "$(command -v vllm)" \
     && test -x "$(command -v ray)" \
