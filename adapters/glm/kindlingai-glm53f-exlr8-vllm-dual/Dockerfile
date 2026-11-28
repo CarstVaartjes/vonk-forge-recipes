@@ -176,7 +176,9 @@ ENV HF_HUB_OFFLINE=1 \
     VLLM_NO_USAGE_STATS=1 \
     DO_NOT_TRACK=1 \
     HOME=/state \
-    XDG_CACHE_HOME=/outputs/cache
+    XDG_CACHE_HOME=/outputs/cache \
+    TILELANG_CACHE_DIR=/outputs/cache/tilelang \
+    VLLM_FLASHINFER_AUTOTUNE_CACHE_DIR=/tmp/flashinfer_autotune
 
 WORKDIR /state
 USER 10001:10001
