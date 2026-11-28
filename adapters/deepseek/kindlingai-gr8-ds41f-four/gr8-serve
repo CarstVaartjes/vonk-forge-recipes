@@ -12,8 +12,8 @@
 #   model        /models/target is the exlr8 native release used in place (MODEL, a local path: nothing is fetched).
 #                The creator's fetch-release.sh record and re-hash are skipped: the platform verified every file's
 #                digest when it downloaded it.
-#   Engram       read with gr8's pread pool (GR8_DS_ENGRAM_IO_URING=0, engine/engram/rowstore.h): the sandbox blocks
-#                io_uring. knobs.sh puts EXTRA_ENV after its own engine words, so its default cannot select it.
+#   Engram       the sandbox blocks io_uring, so gr8's rowstore falls back to its pread pool by itself
+#                (engine/engram/rowstore.h); no setting is needed.
 #   writable     everything gr8 writes (its working directory and logs, Engram's token map and index, the loader's gen
 #                cache) is under /outputs/cache/gr8/home, where the creator wrote /var/lib/gr8/home.
 set -euo pipefail
@@ -53,13 +53,13 @@ unset IPS IPS2 SHAPE
 # the release is used in place; the baked-in release volume path is not
 export MODEL=$release
 
-# EXTRA_ENV: the creator's gen cache (.env.example turns it on) and the pread Engram reader. The creator's knobs.sh
-# puts these after its own engine words and they replace its values, so io_uring stays off.
+# EXTRA_ENV: the creator's gen cache (.env.example turns it on). The creator's knobs.sh puts it after its own engine
+# words, so it replaces their values.
 extra=
 if [ "${GEN_CACHE:-1}" = 1 ]; then
   extra=GR8_GEN_CACHE=$home/gen-cache
 fi
-export EXTRA_ENV="${extra:+$extra }GR8_DS_ENGRAM_IO_URING=0"
+export EXTRA_ENV="$extra"
 unset GEN_CACHE
 
 # the creator's knobs (TUNE, CAP, SESS and the engine words of each TUNE), as its entrypoint sources them

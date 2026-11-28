@@ -559,9 +559,9 @@ image. Never request relaxed seccomp. Enforce image-owned transport policy in
 the launcher before exec, including when a kit declares an unsafe backend. b12x
 defaults a bfloat16 PLE table and a disk Engram table to io_uring even when no
 backend is specified.
-gr8's DeepSeek engine reads its disk Engram rows through io_uring by default (`GR8_DS_ENGRAM_IO_URING=128`); its
-wrapper puts `GR8_DS_ENGRAM_IO_URING=0` (the pread pool, gr8 `engine/engram/rowstore.h`) last in `EXTRA_ENV`
-(`adapters/deepseek/kindlingai-gr8-ds41f-four`, `tests/recipes/test_gr8_deepseek_wrapper.py`).
+gr8's DeepSeek engine reads its disk Engram rows through io_uring; under the default seccomp the setup fails and its
+rowstore falls back to the pread pool by itself, so the wrapper needs no switch (gr8 `engine/engram/rowstore.h`,
+`adapters/deepseek/kindlingai-gr8-ds41f-four`).
 gr8's Qwen3.8 engine reads its Layer-1 PLE rowstore through io_uring at a fixed queue depth (no knob); under the
 default seccomp `io_uring_setup` fails and its reader falls back to a 64-thread pread pool, so the recipe needs no
 switch (`adapters/qwen/kindlingai-gr8-qw38-*`; the hardware log line `qw38 PLE opened ... uring=0` shows it).

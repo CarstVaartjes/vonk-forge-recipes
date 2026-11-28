@@ -91,11 +91,8 @@ def test_placement_paths_and_settings(sandbox):
     assert dump["GR8_WORK_DIR"] == home
     assert dump["ENGRAM_PREFIX"] == f"{home}/engram/ds41"
     assert Path(f"{home}/engram").is_dir()
-    # the creator's knobs see the gen cache first and the pread Engram reader last
-    assert dump["KNOBS_SAW_EXTRA_ENV"].split() == [
-        f"GR8_GEN_CACHE={home}/gen-cache",
-        "GR8_DS_ENGRAM_IO_URING=0",
-    ]
+    # the creator's knobs see the gen cache and nothing else
+    assert dump["KNOBS_SAW_EXTRA_ENV"].split() == [f"GR8_GEN_CACHE={home}/gen-cache"]
 
 
 def test_missing_placement_and_unknown_arguments_are_refused(sandbox):
