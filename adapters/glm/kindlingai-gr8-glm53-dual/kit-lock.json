@@ -1,0 +1,29 @@
+{
+  "dependencies": {
+    "drafter": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "425aa615ce320caac34400208b30808c8f14f76c",
+      "repo": "incoai/GLM-5.3-DFlash2",
+      "revision": "425aa615ce320caac34400208b30808c8f14f76c"
+    },
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:494c44b2315f607a3fabe1fb38cd1b1ddd7074bddfea81a7227451ad207f3c59",
+      "kind": "digest",
+      "ref": "sha256:494c44b2315f607a3fabe1fb38cd1b1ddd7074bddfea81a7227451ad207f3c59",
+      "repo": "ghcr.io/kindlingai/gr8"
+    },
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "501d259894bf0de607ee4aa6f8a564a14d0c6b63",
+      "repo": "kindlingai/glm-5.3-exlr8-k2-k3-k4",
+      "revision": "501d259894bf0de607ee4aa6f8a564a14d0c6b63"
+    }
+  },
+  "kit": {
+    "commit": "a795aa0491f2751d0515c088fae27633ca178b25",
+    "repo": "kindlingai/recipes"
+  }
+}
