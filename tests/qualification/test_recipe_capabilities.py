@@ -15,13 +15,14 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from documents import model_display, recipe_display
+from documents import model_display, recipe_api, recipe_display
 
 from recipe_tooling.qualification.capabilities import (
     ROOT,
     UNPARSED_ARITHMETIC,
     Capabilities,
     generic_case_problems,
+    mode_case_problems,
     multimodal,
     serving_capabilities,
 )
@@ -63,6 +64,26 @@ def test_a_recipes_smoke_cases_and_tags_match_what_its_engine_serves(slug: str) 
     caps = serving_capabilities(recipe, slug, MODEL_DISPLAYS, display)
     cases = DEFINITIONS["service_recipes"][f"vonk-forge/{slug}"]["smoke_cases"]
     assert generic_case_problems(slug, recipe, cases, caps, display) == []
+
+
+def test_every_non_chat_route_lists_a_smoke_case_on_its_endpoint() -> None:
+    templates = DEFINITIONS["service_case_templates"]
+    problems: list[str] = []
+    for path in sorted((ROOT / "api" / "recipes").glob("*.json")):
+        service = DEFINITIONS["service_recipes"].get(f"vonk-forge/{path.stem}")
+        if service is None:
+            continue
+        mode = recipe_api(path.stem).api.mode
+        problems += mode_case_problems(
+            path.stem, mode, service["smoke_cases"], templates
+        )
+    assert problems == []
+
+
+def test_an_embedding_recipe_with_only_the_models_case_is_flagged() -> None:
+    templates = DEFINITIONS["service_case_templates"]
+    assert mode_case_problems("x", "embedding", ["M0"], templates)
+    assert not mode_case_problems("x", "chat", ["M0"], templates)
 
 
 def _tokenizer_mode(recipe: RecipeDefinition) -> str | None:

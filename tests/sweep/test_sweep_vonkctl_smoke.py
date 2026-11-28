@@ -743,7 +743,9 @@ def test_the_option_choice_of_the_run_selects_the_block(
     gateway, definitions: Definitions
 ) -> None:
     api = recipe_api(_OPTION, ROOT)
-    always = api.option_choices[0].api.model_copy(update={"reasoning": _ALWAYS_ON})
+    choice = api.option_choices[0].api
+    assert isinstance(choice, ChatApi)
+    always = choice.model_copy(update={"reasoning": _ALWAYS_ON})
     api = api.model_copy(
         update={
             "option_choices": [api.option_choices[0].model_copy(update={"api": always})]

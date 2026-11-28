@@ -129,7 +129,7 @@ published-document readers to bypass producer validation (`tests/tools/test_cont
 | Recipe display | `identity` (the Recipe's), `title`, `description`, `tags`; `alignment`, `knobs` and `component_bindings` are optional. |
 | Model display | `identity` (the Model's own `publisher`/`slug`), `family_title`, `model_title`, `description`, `tags`, and the Model's declared facts: `modalities`, `capabilities`, `license`; `lineage` (its place in the catalog hierarchy) is required for a Model a recipe serves first and absent for a helper. |
 | Family display | `slug`, `title`, `lines` (each `slug`, `title`, `models` oldest first). |
-| Recipe API | `identity` (the Recipe's), `api` (a `chat`, `decision`, `audio_transcription` or `audio_speech` block, every field required), `option_choices`. |
+| Recipe API | `identity` (the Recipe's), `api` (a `chat`, `decision`, `audio_transcription`, `audio_speech` or `embedding` block, every field required), `option_choices`. |
 
 A document holds execution data only. What a person or a filter reads about it
 (titles, description, tags, and a Model's `modalities`, `capabilities` and
@@ -165,7 +165,7 @@ choice counts), and `tool-use` / `reasoning` dropped when every chat block says
 `none`. A recipe without an API document keeps its Models' capabilities. The
 site, Controller and vonkctl read this key rather than re-deriving it.
 
-An OpenAI-interface generation or decision recipe also has `api/recipes/<slug>.json`
+An OpenAI-interface generation, decision or embedding recipe also has `api/recipes/<slug>.json`
 (`RecipeApi`, `kind: "recipe-api"`): what a client may rely on when it calls the
 route. It is a sibling like the display: editing it never changes the recipe's
 `content_sha256`, its evidence or its proven status, and a recipe without one
@@ -220,6 +220,20 @@ by `mode`, and every field is written down, "not applicable" included (`false`,
     health-check voice), `response_formats` (of mp3, opus, aac, flac, wav, pcm),
     `instructions` and `speed` (the engine honours that OpenAI parameter) and
     `max_input_chars` (the bound of `input`). Example: `recipe-api-speech.json`.
+- `embedding` is LiteLLM's `model_info.mode` for `POST /v1/embeddings`, served by a
+  recipe of `settings.kind: embedding` (which has no `context_tokens`). The block has
+  no `endpoints`: `max_input_tokens` (the engine's sequence limit, required),
+  `input_modalities` (text required; what the route takes **through the gateway**, so
+  `image` stays `false` until an image path through it exists), `output_dimensions`
+  (the native vector size), `matryoshka_min_dimensions` (`null` when the request's
+  `dimensions` is not honoured, else the smallest size the engine truncates to, at
+  most `output_dimensions`) and `encoding_formats` (of float, base64; unique).
+  Example: `recipe-api-embedding.json`. The mode is an executed word: the Controller's
+  `platform-features.json` must list it before a recipe uses it. The Model needs
+  the `embeddings` modality and the `embedding` capability (`check_api_models`).
+  Its smoke cases must include one that calls `/embeddings` (see below).
+
+A newer minor may add an API mode. A consumer reader (`read_catalog`) keeps the entry and holds the block as `UnrecognisedApiBlock`, a marker that carries the word and no facts (`RecipeApi.for_choices` raises `TypeError` for it); producers' strict validation still refuses an unknown mode. The future vector holds one such entry.
 
 An option choice that changes any of these facts carries its own complete
 block in `option_choices` (`{option, value, api}`); it replaces the base block as
@@ -237,12 +251,21 @@ argument must exist with an integer value; llama.cpp `--parallel` gives each
 request only its slot's share; on vLLM a `VLLM_MAX_AUDIO_CLIP_FILESIZE_MB` (MiB)
 or `VLLM_MAX_AUDIO_DECODE_DURATION_S` the recipe sets must equal a transcription
 block's `max_file_bytes` or `max_audio_seconds`. An audio block takes no token
-checks, and a decision recipe cannot serve one. `check_api_models` requires a
+checks, and a settings kind serves only its own modes (`KIND_MODES`: generation serves chat and the audio
+modes, decision serves `decision`, embedding serves `embedding`); an embedding block takes no
+context checks. `check_api_models` requires a
 selected Model whose display declares each accepted modality together with its
 `*-understanding` capability (`INPUT_MODALITY_CAPABILITIES`; `accepted_modalities`
 says audio for a transcription block and text for a speech block); a speech block
 also needs a Model with the `audio` modality and the `audio-generation`
-capability. The reverse holds on vLLM: an image, video or audio input the served
+capability; an embedding block needs one with the `embeddings` modality and the `embedding`
+capability.
+
+Every service recipe whose API mode is not `chat` lists a smoke case on its mode's
+endpoint (`MODE_ENDPOINTS` in `qualification/capabilities.py`: `decision` `/systemone`,
+`audio_transcription` `/audio/transcriptions`, `audio_speech` `/audio/speech`, `embedding`
+`/embeddings`), or it would pass on `GET /models` alone;
+`tests/qualification/test_recipe_capabilities.py` checks it from the API documents. The reverse holds on vLLM: an image, video or audio input the served
 Model (the first selection) takes, as modality plus understanding capability,
 must be declared unless the launch switches it off (`--language-model-only`, or
 a `--limit-mm-per-prompt` of 0 for it; an adapter wrapper's environment switch
@@ -1705,9 +1728,9 @@ release commit. The release also ships `catalog-index-v2.schema.json`, the gener
 `CatalogIndex` contract that `catalog-index.json` is built through, and
 `future-canary-index.json`, the future vector (`tools/build-future-vector`): the index with an
 unknown word at every closed-word site outside an execution document (the build fails if the contract reader does not keep it), an unknown field on every closed object and
-one recipe entry with an unknown serving kind. A consumer reads it on its own release and must
+one recipe entry with an unknown serving kind and one with an unknown API `mode`. A consumer reads it on its own release and must
 keep every entry but that one; `tests/tools/test_future_vector.py` runs the same proof against the
-contract reader, and a new tolerant site is found by the schema walk, never added by hand. Build them locally with one command when a tool or test outside
+contract reader, and a new tolerant site is found by the schema walk, never added by hand. The contract examples directory is an explicit input of `tools/build-future-vector`: each `recipe-<name>.json` with its `recipe-api-<name>.json` joins the vector as an entry, so a word no library recipe uses yet still has a site. Build them locally with one command when a tool or test outside
 the suite needs them:
 
 ```bash

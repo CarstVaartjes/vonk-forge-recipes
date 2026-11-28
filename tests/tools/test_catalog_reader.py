@@ -14,6 +14,7 @@ from vonk_forge_contracts import (
     CONTRACT_MAJOR,
     CatalogIndexRefused,
     CatalogModelEntry,
+    UnrecognisedApiBlock,
     UnrecognisedWord,
     published_index_json,
     read_catalog,
@@ -155,8 +156,8 @@ def _mutable_image_tag(recipe: dict[str, Any]) -> None:
     }
 
 
-def _unknown_api_mode(recipe: dict[str, Any]) -> None:
-    recipe["api"]["api"]["mode"] = "realtime"
+def _chat_input_limit_not_a_number(recipe: dict[str, Any]) -> None:
+    recipe["api"]["api"]["max_input_tokens"] = "many"
 
 
 def _display_title_not_text(recipe: dict[str, Any]) -> None:
@@ -172,7 +173,12 @@ def _display_title_not_text(recipe: dict[str, Any]) -> None:
             "prebuilt_image.reference",
             FaultReason.INVALID_VALUE,
         ),
-        (_unknown_api_mode, CatalogBlock.API, "api.api", FaultReason.UNKNOWN_WORD),
+        (
+            _chat_input_limit_not_a_number,
+            CatalogBlock.API,
+            "api.api.chat.max_input_tokens",
+            FaultReason.WRONG_TYPE,
+        ),
         (
             _display_title_not_text,
             CatalogBlock.DISPLAY,
@@ -203,6 +209,31 @@ def test_an_unreadable_optional_block_is_dropped_and_its_recipe_stays(
     assert _names(read.index.recipes) == [_name(r) for r in index["recipes"]]
     (kept,) = [e for e in read.index.recipes if _names((e,)) == [_name(recipe)]]
     assert getattr(kept, block.value) is None
+
+
+def test_a_new_api_mode_keeps_the_recipe_with_a_block_that_has_no_facts(
+    index: Index,
+) -> None:
+    recipe = next(
+        r
+        for r in index["recipes"]
+        if r.get("api") is not None and not r["api"]["option_choices"]
+    )
+    recipe["api"]["api"]["mode"] = "realtime"
+
+    read = read_catalog(index)
+
+    assert read.problems == (
+        UnrecognisedWordReport(
+            section=CatalogSection.RECIPES,
+            field="api.api.mode",
+            word="realtime",
+            entries=(_name(recipe),),
+        ),
+    )
+    (kept,) = [e for e in read.index.recipes if _names((e,)) == [_name(recipe)]]
+    assert kept.api is not None
+    assert isinstance(kept.api.api, UnrecognisedApiBlock)
 
 
 def test_a_producer_still_refuses_an_unknown_word(index: Index) -> None:

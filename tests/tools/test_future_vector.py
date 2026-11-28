@@ -16,13 +16,17 @@ from repo_root import ROOT
 from recipe_tooling.catalog_index import MAX_INDEX_BYTES, rendered_vector
 from recipe_tooling.future_vector import (
     KIND,
+    MODE_CHOICE_FIELD,
+    MODE_FIELD,
+    MODE_SLUG,
     SLUG,
     FutureVector,
     build_future_vector,
     missing_fields,
     words_in,
 )
-from vonk_forge_contracts import read_catalog_index
+from recipe_tooling.qualification.api_checks import check_recipe_api
+from vonk_forge_contracts import UnrecognisedApiBlock, read_catalog_index
 from vonk_forge_contracts.catalog_reader import (
     CatalogSection,
     FaultReason,
@@ -35,11 +39,12 @@ SCHEMA_PATH = (
     ROOT / "contracts/src/vonk_forge_contracts/schema/catalog-index-v2.schema.json"
 )
 SCHEMA: dict[str, Any] = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
+EXAMPLES = ROOT / "contracts/src/vonk_forge_contracts/examples"
 
 
 @pytest.fixture(scope="module")
 def vector(built_catalog: tuple[dict[str, Any], Path]) -> FutureVector:
-    return build_future_vector(built_catalog[0], SCHEMA)
+    return build_future_vector(built_catalog[0], SCHEMA, EXAMPLES)
 
 
 SCHEMAS = SCHEMA["components"]["schemas"]
@@ -147,6 +152,8 @@ def test_the_tool_writes_the_same_bytes(vector: FutureVector, tmp_path: Path) ->
             str(GENERATED / "catalog-index.json"),
             "--schema",
             str(SCHEMA_PATH),
+            "--examples",
+            str(EXAMPLES),
             "--out",
             str(out),
         ],
@@ -156,3 +163,46 @@ def test_the_tool_writes_the_same_bytes(vector: FutureVector, tmp_path: Path) ->
     )
     assert done.returncode == 0, done.stderr
     assert out.read_bytes() == rendered_vector(vector.document)
+
+
+def test_every_recipe_entry_the_reader_keeps_is_consistent_with_its_api(
+    vector: FutureVector,
+) -> None:
+    checked = 0
+    for entry in read_catalog(vector.document).index.recipes:
+        if entry.api is not None and not isinstance(
+            entry.api.api, UnrecognisedApiBlock
+        ):
+            check_recipe_api(entry.document, entry.api)
+            checked += 1
+    assert checked
+
+
+def test_the_reader_keeps_the_entry_whose_api_mode_is_unknown(
+    vector: FutureVector,
+) -> None:
+    read = read_catalog(vector.document)
+    blocks = {
+        entry.document.identity.slug: entry.api.api
+        for entry in read.index.recipes
+        if entry.api is not None
+    }
+    assert isinstance(blocks[MODE_SLUG], UnrecognisedApiBlock)
+    assert [
+        slug
+        for slug, block in blocks.items()
+        if isinstance(block, UnrecognisedApiBlock)
+    ] == [MODE_SLUG]
+    mine = next(e for e in read.index.recipes if e.document.identity.slug == MODE_SLUG)
+    assert mine.api is not None
+    assert all(
+        isinstance(choice.api, UnrecognisedApiBlock)
+        for choice in mine.api.option_choices
+    )
+    wanted = {MODE_FIELD} | ({MODE_CHOICE_FIELD} if mine.api.option_choices else set())
+    assert wanted == {
+        problem.field
+        for problem in read.problems
+        if isinstance(problem, UnrecognisedWordReport)
+        and problem.entries == (f"vonk-forge/{MODE_SLUG}",)
+    }

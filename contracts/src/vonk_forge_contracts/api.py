@@ -12,9 +12,10 @@ record keyed by it stay as they are. A document is optional at contract level;
 a route without one publishes no gateway facts.
 
 A block is named by the LiteLLM ``model_info.mode`` its route publishes
-(``chat``, ``audio_transcription``, ``audio_speech``; ``decision`` is ours, as
-LiteLLM has no equivalent). An audio mode has exactly one endpoint, so its block
-carries no ``endpoints`` field: the consumer derives it from the mode.
+(``chat``, ``audio_transcription``, ``audio_speech``, ``embedding``;
+``decision`` is ours, as LiteLLM has no equivalent). An audio or embedding mode
+has exactly one endpoint, so its block carries no ``endpoints`` field: the
+consumer derives it from the mode.
 
 Every field of a block is required: "not applicable" is written down (``false``,
 ``{"kind": "none"}``, ``null``), never left out. A block is discriminated by
@@ -22,7 +23,9 @@ Every field of a block is required: "not applicable" is written down (``false``,
 block in ``option_choices``; it replaces the base block as a whole, the way the
 choice's runtime arguments replace base arguments (``RecipeApi.for_choices``).
 
-Strict ``model_validate`` is for this repository's files and output;
+Strict ``model_validate`` is for this repository's files and output (an unknown
+``mode`` is refused); a consumer reader keeps one as ``UnrecognisedApiBlock``, a
+marker with no facts, as it keeps any word the block cannot stand without;
 ``read_recipe_api`` ignores unknown fields and is only for consumers of a
 published index. ``require_api_of`` is the one identity rule. The facts that
 must agree with a recipe's runtime or its Models are checked in ``api_checks``.
@@ -31,18 +34,26 @@ must agree with a recipe's runtime or its Models are checked in ``api_checks``.
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal, get_args
 
 from pydantic import (
     BaseModel,
     ConfigDict,
+    Discriminator,
     Field,
+    GetCoreSchemaHandler,
+    GetJsonSchemaHandler,
     StrictBool,
     StrictInt,
     StrictStr,
+    Tag,
+    TypeAdapter,
+    ValidationInfo,
     field_validator,
     model_validator,
 )
+from pydantic.json_schema import JsonSchemaValue
+from pydantic_core import core_schema
 
 from vonk_forge_contracts.recipe import (
     Identifier,
@@ -53,6 +64,7 @@ from vonk_forge_contracts.recipe import (
 from vonk_forge_contracts.shown import (
     AudioInputFormat,
     ContextBasis,
+    EmbeddingEncodingFormat,
     Endpoint,
     ReasoningDefault,
     RequestPlacement,
@@ -61,7 +73,11 @@ from vonk_forge_contracts.shown import (
     ToolChoice,
     TranscriptionResponseFormat,
 )
-from vonk_forge_contracts.unrecognised import KeepUnrecognised, UnrecognisedWord
+from vonk_forge_contracts.unrecognised import (
+    KeepUnrecognised,
+    UnrecognisedWord,
+    is_reading,
+)
 
 
 class _ApiContract(BaseModel):
@@ -76,7 +92,8 @@ Iso639_1 = Annotated[StrictStr, Field(pattern=r"^[a-z]{2}$")]
 VoiceName = Annotated[StrictStr, Field(min_length=1, max_length=64)]
 _Key = Annotated[StrictStr, Field(min_length=1, max_length=64)]
 # A word a newer minor may add: a consumer reader keeps it (``UnrecognisedWord``)
-# and does not act on it. Discriminators (``mode``, ``kind``) stay closed. Lists
+# and does not act on it. Discriminators (``kind``) stay closed; a reader keeps an
+# unknown API ``mode`` as an ``UnrecognisedApiBlock`` marker. Lists
 # of these words carry no length cap (their uniqueness bounds them), so a newer
 # minor's extra word never overflows an older reader's list.
 _EndpointWord = Annotated[Endpoint | UnrecognisedWord, KeepUnrecognised]
@@ -86,6 +103,9 @@ _TranscriptionFormatWord = Annotated[
 ]
 _SpeechFormatWord = Annotated[SpeechResponseFormat | UnrecognisedWord, KeepUnrecognised]
 _GranularityWord = Annotated[TimestampGranularity | UnrecognisedWord, KeepUnrecognised]
+_EmbeddingFormatWord = Annotated[
+    EmbeddingEncodingFormat | UnrecognisedWord, KeepUnrecognised
+]
 _ToolChoiceWord = Annotated[ToolChoice | UnrecognisedWord, KeepUnrecognised]
 _ReasoningDefaultWord = Annotated[ReasoningDefault | UnrecognisedWord, KeepUnrecognised]
 _PlacementWord = Annotated[RequestPlacement | UnrecognisedWord, KeepUnrecognised]
@@ -338,9 +358,129 @@ class AudioSpeechApi(_ApiContract):
         return self
 
 
+class EmbeddingApi(_ApiContract):
+    """A route serving ``POST /v1/embeddings``: input in, one vector per input out.
+
+    The mode fixes the endpoint, so the block has no ``endpoints`` field.
+    ``max_input_tokens`` is the engine's sequence limit (an embedding recipe's
+    settings have no ``context_tokens``). ``input_modalities`` states what the
+    route takes through the gateway. ``output_dimensions`` is the native vector
+    size; ``matryoshka_min_dimensions`` is ``null`` when the request's
+    ``dimensions`` is not honoured, else the smallest size the engine truncates
+    to (any size from it up to ``output_dimensions``).
+    """
+
+    mode: Literal["embedding"]
+    max_input_tokens: StrictInt = Field(ge=1)
+    input_modalities: ApiInputModalities
+    output_dimensions: StrictInt = Field(ge=1)
+    matryoshka_min_dimensions: StrictInt | None = Field(ge=1)
+    encoding_formats: list[_EmbeddingFormatWord] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def consistent(self) -> EmbeddingApi:
+        if not self.input_modalities.text:
+            raise ValueError("an embedding route takes text input")
+        if (
+            self.matryoshka_min_dimensions is not None
+            and self.matryoshka_min_dimensions > self.output_dimensions
+        ):
+            raise ValueError("matryoshka_min_dimensions exceeds output_dimensions")
+        _unique(list(self.encoding_formats), "encoding_formats")
+        return self
+
+
 ApiBlock = Annotated[
-    ChatApi | DecisionApi | AudioTranscriptionApi | AudioSpeechApi,
+    ChatApi | DecisionApi | AudioTranscriptionApi | AudioSpeechApi | EmbeddingApi,
     Field(discriminator="mode"),
+]
+
+
+def _mode_of(block: type[BaseModel]) -> str:
+    """The one mode word a block class declares (its ``mode`` literal)."""
+    return str(get_args(block.model_fields["mode"].annotation)[0])
+
+
+_KNOWN_MODES = frozenset(_mode_of(block) for block in get_args(get_args(ApiBlock)[0]))
+
+
+class UnrecognisedApiBlock:
+    """A block whose ``mode`` a newer contract minor added: the word, no facts.
+
+    Only a consumer reader yields one (the rule for a word a block cannot stand
+    without, since no neutral value exists); a producer's strict validation
+    refuses the mode with the one error below. A consumer treats it as a block
+    with no usable facts, so the route publishes none. It is no model, so no
+    published schema names it.
+    """
+
+    __slots__ = ("mode",)
+
+    def __init__(self, mode: UnrecognisedWord) -> None:
+        self.mode = mode
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, UnrecognisedApiBlock) and self.mode == other.mode
+
+    def __hash__(self) -> int:
+        return hash(self.mode)
+
+    def model_dump(self, **_options: object) -> dict[str, str]:
+        """The block as every other one dumps: its word and nothing else."""
+        return {"mode": str(self.mode)}
+
+    def __repr__(self) -> str:
+        return f"UnrecognisedApiBlock(mode={self.mode!r})"
+
+    @classmethod
+    def __get_pydantic_core_schema__(
+        cls, source: type[Any], handler: GetCoreSchemaHandler
+    ) -> core_schema.CoreSchema:
+        def validate(value: object, info: ValidationInfo) -> UnrecognisedApiBlock:
+            if isinstance(value, cls) and is_reading(info):
+                return value
+            mode = value.get("mode") if isinstance(value, dict) else None
+            if is_reading(info) and isinstance(mode, str) and mode not in _KNOWN_MODES:
+                return cls(UnrecognisedWord(mode))
+            raise ValueError(f"unknown API mode {mode!r}")
+
+        return core_schema.with_info_plain_validator_function(
+            validate,
+            serialization=core_schema.plain_serializer_function_ser_schema(
+                lambda block: block.model_dump()
+            ),
+        )
+
+
+def _mode_tag(value: object) -> str:
+    """The union member for a block: its mode if known, else the marker."""
+    mode = (
+        value.get("mode") if isinstance(value, dict) else getattr(value, "mode", None)
+    )
+    return mode if isinstance(mode, str) and mode in _KNOWN_MODES else "unrecognised"
+
+
+class _PublishedAsKnownModes:
+    """The published schema names only the modes this release defines."""
+
+    def __get_pydantic_json_schema__(
+        self, schema: core_schema.CoreSchema, handler: GetJsonSchemaHandler
+    ) -> JsonSchemaValue:
+        return handler(TypeAdapter(ApiBlock).core_schema)
+
+
+# The block as a consumer reader holds it: an unknown mode becomes a marker.
+# A producer's strict validation refuses it, and a known mode reports its
+# errors at the same location as ``ApiBlock``.
+ReadApiBlock = Annotated[
+    Annotated[ChatApi, Tag(_mode_of(ChatApi))]
+    | Annotated[DecisionApi, Tag(_mode_of(DecisionApi))]
+    | Annotated[AudioTranscriptionApi, Tag(_mode_of(AudioTranscriptionApi))]
+    | Annotated[AudioSpeechApi, Tag(_mode_of(AudioSpeechApi))]
+    | Annotated[EmbeddingApi, Tag(_mode_of(EmbeddingApi))]
+    | Annotated[UnrecognisedApiBlock, Tag("unrecognised")],
+    Discriminator(_mode_tag),
+    _PublishedAsKnownModes(),
 ]
 
 
@@ -349,13 +489,13 @@ class RecipeApiOptionChoice(_ApiContract):
 
     option: Identifier
     value: Identifier
-    api: ApiBlock
+    api: ReadApiBlock
 
 
 class RecipeApi(_ApiContract):
     kind: Literal["recipe-api"] = "recipe-api"
     identity: RecipeIdentity
-    api: ApiBlock
+    api: ReadApiBlock
     option_choices: list[RecipeApiOptionChoice] = Field(max_length=64)
 
     @model_validator(mode="after")
@@ -380,10 +520,14 @@ class RecipeApi(_ApiContract):
         """
 
         resolved = recipe.resolve_options(choices)
+        block = self.api
         for entry in self.option_choices:
             if resolved.get(entry.option) == entry.value:
-                return entry.api
-        return self.api
+                block = entry.api
+                break
+        if isinstance(block, UnrecognisedApiBlock):
+            raise TypeError(f"the API mode {block.mode!r} is newer than this release")
+        return block
 
 
 def read_recipe_api(document: Mapping[str, object]) -> RecipeApi:

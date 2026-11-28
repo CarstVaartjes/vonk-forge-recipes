@@ -26,7 +26,9 @@ from vonk_forge_contracts.api import (
     AudioTranscriptionApi,
     ChatApi,
     DecisionApi,
+    EmbeddingApi,
     RecipeApi,
+    UnrecognisedApiBlock,
     require_api_of,
 )
 from vonk_forge_contracts.display import ModelDisplay, RecipeDisplay
@@ -97,6 +99,10 @@ def served_capabilities(
     if api is None:
         return tuple(sorted(capabilities))
     blocks = [api.api, *(choice.api for choice in api.option_choices)]
+    known = [block for block in blocks if not isinstance(block, UnrecognisedApiBlock)]
+    if len(known) != len(blocks):
+        return tuple(sorted(capabilities))  # a newer mode: no usable facts
+    blocks = known
     for modality, capability in INPUT_MODALITY_CAPABILITIES.items():
         capabilities.discard(capability)
         if any(getattr(accepted_modalities(block), modality) for block in blocks):
@@ -110,6 +116,12 @@ def served_capabilities(
     return tuple(sorted(capabilities))
 
 
+# The API modes each settings kind serves: the one table the kind/mode check reads.
+KIND_MODES: dict[str, frozenset[str]] = {
+    "generation": frozenset({"chat", "audio_transcription", "audio_speech"}),
+    "decision": frozenset({"decision"}),
+    "embedding": frozenset({"embedding"}),
+}
 # vLLM's own transcription upload and decode limits (environment variables,
 # in MiB and seconds). A recipe that sets one states the same limit in its block.
 VLLM_AUDIO_LIMITS: dict[str, tuple[str, int]] = {
@@ -256,11 +268,6 @@ def _audio_problems(
     """An audio route has no token facts: only its modality and engine limits."""
 
     found: list[str] = []
-    settings = recipe.settings
-    if not isinstance(settings, RecipeGenerationSettings | RecipeDecisionSettings):
-        return ["the recipe does not serve a generation or decision route"]
-    if settings.kind == "decision":
-        found.append(f"a decision recipe cannot serve a {block.mode} block")
     if isinstance(block, AudioTranscriptionApi):
         if recipe.runtime.engine == "vllm" and _language_model_only(recipe):
             found.append("audio input conflicts with --language-model-only")
@@ -271,8 +278,18 @@ def _audio_problems(
 
 
 def _problems(recipe: RecipeDefinition, block: ApiBlock) -> list[str]:
+    settings = recipe.settings
+    modes = KIND_MODES.get(settings.kind)
+    if modes is None:
+        return ["the recipe does not serve a generation, decision or embedding route"]
+    if block.mode not in modes:
+        return [f"a {settings.kind} recipe cannot serve a {block.mode} block"]
     if isinstance(block, AudioTranscriptionApi | AudioSpeechApi):
         return _audio_problems(recipe, block)
+    if isinstance(block, EmbeddingApi):
+        return []
+    if not isinstance(settings, RecipeGenerationSettings | RecipeDecisionSettings):
+        return ["the recipe does not serve a generation or decision route"]
     engine = recipe.runtime.engine
     found: list[str] = []
     names = CONTEXT_ARGUMENTS.get(engine, ())
@@ -287,11 +304,6 @@ def _problems(recipe: RecipeDefinition, block: ApiBlock) -> list[str]:
             f"no context argument (--{names[0]}) is bound to context_tokens; "
             "bind one or declare max_input_tokens"
         )
-    settings = recipe.settings
-    if not isinstance(settings, RecipeGenerationSettings | RecipeDecisionSettings):
-        return [*found, "the recipe does not serve a generation or decision route"]
-    if (settings.kind == "decision") != (block.mode == "decision"):
-        found.append(f"a {settings.kind} recipe cannot serve a {block.mode} block")
     context = settings.context_tokens.value
     if block.max_input_tokens is not None and block.max_input_tokens > context:
         found.append("max_input_tokens exceeds context_tokens")
@@ -412,6 +424,15 @@ def check_api_models(
             found.setdefault(
                 "audio output needs a Model with the audio modality "
                 f"and the {CapabilityName.AUDIO_GENERATION} capability",
+                [],
+            ).append(label)
+        if isinstance(block, EmbeddingApi) and not any(
+            "embeddings" in m.modalities and CapabilityName.EMBEDDING in m.capabilities
+            for m in selected
+        ):
+            found.setdefault(
+                "an embedding route needs a Model with the embeddings modality "
+                f"and the {CapabilityName.EMBEDDING} capability",
                 [],
             ).append(label)
         for modality, capability in INPUT_MODALITY_CAPABILITIES.items():

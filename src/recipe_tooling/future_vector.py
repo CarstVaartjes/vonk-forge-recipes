@@ -6,6 +6,11 @@ a self-consistent index that a consumer must still read:
 * an unknown word (``zz-future-word``) at every closed-word site outside an entry's
   execution document (an empty or absent list of words gets ``[word]``),
 * an unknown field (``zz_future_field``) on every object the schema closes,
+* the contract's synthetic example pairs (``recipe-<name>.json`` with
+  ``recipe-api-<name>.json``, from the ``examples_dir`` the caller names) as extra
+  entries, so a word no library recipe uses yet still has a site, and
+* one extra recipe entry whose API ``mode`` is the unknown word (a reader keeps
+  the entry and holds the block as a marker with no facts), and
 * one extra recipe entry whose serving kind is an unknown executed discriminator
   (``zz.future-kind``), which a reader withholds and the rest of the index survives.
 
@@ -25,6 +30,7 @@ import json
 import re
 from collections.abc import Iterator, Mapping
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Final
 
 from vonk_forge_contracts import document_sha256
@@ -40,6 +46,9 @@ WORD: Final = "zz-future-word"
 FIELD: Final = "zz_future_field"
 KIND: Final = "zz.future-kind"
 SLUG: Final = "zz-future-recipe"
+MODE_SLUG: Final = "zz-future-mode"
+MODE_FIELD: Final = "api.api.mode"
+MODE_CHOICE_FIELD: Final = "api.option_choices.api.mode"
 _OPEN: Final = frozenset({WORD, KIND})
 _DIGEST: Final = re.compile(r"[0-9a-f]{64}")
 _ENTRY_SCHEMAS: Final = {
@@ -347,20 +356,92 @@ def _replace_strings(value: Any, mapping: Mapping[str, str]) -> None:
         digests[:] = sorted(set(digests))
 
 
-def _withhold(entry: dict[str, Any]) -> dict[str, Any]:
-    """A copy of a recipe entry whose serving kind a reader cannot execute."""
+def _renamed(
+    entry: dict[str, Any], slug: str, kind: str | None = None
+) -> dict[str, Any]:
+    """A copy of a recipe entry under another slug (and, if given, another serving kind)."""
     extra = copy.deepcopy(entry)
     document = extra["document"]
-    document["identity"]["slug"] = SLUG
-    document["validation"]["serving"]["checks"][0]["kind"] = KIND
+    document["identity"]["slug"] = slug
+    if kind is not None:
+        document["validation"]["serving"]["checks"][0]["kind"] = kind
     for block in ("display", "api"):
         if isinstance(extra.get(block), dict):
-            extra[block]["identity"]["slug"] = SLUG
+            extra[block]["identity"]["slug"] = slug
     digest = document_sha256(document)
     extra["content_sha256"] = digest
     extra["package"]["recipe_content_sha256"] = digest
-    extra["source_path"] = f"recipes/{SLUG}.json"
-    extra["package"]["path"] = f"packages/{SLUG}.tar.gz"
+    extra["source_path"] = f"recipes/{slug}.json"
+    extra["package"]["path"] = f"packages/{slug}.tar.gz"
+    return extra
+
+
+def _withhold(entry: dict[str, Any]) -> dict[str, Any]:
+    """A copy of a recipe entry whose serving kind a reader cannot execute."""
+    return _renamed(entry, SLUG, KIND)
+
+
+def _with_examples(
+    index: dict[str, Any], examples_dir: Path
+) -> tuple[dict[str, Any], set[str]]:
+    """The index plus one entry per synthetic example pair, and those entries' slugs.
+
+    A word no library recipe uses yet still needs a site. Each example API
+    document (``recipe-api-<name>.json``) rides on its own paired example recipe
+    (``recipe-<name>.json``), so every entry is a consistent recipe plus API. The
+    entry's other parts are a copy of a real one; the covering step keeps only
+    the pairs that add a shape.
+    """
+    base = next(
+        entry for entry in index["recipes"] if isinstance(entry.get("api"), dict)
+    )
+    extra = []
+    for api_path in sorted(examples_dir.glob("recipe-api-*.json")):
+        name = api_path.stem.removeprefix("recipe-api-")
+        entry = copy.deepcopy(base)
+        entry["document"] = json.loads(
+            (examples_dir / f"recipe-{name}.json").read_text(encoding="utf-8")
+        )
+        entry["api"] = json.loads(api_path.read_text(encoding="utf-8"))
+        extra.append(_renamed(entry, entry["document"]["identity"]["slug"]))
+    slugs = {entry["document"]["identity"]["slug"] for entry in extra}
+    return {**index, "recipes": [*index["recipes"], *extra]}, slugs
+
+
+class NoRealEntryError(ValueError):
+    """The index holds no library recipe entry with a chat API block to copy."""
+
+
+def _real_entry(vector: dict[str, Any], example_slugs: set[str]) -> dict[str, Any]:
+    """A library recipe entry that states a chat API block, one with option choices first."""
+    entries = [
+        entry
+        for entry in vector["recipes"]
+        if entry["document"]["identity"]["slug"] not in example_slugs
+        and isinstance(entry.get("api"), dict)
+        and entry["api"]["api"]["mode"] == "chat"
+    ]
+    if not entries:
+        raise NoRealEntryError("no library recipe states a chat API block")
+    return max(entries, key=lambda entry: bool(entry["api"]["option_choices"]))
+
+
+def _unknown_mode(pristine: dict[str, Any], opened: Schema) -> dict[str, Any]:
+    """A copy of a real chat entry whose API block has a mode no reader knows.
+
+    A reader keeps the entry and holds the block as a marker with no facts; the
+    one unknown word is the only word in it, at ``api.api.mode``.
+    """
+    entry = copy.deepcopy(pristine)
+    for kind, _path, value, node, _trail in list(
+        opened.walk(entry, opened.schemas["CatalogRecipeEntry"])
+    ):
+        if kind == "object" and node.get("additionalProperties") is False:
+            value[FIELD] = 1
+    extra = _renamed(entry, MODE_SLUG)
+    extra["api"]["api"]["mode"] = WORD
+    for choice in extra["api"]["option_choices"]:
+        choice["api"]["mode"] = WORD  # a choice never changes the mode
     return extra
 
 
@@ -395,10 +476,13 @@ def missing_fields(
 
 
 def build_future_vector(
-    index: dict[str, Any], schema_document: Mapping[str, Any]
+    index: dict[str, Any], schema_document: Mapping[str, Any], examples_dir: Path
 ) -> FutureVector:
     """The future vector for ``index``; raises ``ValueError`` if its reader would not survive it."""
-    vector = _select(Schema(schema_document), index)
+    extended, example_slugs = _with_examples(index, examples_dir)
+    vector = _select(Schema(schema_document), extended)
+    # Taken before any word goes in: the unknown-mode entry carries that one word only.
+    pristine = copy.deepcopy(_real_entry(vector, example_slugs))
     sites = _word_sites(Schema(schema_document), vector)
     for where in sites.values():
         for section, position, target in where:
@@ -418,8 +502,10 @@ def build_future_vector(
         if kind == "object" and node.get("additionalProperties") is False:
             value[FIELD] = 1
     _rebind(vector)
-    vector["recipes"].append(_withhold(vector["recipes"][-1]))
-    _check(vector, sites)
+    vector["recipes"].append(_withhold(_real_entry(vector, example_slugs)))
+    unknown_mode = _unknown_mode(pristine, opened)
+    vector["recipes"].append(unknown_mode)
+    _check(vector, sites, unknown_mode)
     return FutureVector(
         document=vector,
         sites=tuple(sorted(sites)),
@@ -427,7 +513,9 @@ def build_future_vector(
     )
 
 
-def _check(vector: dict[str, Any], sites: Mapping[str, Any]) -> None:
+def _check(
+    vector: dict[str, Any], sites: Mapping[str, Any], unknown_mode: dict[str, Any]
+) -> None:
     """The reader must keep everything but the withheld entry, and every word."""
     problems = read_catalog(vector).problems
     skipped = [problem for problem in problems if isinstance(problem, SkippedEntry)]
@@ -454,6 +542,9 @@ def _check(vector: dict[str, Any], sites: Mapping[str, Any]) -> None:
         for where in sites.values()
         for _section, _position, target in where
     }
+    fields.add(MODE_FIELD)
+    if unknown_mode["api"]["option_choices"]:
+        fields.add(MODE_CHOICE_FIELD)
     if reported != fields:
         raise ValueError(
             f"words not kept: {sorted(fields - reported)}; unexpected: {sorted(reported - fields)}"

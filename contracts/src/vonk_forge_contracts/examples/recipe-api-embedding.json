@@ -1,0 +1,25 @@
+{
+  "api": {
+    "encoding_formats": [
+      "float",
+      "base64"
+    ],
+    "input_modalities": {
+      "audio": false,
+      "image": false,
+      "pdf": false,
+      "text": true,
+      "video": false
+    },
+    "matryoshka_min_dimensions": 32,
+    "max_input_tokens": 8192,
+    "mode": "embedding",
+    "output_dimensions": 1024
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "synthetic-tiny-build-embedding"
+  },
+  "kind": "recipe-api",
+  "option_choices": []
+}

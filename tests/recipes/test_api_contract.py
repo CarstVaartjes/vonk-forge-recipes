@@ -32,15 +32,21 @@ from vonk_forge_contracts import (
     CapabilityName,
     RecipeApi,
     RecipeDefinition,
+    UnrecognisedApiBlock,
     document_sha256,
     published_json,
     read_recipe_api,
     recipe_api_json_schema,
 )
-from vonk_forge_contracts.api import ApiTokenArgument
+from vonk_forge_contracts.api import (
+    ApiTokenArgument,
+    AudioTranscriptionApi,
+    ChatApi,
+)
 from vonk_forge_contracts.resolver import (
     ContractResolutionError,
 )
+from vonk_forge_contracts.unrecognised import read_context
 
 EXAMPLES = ROOT / "contracts/src/vonk_forge_contracts/examples"
 INVALID = EXAMPLES / "invalid"
@@ -143,6 +149,7 @@ def test_there_are_invalid_vectors_for_each_named_failure() -> None:
         "recipe-api-context-unbound",
         "recipe-api-default-output-names-missing-argument",
         "recipe-api-effort-default-not-a-level",
+        "recipe-api-embedding-matryoshka-above-native",
         "recipe-api-identity-mismatch",
         "recipe-api-image-with-language-model-only",
         "recipe-api-missing-field",
@@ -382,6 +389,7 @@ def test_default_output_tokens_names_a_runtime_argument() -> None:
     api = recipe_api(slug)
     assert api.api.default_output_tokens.model_dump() == {"argument": "max-tokens"}  # type: ignore[union-attr]
     check_recipe_api(document, api)
+    assert isinstance(api.api, ChatApi)
     other = api.model_copy(
         update={
             "api": api.api.model_copy(
@@ -392,6 +400,7 @@ def test_default_output_tokens_names_a_runtime_argument() -> None:
     with pytest.raises(RecipeApiError, match="--nope, which has no integer value"):
         check_recipe_api(document, other)
     # A setting-bound argument resolves through the recipe's settings.
+    assert isinstance(api.api, ChatApi)
     bound = api.api.model_copy(
         update={"default_output_tokens": ApiTokenArgument(argument="context")}
     )
@@ -429,8 +438,12 @@ def _silent_model() -> Any:
 
 
 def test_an_audio_mode_fixes_its_accepted_modality() -> None:
-    heard = accepted_modalities(_audio_example("transcription")[1].api)
-    spoken = accepted_modalities(_audio_example("speech")[1].api)
+    heard_block = _audio_example("transcription")[1].api
+    spoken_block = _audio_example("speech")[1].api
+    assert not isinstance(heard_block, UnrecognisedApiBlock)
+    assert not isinstance(spoken_block, UnrecognisedApiBlock)
+    heard = accepted_modalities(heard_block)
+    spoken = accepted_modalities(spoken_block)
     assert (heard.audio, heard.text) == (True, False)
     assert (spoken.audio, spoken.text) == (False, True)
 
@@ -472,6 +485,7 @@ def test_a_speech_route_needs_a_model_that_produces_audio() -> None:
 
 def test_vllm_audio_limits_are_checked_only_where_the_recipe_sets_them() -> None:
     document, api = _audio_example("transcription")
+    assert isinstance(api.api, AudioTranscriptionApi)
     longer = api.model_copy(
         update={"api": api.api.model_copy(update={"max_audio_seconds": 3600})}
     )
@@ -490,6 +504,62 @@ def test_a_decision_recipe_cannot_serve_an_audio_block() -> None:
         raw["identity"] = decision.identity.model_dump()
         with pytest.raises(RecipeApiError, match="decision recipe cannot serve"):
             check_recipe_api(decision, RecipeApi.model_validate(raw))
+
+
+def _embedding_example() -> tuple[RecipeDefinition, RecipeApi]:
+    return (
+        RecipeDefinition.model_validate(_json(EXAMPLES / "recipe-embedding.json")),
+        RecipeApi.model_validate(_json(EXAMPLES / "recipe-api-embedding.json")),
+    )
+
+
+def test_the_synthetic_embedding_example_is_checked_like_any_recipe() -> None:
+    document, api = _embedding_example()
+    assert api.api.mode == "embedding"
+    check_recipe_api(document, api)
+    assert read_recipe_api(published_json(api)) == api
+    Draft202012Validator(recipe_api_json_schema()).validate(published_json(api))
+
+
+def test_an_embedding_block_takes_text_and_has_no_endpoints() -> None:
+    raw = _json(EXAMPLES / "recipe-api-embedding.json")
+    modalities = {**raw["api"]["input_modalities"], "text": False}
+    with pytest.raises(ValidationError, match="takes text input"):
+        RecipeApi.model_validate(
+            {**raw, "api": {**raw["api"], "input_modalities": modalities}}
+        )
+    with pytest.raises(ValidationError):
+        RecipeApi.model_validate({**raw, "api": {**raw["api"], "endpoints": ["x"]}})
+    with pytest.raises(ValidationError, match="encoding_formats must be unique"):
+        RecipeApi.model_validate(
+            {**raw, "api": {**raw["api"], "encoding_formats": ["float", "float"]}}
+        )
+
+
+def test_a_recipe_kind_serves_only_its_modes() -> None:
+    embedding, _ = _embedding_example()
+    chat = RecipeDefinition.model_validate(_json(EXAMPLES / "recipe-source-build.json"))
+    raw = _json(EXAMPLES / "recipe-api-embedding.json")
+    raw["identity"] = chat.identity.model_dump()
+    with pytest.raises(RecipeApiError, match="generation recipe cannot serve"):
+        check_recipe_api(chat, RecipeApi.model_validate(raw))
+    chat_api = RecipeApi.model_validate(
+        _json(EXAMPLES / "recipe-api-source-build.json")
+    )
+    chat_api = chat_api.model_copy(update={"identity": embedding.identity})
+    with pytest.raises(RecipeApiError, match="embedding recipe cannot serve"):
+        check_recipe_api(embedding, chat_api)
+
+
+def test_an_embedding_route_needs_an_embedding_model() -> None:
+    document, api = _embedding_example()
+    silent = _silent_model()
+    with pytest.raises(RecipeApiError, match="embedding route needs a Model"):
+        check_api_models(document, api, [silent])
+    embedding = silent.model_copy(
+        update={"modalities": ["text", "embeddings"], "capabilities": ["embedding"]}
+    )
+    check_api_models(document, api, [embedding])
 
 
 def test_an_audio_file_limit_stays_within_the_edge_bound() -> None:
@@ -756,3 +826,41 @@ def test_the_catalog_index_entries_carry_served_capabilities() -> None:
         "text-generation",
         "tool-use",
     ]
+
+
+def _api_of_a_newer_mode() -> dict[str, Any]:
+    raw = _json(EXAMPLES / "recipe-api-embedding.json")
+    return {**raw, "api": {**raw["api"], "mode": "rerank"}}
+
+
+def test_a_producer_refuses_a_mode_a_consumer_reader_keeps_as_a_marker() -> None:
+    raw = _api_of_a_newer_mode()
+    with pytest.raises(ValidationError):
+        RecipeApi.model_validate(raw)
+    api = RecipeApi.model_validate(raw, extra="ignore", context=read_context())
+    assert isinstance(api.api, UnrecognisedApiBlock)
+    assert api.api.mode == "rerank"
+
+
+def test_an_option_choice_with_a_newer_mode_is_a_marker_too() -> None:
+    raw = _json(EXAMPLES / "recipe-api-options.json")
+    raw["api"] = {**raw["api"], "mode": "rerank"}
+    raw["option_choices"][0]["api"] = {
+        **raw["option_choices"][0]["api"],
+        "mode": "rerank",
+    }
+    api = RecipeApi.model_validate(raw, extra="ignore", context=read_context())
+    assert isinstance(api.api, UnrecognisedApiBlock)
+    assert isinstance(api.option_choices[0].api, UnrecognisedApiBlock)
+
+
+def test_a_marker_gives_no_facts_and_the_models_capabilities_stay() -> None:
+    document, _ = _embedding_example()
+    api = RecipeApi.model_validate(
+        _api_of_a_newer_mode(), extra="ignore", context=read_context()
+    )
+    with pytest.raises(TypeError, match="newer than this release"):
+        api.for_choices(document)
+    assert served_capabilities([CapabilityName.IMAGE_UNDERSTANDING], api) == (
+        CapabilityName.IMAGE_UNDERSTANDING,
+    )
