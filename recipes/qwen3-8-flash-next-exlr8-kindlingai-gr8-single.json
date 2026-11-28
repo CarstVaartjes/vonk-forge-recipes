@@ -1821,6 +1821,27 @@
       "help": "Whether a request that runs alone drafts with the release's DFlash parallel block drafter (drafter/dflash.q4_0.pack, found by the engine with no flag) before Layer-48 MTP takes over for several chats at once. The creator measured byte-identical greedy output with and without it.",
       "label": "DFlash drafter",
       "name": "dflash"
+    },
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "The creator's default: the 32 GiB store caches prefixes and is not kept across a restart.",
+          "label": "Off",
+          "value": "off"
+        },
+        {
+          "env": {
+            "KV_STORE": "ssd:/outputs/cache/gr8/cache/kv,size=32G,persist=on,keep=sessions"
+          },
+          "help": "KV_STORE with persist=on,keep=sessions (the creator's README line, same 32 GiB store): sessions persist across an orderly restart. The 32 GiB is already in the recipe's working disk.",
+          "label": "On",
+          "value": "on"
+        }
+      ],
+      "help": "The creator's persistent SSD KV store: at an orderly stop the engine stores the chats it still holds and the next start reads them back. The recipe's stop timeout is the creator's 150 s grace for it.",
+      "label": "Persistent KV store",
+      "name": "kv_store"
     }
   ],
   "provenance": {
@@ -1912,7 +1933,7 @@
       }
     ],
     "lifecycle": {
-      "stop_timeout_seconds": 30
+      "stop_timeout_seconds": 150
     }
   },
   "settings": {

@@ -1938,6 +1938,28 @@
       "help": "Whether each box loads the 27-layer BF16 vision tower (dense/vision-bf16.safetensors, about 898 MB a box; the creator's GR8_QW38_VISION=1) so the API takes images.",
       "label": "Image input",
       "name": "vision"
+    },
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "No persistent store (the creator's default): chats end with the stop.",
+          "label": "Off",
+          "value": "off"
+        },
+        {
+          "env": {
+            "KV_STORE": "ssd:/outputs/cache/gr8/cache/kv,size=200G,persist=on,keep=sessions",
+            "REUSE": "1"
+          },
+          "help": "REUSE=1 and KV_STORE=ssd:...,size=200G,persist=on,keep=sessions (the creator's commented lines): prompt prefixes are reused and sessions persist across an orderly restart. Needs 200 GiB of disk a box.",
+          "label": "On",
+          "value": "on"
+        }
+      ],
+      "help": "The creator's optional prefix reuse and persistent SSD KV store: at an orderly stop the engine stores the chats it still holds and the next start reads them back. The recipe's stop timeout is the creator's 150 s grace for it.",
+      "label": "Persistent KV store",
+      "name": "kv_store"
     }
   ],
   "provenance": {
@@ -2021,7 +2043,7 @@
       }
     ],
     "lifecycle": {
-      "stop_timeout_seconds": 30
+      "stop_timeout_seconds": 150
     }
   },
   "settings": {
@@ -2056,7 +2078,7 @@
             "artifact_bytes": 224837151808,
             "image_bytes": 8000000000,
             "safety_margin_bytes": 10000000000,
-            "working_bytes": 10000000000
+            "working_bytes": 224748364800
           },
           "memory": {
             "peak_bytes": 80700000000,
@@ -2073,7 +2095,7 @@
             "artifact_bytes": 224837151808,
             "image_bytes": 8000000000,
             "safety_margin_bytes": 10000000000,
-            "working_bytes": 10000000000
+            "working_bytes": 224748364800
           },
           "memory": {
             "peak_bytes": 80700000000,

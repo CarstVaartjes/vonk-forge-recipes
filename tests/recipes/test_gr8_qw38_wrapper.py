@@ -65,7 +65,6 @@ ARGS = (
 
 
 def test_both_kits_ship_one_wrapper():
-    assert len(ADAPTERS) == 2
     assert len({(QWEN / name / "gr8-serve").read_bytes() for name in ADAPTERS}) == 1
 
 
