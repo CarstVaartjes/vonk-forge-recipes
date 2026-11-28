@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Bind Controller two-phase placement to KindlingAI's Nemotron 3.5 Super VL TP2 launch (compose.tp2.yaml)."""
+"""Nemotron 3.5 Super VL launcher: checks the model mounts and, on the two-Spark launch, binds Controller placement."""
 
 from __future__ import annotations
 

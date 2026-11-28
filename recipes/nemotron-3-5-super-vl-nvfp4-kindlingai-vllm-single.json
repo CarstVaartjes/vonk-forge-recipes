@@ -6,9 +6,9 @@
         "repository": "vllm/vllm-openai"
       },
       "context": {
-        "path": "adapters/nemotron/kindlingai-vllm-super-vl-single"
+        "path": "adapters/nemotron/kindlingai-vllm-super-vl"
       },
-      "dockerfile": "adapters/nemotron/kindlingai-vllm-super-vl-single/Dockerfile",
+      "dockerfile": "adapters/nemotron/kindlingai-vllm-super-vl/Dockerfile",
       "network": {
         "hosts": []
       },
