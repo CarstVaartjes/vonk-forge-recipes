@@ -394,10 +394,14 @@ ApiBlock = Annotated[
     ChatApi | DecisionApi | AudioTranscriptionApi | AudioSpeechApi | EmbeddingApi,
     Field(discriminator="mode"),
 ]
-_KNOWN_MODES = frozenset(
-    get_args(block.model_fields["mode"].annotation)[0]
-    for block in get_args(get_args(ApiBlock)[0])
-)
+
+
+def _mode_of(block: type[BaseModel]) -> str:
+    """The one mode word a block class declares (its ``mode`` literal)."""
+    return str(get_args(block.model_fields["mode"].annotation)[0])
+
+
+_KNOWN_MODES = frozenset(_mode_of(block) for block in get_args(get_args(ApiBlock)[0]))
 
 
 class UnrecognisedApiBlock:
@@ -433,7 +437,7 @@ class UnrecognisedApiBlock:
         cls, source: type[Any], handler: GetCoreSchemaHandler
     ) -> core_schema.CoreSchema:
         def validate(value: object, info: ValidationInfo) -> UnrecognisedApiBlock:
-            if isinstance(value, cls):
+            if isinstance(value, cls) and is_reading(info):
                 return value
             mode = value.get("mode") if isinstance(value, dict) else None
             if is_reading(info) and isinstance(mode, str) and mode not in _KNOWN_MODES:
@@ -469,11 +473,11 @@ class _PublishedAsKnownModes:
 # A producer's strict validation refuses it, and a known mode reports its
 # errors at the same location as ``ApiBlock``.
 ReadApiBlock = Annotated[
-    Annotated[ChatApi, Tag("chat")]
-    | Annotated[DecisionApi, Tag("decision")]
-    | Annotated[AudioTranscriptionApi, Tag("audio_transcription")]
-    | Annotated[AudioSpeechApi, Tag("audio_speech")]
-    | Annotated[EmbeddingApi, Tag("embedding")]
+    Annotated[ChatApi, Tag(_mode_of(ChatApi))]
+    | Annotated[DecisionApi, Tag(_mode_of(DecisionApi))]
+    | Annotated[AudioTranscriptionApi, Tag(_mode_of(AudioTranscriptionApi))]
+    | Annotated[AudioSpeechApi, Tag(_mode_of(AudioSpeechApi))]
+    | Annotated[EmbeddingApi, Tag(_mode_of(EmbeddingApi))]
     | Annotated[UnrecognisedApiBlock, Tag("unrecognised")],
     Discriminator(_mode_tag),
     _PublishedAsKnownModes(),
