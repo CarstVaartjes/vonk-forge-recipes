@@ -84,11 +84,6 @@ def test_the_vector_holds_the_unknown_word_at_every_site(vector: FutureVector) -
     assert words_in(SCHEMA, vector.document) == set(vector.sites)
 
 
-# Word kinds no library recipe uses yet: the vector is the real index, so it has no
-# site for them. The PR that adds the first such recipe deletes its entry.
-NO_LIBRARY_RECIPE_YET = {"encoding_formats"}
-
-
 def test_every_word_kind_in_the_schema_has_a_site_in_the_vector(
     vector: FutureVector,
 ) -> None:
@@ -106,7 +101,6 @@ def test_every_word_kind_in_the_schema_has_a_site_in_the_vector(
         for site in vector.sites
     }
     assert wanted
-    wanted -= NO_LIBRARY_RECIPE_YET
     assert wanted <= held, f"no site for {sorted(wanted - held)}"
 
 

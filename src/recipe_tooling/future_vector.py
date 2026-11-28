@@ -27,6 +27,7 @@ from collections.abc import Iterator, Mapping
 from dataclasses import dataclass
 from typing import Any, Final
 
+from recipe_tooling.paths import REPO_ROOT
 from vonk_forge_contracts import document_sha256
 from vonk_forge_contracts.catalog_reader import (
     CatalogSection,
@@ -41,6 +42,7 @@ FIELD: Final = "zz_future_field"
 KIND: Final = "zz.future-kind"
 SLUG: Final = "zz-future-recipe"
 _OPEN: Final = frozenset({WORD, KIND})
+API_EXAMPLES: Final = REPO_ROOT / "contracts/src/vonk_forge_contracts/examples"
 _DIGEST: Final = re.compile(r"[0-9a-f]{64}")
 _ENTRY_SCHEMAS: Final = {
     "catalog_entities": "CatalogModelEntry",
@@ -347,21 +349,47 @@ def _replace_strings(value: Any, mapping: Mapping[str, str]) -> None:
         digests[:] = sorted(set(digests))
 
 
-def _withhold(entry: dict[str, Any]) -> dict[str, Any]:
-    """A copy of a recipe entry whose serving kind a reader cannot execute."""
+def _renamed(
+    entry: dict[str, Any], slug: str, kind: str | None = None
+) -> dict[str, Any]:
+    """A copy of a recipe entry under another slug (and, if given, another serving kind)."""
     extra = copy.deepcopy(entry)
     document = extra["document"]
-    document["identity"]["slug"] = SLUG
-    document["validation"]["serving"]["checks"][0]["kind"] = KIND
+    document["identity"]["slug"] = slug
+    if kind is not None:
+        document["validation"]["serving"]["checks"][0]["kind"] = kind
     for block in ("display", "api"):
         if isinstance(extra.get(block), dict):
-            extra[block]["identity"]["slug"] = SLUG
+            extra[block]["identity"]["slug"] = slug
     digest = document_sha256(document)
     extra["content_sha256"] = digest
     extra["package"]["recipe_content_sha256"] = digest
-    extra["source_path"] = f"recipes/{SLUG}.json"
-    extra["package"]["path"] = f"packages/{SLUG}.tar.gz"
+    extra["source_path"] = f"recipes/{slug}.json"
+    extra["package"]["path"] = f"packages/{slug}.tar.gz"
     return extra
+
+
+def _withhold(entry: dict[str, Any]) -> dict[str, Any]:
+    """A copy of a recipe entry whose serving kind a reader cannot execute."""
+    return _renamed(entry, SLUG, KIND)
+
+
+def _with_examples(index: dict[str, Any]) -> dict[str, Any]:
+    """The index plus one entry per synthetic API example, so a word no library recipe uses yet has a site.
+
+    Each example API document rides on a copy of a real recipe entry; the
+    covering step keeps only the copies that add a shape.
+    """
+    base = next(
+        entry for entry in index["recipes"] if isinstance(entry.get("api"), dict)
+    )
+    extra = []
+    for path in sorted(API_EXAMPLES.glob("recipe-api-*.json")):
+        entry = _renamed(base, f"zz-example-{path.stem.removeprefix('recipe-api-')}")
+        entry["api"] = json.loads(path.read_text(encoding="utf-8"))
+        entry["api"]["identity"]["slug"] = entry["document"]["identity"]["slug"]
+        extra.append(entry)
+    return {**index, "recipes": [*index["recipes"], *extra]}
 
 
 def words_in(schema_document: Mapping[str, Any], vector: dict[str, Any]) -> set[str]:
@@ -398,7 +426,7 @@ def build_future_vector(
     index: dict[str, Any], schema_document: Mapping[str, Any]
 ) -> FutureVector:
     """The future vector for ``index``; raises ``ValueError`` if its reader would not survive it."""
-    vector = _select(Schema(schema_document), index)
+    vector = _select(Schema(schema_document), _with_examples(index))
     sites = _word_sites(Schema(schema_document), vector)
     for where in sites.values():
         for section, position, target in where:
