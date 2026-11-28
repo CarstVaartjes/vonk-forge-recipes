@@ -1,0 +1,33 @@
+#!/bin/bash
+# The Vonk Forge placement wrapper for KindlingAI's Inkling-2-Mini gr8 recipe (one Spark). It maps what the platform
+# gives a workload (the arguments in the recipe, the read-only /models mounts and the writable /outputs) onto the
+# variables the creator's own serve.sh reads (its compose environment and .env, which the recipe's environment
+# carries), then runs that serve.sh: the engine (g6m4_ink2), the S2 shim and gr8's Rust front end.
+#
+#   arguments    --host -> HOST, --port -> PORT, --max-model-len -> CAP, --sess -> SESSIONS
+#   model        /models/target is the exlr8 release used in place (MODEL_DIR, a local path: nothing is fetched); the
+#                bundled DFlash drafter in it is found by the engine.
+#   writable     serve.sh empties its working directory before every start (WORK_DIR, the kit's /tmp/ink2-gr8); it is
+#                /outputs/cache/gr8/ink2, the platform's writable state.
+set -euo pipefail
+
+state=/outputs/cache/gr8
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --host) export HOST=$2; shift 2 ;;
+    --host=*) export HOST=${1#*=}; shift ;;
+    --port) export PORT=$2; shift 2 ;;
+    --port=*) export PORT=${1#*=}; shift ;;
+    --max-model-len) export CAP=$2; shift 2 ;;
+    --max-model-len=*) export CAP=${1#*=}; shift ;;
+    --sess) export SESSIONS=$2; shift 2 ;;
+    --sess=*) export SESSIONS=${1#*=}; shift ;;
+    *) echo "gr8-serve: unknown argument $1" >&2; exit 2 ;;
+  esac
+done
+
+mkdir -p "$state" /outputs/tmp
+export MODEL_DIR=/models/target WORK_DIR=$state/ink2 TMPDIR=/outputs/tmp
+
+exec /bin/bash /recipe/serve.sh

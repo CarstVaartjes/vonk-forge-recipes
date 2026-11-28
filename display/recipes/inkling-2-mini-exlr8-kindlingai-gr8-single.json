@@ -1,0 +1,21 @@
+{
+  "alignment": "unspecified",
+  "description": "Inkling 2 Mini (Thinking Machines' looped mixture-of-experts model, 24 physical layers run as 48) on one DGX Spark with KindlingAI's gr8, a from-scratch CUDA inference engine (no vLLM, PyTorch or NCCL at serve time), at tensor parallel 1. The weights are KindlingAI's exlr8 K2/K3/K4 release: every routed expert stored at three trellis widths, the serving width chosen at load time (3.25 bits a weight by default), the rest in BF16, with a bundled 279 MB DFlash drafter that gr8 finds by itself (K=7 drafting). Defaults: requests up to 147,456 tokens, eight at once sharing a 1,179,648-token KV pool, a prefill chunk of 4,096 tokens and MXFP8 prefill MoE weights cached on all 24 layers. The kit (kindlingai/recipes, inkling-2-mini/dgx-spark/1x/exlr8-gr8 at 13c24ac4) runs gr8's published image of commit 2c221e98 with its own serve.sh (engine, S2 shim, Rust front end); a placement wrapper maps the recipe's arguments onto serve.sh and moves its working directory under the writable cache, and the release is used in place from the read-only model mount. Options: one preset that picks the width (3.25, 4, 2.25, 2.5 or 2 bits) together with the context and concurrency the creator measured with it, including its 2-bit preset for sharing the box with another model. Text only: the front end's Inkling dialect does not take images yet, and the pack's vision weights stay unused. Thinking is off unless a request turns it on (enable_thinking or a reasoning_effort other than none); tool calls are parsed. The creator measured 9.52 to 9.69 GiB of memory left with the defaults and 4.44 to 12.2 GiB with the alternatives (three of them, 4.44 to 5.54 GiB, are under 8 GiB and untried here); nothing else should run on the Spark. Disk: about 32.5 GB of model files, which hold every width. Licences, for information: the kit and gr8 are MIT; the model and its drafter are Apache-2.0.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "inkling-2-mini-exlr8-kindlingai-gr8-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "dflash",
+    "engine",
+    "exlr8",
+    "gr8",
+    "reasoning",
+    "single-spark",
+    "spark",
+    "structured-outputs",
+    "tool-use"
+  ],
+  "title": "Inkling 2 Mini EXLR8 gr8 one Spark"
+}

@@ -1,0 +1,1610 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "dfa8eb1a4e967338f3ab087f980479b40587ba6362da61950fff3ddd7d7717ce",
+        "repository": "ghcr.io/kindlingai/gr8"
+      },
+      "context": {
+        "path": "adapters/inkling/kindlingai-gr8-ink2-single"
+      },
+      "dockerfile": "adapters/inkling/kindlingai-gr8-ink2-single/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "inkling-2-mini-exlr8-kindlingai-gr8-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/health",
+      "model_aliases": [
+        "inkling-2-mini"
+      ],
+      "port": 8100
+    }
+  ],
+  "kind": "recipe",
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "readme-308656d8b26f-b335630551",
+          "id": "primary-readme-308656d8b26f-b335630551",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-53a9035f3255-00824420d1",
+          "id": "primary-chat-template-53a9035f3255-00824420d1",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-a7a349601f09-587cb980af",
+          "id": "primary-config-a7a349601f09-587cb980af",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "dflash2-melded-1ba8e4ea0498-1e94707438",
+          "id": "primary-dflash2-melded-1ba8e4ea0498-1e94707438",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-000-index-6a3cf06a241e-c069e05de4",
+          "id": "primary-exlr8-layer-000-index-6a3cf06a241e-c069e05de4",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-000-k2-40658cc9887b-3401ba738b",
+          "id": "primary-exlr8-layer-000-k2-40658cc9887b-3401ba738b",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-000-k3-da160017087f-447e3b9aa0",
+          "id": "primary-exlr8-layer-000-k3-da160017087f-447e3b9aa0",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-000-k4-3abde6a6f4be-859d803b19",
+          "id": "primary-exlr8-layer-000-k4-3abde6a6f4be-859d803b19",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-001-index-12c0ee35ee4a-a665024423",
+          "id": "primary-exlr8-layer-001-index-12c0ee35ee4a-a665024423",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-001-k2-c3579b922fb6-7a34e79d2d",
+          "id": "primary-exlr8-layer-001-k2-c3579b922fb6-7a34e79d2d",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-001-k3-ffd316975525-3f489aa9e7",
+          "id": "primary-exlr8-layer-001-k3-ffd316975525-3f489aa9e7",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-001-k4-af0519a43621-8b9ca57e09",
+          "id": "primary-exlr8-layer-001-k4-af0519a43621-8b9ca57e09",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-002-index-f08af328a30b-5207f40c18",
+          "id": "primary-exlr8-layer-002-index-f08af328a30b-5207f40c18",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-002-k2-4a8a4ed8e210-9de490ee2a",
+          "id": "primary-exlr8-layer-002-k2-4a8a4ed8e210-9de490ee2a",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-002-k3-7580c731329f-0db4b13f7d",
+          "id": "primary-exlr8-layer-002-k3-7580c731329f-0db4b13f7d",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-002-k4-e5ac77939044-63df355a73",
+          "id": "primary-exlr8-layer-002-k4-e5ac77939044-63df355a73",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-003-index-d93ef194ab28-7ab6eaa95f",
+          "id": "primary-exlr8-layer-003-index-d93ef194ab28-7ab6eaa95f",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-003-k2-692959c983c3-2d5320ea8c",
+          "id": "primary-exlr8-layer-003-k2-692959c983c3-2d5320ea8c",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-003-k3-27f26412a13b-167fdc54e3",
+          "id": "primary-exlr8-layer-003-k3-27f26412a13b-167fdc54e3",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-003-k4-c30fa48a0fdf-3a8f36e174",
+          "id": "primary-exlr8-layer-003-k4-c30fa48a0fdf-3a8f36e174",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-004-index-97fca1f4712a-005de8a357",
+          "id": "primary-exlr8-layer-004-index-97fca1f4712a-005de8a357",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-004-k2-96b1a3dd8d19-9b48b970f0",
+          "id": "primary-exlr8-layer-004-k2-96b1a3dd8d19-9b48b970f0",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-004-k3-13be9fcb63dc-2477757294",
+          "id": "primary-exlr8-layer-004-k3-13be9fcb63dc-2477757294",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-004-k4-fe72fb68c772-b1d8d6ccfc",
+          "id": "primary-exlr8-layer-004-k4-fe72fb68c772-b1d8d6ccfc",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-005-index-359eaee9e96a-04ec9839f3",
+          "id": "primary-exlr8-layer-005-index-359eaee9e96a-04ec9839f3",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-005-k2-debc41420fc5-d5a71bcca6",
+          "id": "primary-exlr8-layer-005-k2-debc41420fc5-d5a71bcca6",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-005-k3-eacce58e2c1d-8b367c225d",
+          "id": "primary-exlr8-layer-005-k3-eacce58e2c1d-8b367c225d",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-005-k4-353add29aeb1-7059c70bd0",
+          "id": "primary-exlr8-layer-005-k4-353add29aeb1-7059c70bd0",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-006-index-69938b951188-789bd75844",
+          "id": "primary-exlr8-layer-006-index-69938b951188-789bd75844",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-006-k2-d9685d6b1de4-c451dbda9e",
+          "id": "primary-exlr8-layer-006-k2-d9685d6b1de4-c451dbda9e",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-006-k3-214ebd645964-2061e61f58",
+          "id": "primary-exlr8-layer-006-k3-214ebd645964-2061e61f58",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-006-k4-160eec491d78-d9560a52bd",
+          "id": "primary-exlr8-layer-006-k4-160eec491d78-d9560a52bd",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-007-index-a98b193a0385-0c6bc69a7d",
+          "id": "primary-exlr8-layer-007-index-a98b193a0385-0c6bc69a7d",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-007-k2-f141c694f728-ed50ee7f65",
+          "id": "primary-exlr8-layer-007-k2-f141c694f728-ed50ee7f65",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-007-k3-896372b392e0-e510eb3386",
+          "id": "primary-exlr8-layer-007-k3-896372b392e0-e510eb3386",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-007-k4-68aa902c3f7a-8515c38525",
+          "id": "primary-exlr8-layer-007-k4-68aa902c3f7a-8515c38525",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-008-index-58399c76b715-92e6e43b69",
+          "id": "primary-exlr8-layer-008-index-58399c76b715-92e6e43b69",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-008-k2-af14934cd67b-a2a1b36e86",
+          "id": "primary-exlr8-layer-008-k2-af14934cd67b-a2a1b36e86",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-008-k3-418a96b72c1b-fc38373cc4",
+          "id": "primary-exlr8-layer-008-k3-418a96b72c1b-fc38373cc4",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-008-k4-8f5c3372ea1a-44f911f8e9",
+          "id": "primary-exlr8-layer-008-k4-8f5c3372ea1a-44f911f8e9",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-009-index-9233d37f2849-6058df00ce",
+          "id": "primary-exlr8-layer-009-index-9233d37f2849-6058df00ce",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-009-k2-0731664ce5ae-b139d0c62f",
+          "id": "primary-exlr8-layer-009-k2-0731664ce5ae-b139d0c62f",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-009-k3-e06468bf9e74-f55427cf1d",
+          "id": "primary-exlr8-layer-009-k3-e06468bf9e74-f55427cf1d",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-009-k4-fa2dca16e656-cb3e80685e",
+          "id": "primary-exlr8-layer-009-k4-fa2dca16e656-cb3e80685e",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-010-index-ec697f569016-25e593ffe8",
+          "id": "primary-exlr8-layer-010-index-ec697f569016-25e593ffe8",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-010-k2-2e5924ed30c9-f6be6331a4",
+          "id": "primary-exlr8-layer-010-k2-2e5924ed30c9-f6be6331a4",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-010-k3-d0a002f00945-d0e78487e5",
+          "id": "primary-exlr8-layer-010-k3-d0a002f00945-d0e78487e5",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-010-k4-2495f44c5e14-a3fa7ead8a",
+          "id": "primary-exlr8-layer-010-k4-2495f44c5e14-a3fa7ead8a",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-011-index-6c894fac4c6c-1a2c2aaa55",
+          "id": "primary-exlr8-layer-011-index-6c894fac4c6c-1a2c2aaa55",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-011-k2-b2ae2bf03707-5bc6bfd86e",
+          "id": "primary-exlr8-layer-011-k2-b2ae2bf03707-5bc6bfd86e",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-011-k3-7d585208d8e0-0c1b1cb47f",
+          "id": "primary-exlr8-layer-011-k3-7d585208d8e0-0c1b1cb47f",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-011-k4-d4def2ee8a7c-b76e2c23f9",
+          "id": "primary-exlr8-layer-011-k4-d4def2ee8a7c-b76e2c23f9",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-012-index-90f0d0b439ec-2c42799346",
+          "id": "primary-exlr8-layer-012-index-90f0d0b439ec-2c42799346",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-012-k2-707da34d96dc-c3e937efbd",
+          "id": "primary-exlr8-layer-012-k2-707da34d96dc-c3e937efbd",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-012-k3-e4f7df118346-f8ea51a63b",
+          "id": "primary-exlr8-layer-012-k3-e4f7df118346-f8ea51a63b",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-012-k4-109551aa019f-d21c0d25c4",
+          "id": "primary-exlr8-layer-012-k4-109551aa019f-d21c0d25c4",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-013-index-3c69c1f900e7-3ecd5a9252",
+          "id": "primary-exlr8-layer-013-index-3c69c1f900e7-3ecd5a9252",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-013-k2-515d54269629-e86c116535",
+          "id": "primary-exlr8-layer-013-k2-515d54269629-e86c116535",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-013-k3-1d44d600bae4-6e528a8fc4",
+          "id": "primary-exlr8-layer-013-k3-1d44d600bae4-6e528a8fc4",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-013-k4-37cb3a06aa22-c9f480f0f6",
+          "id": "primary-exlr8-layer-013-k4-37cb3a06aa22-c9f480f0f6",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-014-index-c7b3f847dd1a-308cc91170",
+          "id": "primary-exlr8-layer-014-index-c7b3f847dd1a-308cc91170",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-014-k2-a42b41e6d879-4ad7690250",
+          "id": "primary-exlr8-layer-014-k2-a42b41e6d879-4ad7690250",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-014-k3-b6204e92188f-a090ffe33d",
+          "id": "primary-exlr8-layer-014-k3-b6204e92188f-a090ffe33d",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-014-k4-9d88f1b3a0a6-2ce636a72e",
+          "id": "primary-exlr8-layer-014-k4-9d88f1b3a0a6-2ce636a72e",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-015-index-9c4a51c93ad2-500606880c",
+          "id": "primary-exlr8-layer-015-index-9c4a51c93ad2-500606880c",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-015-k2-b035d4a3f206-e4fc5b5958",
+          "id": "primary-exlr8-layer-015-k2-b035d4a3f206-e4fc5b5958",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-015-k3-cc1a6d5c4f89-49b5745e91",
+          "id": "primary-exlr8-layer-015-k3-cc1a6d5c4f89-49b5745e91",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-015-k4-a4ae2aa1bfd8-d940d026fe",
+          "id": "primary-exlr8-layer-015-k4-a4ae2aa1bfd8-d940d026fe",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-016-index-bbf370b18184-678af4205e",
+          "id": "primary-exlr8-layer-016-index-bbf370b18184-678af4205e",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-016-k2-851fd078027f-f9fbbb8142",
+          "id": "primary-exlr8-layer-016-k2-851fd078027f-f9fbbb8142",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-016-k3-b79032e88dd6-3915b41cfe",
+          "id": "primary-exlr8-layer-016-k3-b79032e88dd6-3915b41cfe",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-016-k4-04bdba0948f6-39b4fe206d",
+          "id": "primary-exlr8-layer-016-k4-04bdba0948f6-39b4fe206d",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-017-index-8532dd6b8267-19df999dfc",
+          "id": "primary-exlr8-layer-017-index-8532dd6b8267-19df999dfc",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-017-k2-7c627bed60fc-794126eb8f",
+          "id": "primary-exlr8-layer-017-k2-7c627bed60fc-794126eb8f",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-017-k3-4433f806cb38-bccf28d2d1",
+          "id": "primary-exlr8-layer-017-k3-4433f806cb38-bccf28d2d1",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-017-k4-1842bf777961-61c55dabe6",
+          "id": "primary-exlr8-layer-017-k4-1842bf777961-61c55dabe6",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-018-index-2c0e52a25758-42bad1244b",
+          "id": "primary-exlr8-layer-018-index-2c0e52a25758-42bad1244b",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-018-k2-e2cac366a660-78733387be",
+          "id": "primary-exlr8-layer-018-k2-e2cac366a660-78733387be",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-018-k3-f3bfd9e9a5f0-76a1096123",
+          "id": "primary-exlr8-layer-018-k3-f3bfd9e9a5f0-76a1096123",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-018-k4-8ed69b13a09b-43d13cbc02",
+          "id": "primary-exlr8-layer-018-k4-8ed69b13a09b-43d13cbc02",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-019-index-fb5781942c4c-9700fc735c",
+          "id": "primary-exlr8-layer-019-index-fb5781942c4c-9700fc735c",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-019-k2-5d9ddcd67827-4bb5b6a534",
+          "id": "primary-exlr8-layer-019-k2-5d9ddcd67827-4bb5b6a534",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-019-k3-a9c03d9ee9c1-b9184f341c",
+          "id": "primary-exlr8-layer-019-k3-a9c03d9ee9c1-b9184f341c",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-019-k4-80822d03c50f-b84c2130af",
+          "id": "primary-exlr8-layer-019-k4-80822d03c50f-b84c2130af",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-020-index-f3dc2674cd0c-29070bbd53",
+          "id": "primary-exlr8-layer-020-index-f3dc2674cd0c-29070bbd53",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-020-k2-12638164292e-fe431a2e5c",
+          "id": "primary-exlr8-layer-020-k2-12638164292e-fe431a2e5c",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-020-k3-c641f2ae262a-22bd6b35dc",
+          "id": "primary-exlr8-layer-020-k3-c641f2ae262a-22bd6b35dc",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-020-k4-f9189d7a0198-a797cb9ce5",
+          "id": "primary-exlr8-layer-020-k4-f9189d7a0198-a797cb9ce5",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-021-index-cb03220c8adb-173789eb7e",
+          "id": "primary-exlr8-layer-021-index-cb03220c8adb-173789eb7e",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-021-k2-90e1974d4615-d218595299",
+          "id": "primary-exlr8-layer-021-k2-90e1974d4615-d218595299",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-021-k3-299c53e58eef-641f95412e",
+          "id": "primary-exlr8-layer-021-k3-299c53e58eef-641f95412e",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-021-k4-d15d1133c7ec-05d3e27e7d",
+          "id": "primary-exlr8-layer-021-k4-d15d1133c7ec-05d3e27e7d",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-022-index-8f58d837cc0b-5834457032",
+          "id": "primary-exlr8-layer-022-index-8f58d837cc0b-5834457032",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-022-k2-3b93aa9fe593-afd8c021dc",
+          "id": "primary-exlr8-layer-022-k2-3b93aa9fe593-afd8c021dc",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-022-k3-b8849b8a16b0-99857beeb2",
+          "id": "primary-exlr8-layer-022-k3-b8849b8a16b0-99857beeb2",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-022-k4-df67e57ceb8a-b7cbc2cf31",
+          "id": "primary-exlr8-layer-022-k4-df67e57ceb8a-b7cbc2cf31",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-023-index-dac4e97ee2f8-94a087abb1",
+          "id": "primary-exlr8-layer-023-index-dac4e97ee2f8-94a087abb1",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-023-k2-eb2071308124-be93f0dc7e",
+          "id": "primary-exlr8-layer-023-k2-eb2071308124-be93f0dc7e",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-023-k3-1c1097d81a37-6e00f14171",
+          "id": "primary-exlr8-layer-023-k3-1c1097d81a37-6e00f14171",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-layer-023-k4-c41100dbcb6e-278967328f",
+          "id": "primary-exlr8-layer-023-k4-c41100dbcb6e-278967328f",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-a08737c07a65-97dd3d578b",
+          "id": "primary-generation-config-a08737c07a65-97dd3d578b",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "rank0-00be3a7953e3-613007d09b",
+          "id": "primary-rank0-00be3a7953e3-613007d09b",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "rank0-122b2b095671-fb4e21a547",
+          "id": "primary-rank0-122b2b095671-fb4e21a547",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "rank0-d997d404f7f2-52a310205e",
+          "id": "primary-rank0-d997d404f7f2-52a310205e",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-manifest-bit225-b7e25b86e3f3-e30242eef6",
+          "id": "primary-exlr8-manifest-bit225-b7e25b86e3f3-e30242eef6",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-manifest-bit250-21e58a8468d7-2e65cc475d",
+          "id": "primary-exlr8-manifest-bit250-21e58a8468d7-2e65cc475d",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-manifest-bit300-f10226496d3e-24e445fa0b",
+          "id": "primary-exlr8-manifest-bit300-f10226496d3e-24e445fa0b",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-manifest-bit325-43ecbb3b34fe-66daa6fc37",
+          "id": "primary-exlr8-manifest-bit325-43ecbb3b34fe-66daa6fc37",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-manifest-k2-80c4e7475000-edab43f9f8",
+          "id": "primary-exlr8-manifest-k2-80c4e7475000-edab43f9f8",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-manifest-k3-6ca9300b63c4-0b766bfc6c",
+          "id": "primary-exlr8-manifest-k3-6ca9300b63c4-0b766bfc6c",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "exlr8-manifest-k4-bf2ceeee9788-19a9190fc7",
+          "id": "primary-exlr8-manifest-k4-bf2ceeee9788-19a9190fc7",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-nonexperts-1eda998667a8-35df4b9084",
+          "id": "primary-model-nonexperts-1eda998667a8-35df4b9084",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-554d9096dca6-0a05be8238",
+          "id": "primary-model-safetensors-index-554d9096dca6-0a05be8238",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "mtp-7c3b651317f0-265929bffe",
+          "id": "primary-mtp-7c3b651317f0-265929bffe",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "processor-config-d7350adce18c-27f0cb76af",
+          "id": "primary-processor-config-d7350adce18c-27f0cb76af",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "special-tokens-map-c16f44b35945-c07a9be597",
+          "id": "primary-special-tokens-map-c16f44b35945-c07a9be597",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-f170372dd655-86f223d688",
+          "id": "primary-tokenizer-f170372dd655-86f223d688",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-7f332727f9a3-224931eb13",
+          "id": "primary-tokenizer-7f332727f9a3-224931eb13",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-bf09342d2851-94d5c6ba8f",
+          "id": "primary-tokenizer-config-bf09342d2851-94d5c6ba8f",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "7a1d9674e0bcec11c3f2409bcec70f4efdd841567dae80864e7209ee1bda8947",
+        "kind": "model",
+        "publisher": "kindlingai",
+        "slug": "inkling-2-mini-exlr8-k2-k3-k4-3037e66b"
+      }
+    }
+  ],
+  "options": [
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "The creator's default and the settings of its measurements: routed experts at 3.25 bits a weight (16.43 GB on the device), requests up to 147,456 tokens, eight at once sharing a 1,179,648-token KV pool, DFlash drafting with K=7. The creator measured 9.52 to 9.69 GiB of memory left.",
+          "label": "Default, 3.25-bit",
+          "value": "bit325"
+        },
+        {
+          "args": [
+            {
+              "name": "max-model-len",
+              "value": 262144
+            },
+            {
+              "name": "sess",
+              "value": 4
+            }
+          ],
+          "env": {
+            "VARIANT": "k4"
+          },
+          "help": "Routed experts at 4 bits a weight (18.72 GB), the creator's pick for maximum quality and graduate-level science: requests up to 262,144 tokens, four at once. The creator measured 12.2 GiB left.",
+          "label": "Higher quality, 4-bit",
+          "value": "k4"
+        },
+        {
+          "args": [
+            {
+              "name": "max-model-len",
+              "value": 131072
+            },
+            {
+              "name": "sess",
+              "value": 8
+            }
+          ],
+          "env": {
+            "VARIANT": "k4"
+          },
+          "help": "Routed experts at 4 bits a weight with requests up to 131,072 tokens, eight at once (a 1M KV pool). The creator measured 11.6 GiB left.",
+          "label": "4-bit, eight requests of 128K",
+          "value": "k4-131k"
+        },
+        {
+          "args": [
+            {
+              "name": "max-model-len",
+              "value": 1048576
+            },
+            {
+              "name": "sess",
+              "value": 1
+            }
+          ],
+          "env": {
+            "VARIANT": "k4"
+          },
+          "help": "Routed experts at 4 bits a weight with one request at the model's native 1,048,576 tokens. The creator measured 7.8 GiB or more left.",
+          "label": "4-bit, one request of 1M",
+          "value": "k4-1m"
+        },
+        {
+          "env": {
+            "GR8_INK2_MX8_DENSE": "1",
+            "GR8_INK2_MX8_LM_HEAD": "1",
+            "GR8_INK2_S2_COST": "14.0,2.5,2.0,0.4,0.0,0.0",
+            "GR8_S2_ADAPT": "1",
+            "VARIANT": "bit225"
+          },
+          "help": "Routed experts at 2.25 bits a weight (13.37 GB) with the creator's speed settings: MXFP8 dense projections and lm_head in prefill and decode, and adaptive speculation (GR8_S2_ADAPT=1 with GR8_INK2_S2_COST). The creator's mean KL against BF16 is 0.041282, 21.3% below k2.",
+          "label": "Fast, 2.25-bit",
+          "value": "bit225"
+        },
+        {
+          "env": {
+            "VARIANT": "bit250"
+          },
+          "help": "Routed experts at 2.5 bits a weight (14.13 GB), the creator's compact middle tier (mean KL 0.030018).",
+          "label": "Compact, 2.5-bit",
+          "value": "bit250"
+        },
+        {
+          "env": {
+            "VARIANT": "k2"
+          },
+          "help": "Routed experts at 2 bits a weight (12.60 GB), the creator's smallest tier (mean KL 0.052425).",
+          "label": "Minimum footprint, 2-bit",
+          "value": "k2"
+        },
+        {
+          "args": [
+            {
+              "name": "max-model-len",
+              "value": 131072
+            },
+            {
+              "name": "sess",
+              "value": 2
+            }
+          ],
+          "env": {
+            "GR8_INK2_PF_MX8_MOE": "3",
+            "VARIANT": "k2"
+          },
+          "help": "The creator's preset for sharing the box with another model: 2-bit experts, requests up to 131,072 tokens, two at once, and prefill MoE weights streamed one layer at a time (GR8_INK2_PF_MX8_MOE=3, 0.98 GiB instead of about 23.5 GiB). The creator estimates 24 to 33 GiB in all.",
+          "label": "2-bit, beside another model",
+          "value": "k2-shared"
+        },
+        {
+          "args": [
+            {
+              "name": "max-model-len",
+              "value": 163840
+            },
+            {
+              "name": "sess",
+              "value": 8
+            }
+          ],
+          "help": "Requests up to 163,840 tokens, eight at once (a 1.31M KV pool). The creator measured 5.45 GiB left.",
+          "label": "3.25-bit, eight requests of 160K",
+          "value": "ctx-160k"
+        },
+        {
+          "args": [
+            {
+              "name": "max-model-len",
+              "value": 262144
+            },
+            {
+              "name": "sess",
+              "value": 5
+            }
+          ],
+          "help": "Requests up to 262,144 tokens, five at once (a 1.31M KV pool). The creator measured 5.54 GiB left.",
+          "label": "3.25-bit, five requests of 256K",
+          "value": "ctx-256k-x5"
+        },
+        {
+          "args": [
+            {
+              "name": "max-model-len",
+              "value": 196608
+            },
+            {
+              "name": "sess",
+              "value": 8
+            }
+          ],
+          "env": {
+            "GR8_INK2_PF_MX8_MOE": "1"
+          },
+          "help": "Requests up to 196,608 tokens, eight at once (a 1.57M KV pool), with the MoE prefill scratch smaller (GR8_INK2_PF_MX8_MOE=1). The creator measured 9.12 GiB left.",
+          "label": "3.25-bit, eight requests of 192K",
+          "value": "ctx-192k-moe1"
+        },
+        {
+          "args": [
+            {
+              "name": "max-model-len",
+              "value": 262144
+            },
+            {
+              "name": "sess",
+              "value": 8
+            }
+          ],
+          "env": {
+            "GR8_INK2_PF_MX8_MOE": "0"
+          },
+          "help": "Requests up to 262,144 tokens, eight at once (a 2.10M KV pool), with the MoE prefill scratch off (GR8_INK2_PF_MX8_MOE=0), which slows long prefill. The creator measured 4.44 GiB left.",
+          "label": "3.25-bit, eight requests of 256K",
+          "value": "ctx-256k-moe0"
+        },
+        {
+          "args": [
+            {
+              "name": "max-model-len",
+              "value": 1048576
+            },
+            {
+              "name": "sess",
+              "value": 1
+            }
+          ],
+          "help": "One request at the model's native 1,048,576 tokens.",
+          "label": "3.25-bit, one request of 1M",
+          "value": "ctx-1m"
+        }
+      ],
+      "help": "The weight width (3.25, 4, 2.25, 2.5 or 2 bits a routed weight, chosen at load time from the one release) and the context and concurrency the creator measured with it. Every choice is a combination the creator verified.",
+      "label": "Preset",
+      "name": "variant"
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "IncoAI",
+      "KindlingAI",
+      "Thinking Machines Lab"
+    ],
+    "source_reference": "https://github.com/kindlingai/recipes/blob/13c24ac483eaf8b2fcb828a62ae2604bcc038b92/inkling-2-mini/dgx-spark/1x/exlr8-gr8/compose.yaml"
+  },
+  "release": {
+    "released_at": "2026-11-28",
+    "version": "13c24ac4"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "host",
+        "setting": null,
+        "value": "0.0.0.0"
+      },
+      {
+        "name": "port",
+        "setting": null,
+        "value": 8100
+      },
+      {
+        "name": "max-model-len",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "sess",
+        "setting": "concurrency",
+        "value": null
+      }
+    ],
+    "engine": "gr8",
+    "entrypoint": [
+      "/opt/vonk/bin/gr8-serve"
+    ],
+    "environment": [
+      {
+        "name": "CHUNK",
+        "value": "8"
+      },
+      {
+        "name": "GR8_INK2_DF2_Q8",
+        "value": "0"
+      },
+      {
+        "name": "GR8_INK2_MX8_DENSE",
+        "value": "2"
+      },
+      {
+        "name": "GR8_INK2_MX8_LM_HEAD",
+        "value": "0"
+      },
+      {
+        "name": "GR8_INK2_PF_MX8_MOE",
+        "value": "2"
+      },
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "MTP",
+        "value": "7"
+      },
+      {
+        "name": "PREFILL",
+        "value": "4096"
+      },
+      {
+        "name": "REASONING_EFFORT",
+        "value": "none"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "VARIANT",
+        "value": "bit325"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 30
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 8
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 147456
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "single",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "native",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 32508137094,
+            "image_bytes": 8000000000,
+            "safety_margin_bytes": 10000000000,
+            "working_bytes": 2000000000
+          },
+          "memory": {
+            "peak_bytes": 125900000000,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/health",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 2048,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "inkling-2-mini"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}

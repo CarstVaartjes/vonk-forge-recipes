@@ -930,6 +930,11 @@ whose first start does the creator's prepare step into `/outputs/cache`. A kit w
 published image with its settings in `.env.example` (`adapters/glm/kindlingai-gr8-glm53-*`) declares that image from
 compose's `image:` line as an `oci-image` dependency and the Model from `.env.example`; the recipe's environment carries
 every active `.env.example` line (compose-only and placement lines excepted), its volume paths under `/outputs/cache`.
+A kit of that shape that runs its own launcher script instead of the image's entrypoint (`adapters/inkling/kindlingai-gr8-ink2-single`,
+`tests/recipes/test_gr8_ink2_wrapper.py`) ships that script byte for byte at the kit's path (`renamed` in
+`vendored-upstream.json`); its wrapper maps the arguments onto the variables the script reads and execs it, with the
+script's working directory under `/outputs/cache/gr8`. A monorepo kit names its subdirectory in `provenance.source_reference`
+and the Dockerfile header, and declares the Model from the file that holds its pin (`repo_pattern` for the repository line).
 
 Bind generated rank/vision/model views to their checkpoint and engine inputs,
 reuse complete cached work and rebuild malformed/interrupted output

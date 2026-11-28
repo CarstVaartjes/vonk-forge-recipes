@@ -1,0 +1,21 @@
+{
+  "id": "vonk-forge/inkling-2-mini-exlr8-kindlingai-gr8-single",
+  "service_recipes": {
+    "alias": "inkling-2-mini",
+    "higher_tiers": {
+      "recovery": [
+        "Controller stop/start and warm-cache restart"
+      ],
+      "stress": [
+        "Long-context canary at the 147,456-token default; eight concurrent streams, with the shared KV pool line checked"
+      ]
+    },
+    "smoke_cases": [
+      "M0",
+      "A391",
+      "MIS_A391",
+      "T_REPORT",
+      "MIS_T_REPORT"
+    ]
+  }
+}
