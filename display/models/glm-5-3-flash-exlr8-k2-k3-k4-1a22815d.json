@@ -1,0 +1,42 @@
+{
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
+  "description": "Exact public KindlingAI GLM 5.3 Flash exlr8 release at tag v0.1 (1a22815d): K2, K3 and K4 expert widths, dense and vision-tower files, all in the mcg codebook the vLLM exlr8 kernel decodes. Each recipe selects the width files its loader reads.",
+  "family_title": "GLM 5.3 Flash EXLR8",
+  "identity": {
+    "publisher": "kindlingai",
+    "slug": "glm-5-3-flash-exlr8-k2-k3-k4-1a22815d"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "KindlingAI",
+      "Z.AI"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/kindlingai/glm-5.3-flash-exlr8-k2-k3-k4/blob/1a22815d178a79f78bb44e6858f0ee446ae8f0d4/LICENSE"
+  },
+  "lineage": {
+    "base_model": "zai-org/GLM-5.3-Flash-BF16",
+    "family": "glm",
+    "generation": "GLM 5.3",
+    "line": "glm-flash-321b",
+    "model": "glm-5-3-flash",
+    "variant_kind": "quantization"
+  },
+  "modalities": [
+    "text",
+    "image"
+  ],
+  "model_title": "GLM 5.3 Flash EXLR8 K2 K3 K4",
+  "tags": [
+    "kindlingai",
+    "glm-5-3-flash-exlr8"
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "alignment": "standard",
+  "component_bindings": [
+    "dependency-glm-5-3-flash-dflash2-bf582e4e"
+  ],
+  "description": "KindlingAI's GLM-5.3-Flash kit (kindlingai/glm-5.3-flash-gx10 at 0f964759) at tensor parallel 2 over two DGX Sparks: vLLM on a preserved nightly (ddd6fbca) serving the official nvidia/GLM-5.3-Flash-NVFP4 ModelOpt checkpoint (MIT) with the incoai DFlash2 drafter (7 drafted tokens, the creator's per-batch-size widths under its adaptive-k scheduler and draft truncation), mentat in place of Ray, the creator's GB10 kernel overlays (arx RDMA all-reduce, megamoe and dense4 kernels, RecoverSSM, sequence-parallel prefill, processed-weight snapshots) and its fail-closed tool-parser plugin as an option. The creator publishes no image, so CI builds it from the kit's pinned sources: its Dockerfile, with the compose overlays copied in where the creator bind-mounts them. mentat runs inside the recipe's own containers: the launcher starts its daemon in the first rank on the rendezvous port, both agents register with it, and vLLM's Ray executor talks to the shim; the creator's status server (an unauthenticated file search on 0.0.0.0), router (mentatd-serve), self-test, fabric check, preflight table, discover script, head election, dispram (a host daemon of kindling-spark-os), the ring-cabled layouts (fabric_ring.py, which assigns the platform-owned NCCL_IB_HCA) and the status page's allocator counters (TORCH_MEM_STATS_DIR=/logs) are not part of this recipe; the launcher keeps the creator's page-cache release before NCCL init, the image keeps its fresh /tmp FlashInfer autotune cache, and the TileLang cache sits in the persistent /outputs/cache. Settings are the creator's TP=2 values: gpu-memory-utilization 0.88, an 8 GiB fp8_e4m3 KV pool, 163,840-token window, 16 requests at once (RecoverSSM), 8,192 batched tokens, up to 16 images a request and no video; thinking is on by default and a request lowers its effort. Creator claims, unmeasured here: 66.2 tok/s code and 42.6 prose decode, 2,931 tok/s prefill at 32K, 1,379,896 KV tokens. Memory: the creator's head leaves 1.4 GiB free at its lowest (image/entrypoint.sh:56, the TP=2 comment), below the platform's 2 GiB floor, so the declared steady peak is physical memory less 1.4 GiB (129,200,000,000 bytes), an estimate to try as the only claim on an empty Spark; an OOM kill is the creator's report at 16,384 batched tokens. The first start at a plan writes a per-rank weight snapshot (about 98 GB) to the persistent cache; later starts restore it. arx needs two RDMA devices in the fabric's device list; with one it logs and falls back to NCCL. Licences, for information: the kit has no licence file (the creator is asked in its issue 102), its vendored patcher is MIT and its megamoe kernels Apache-2.0, mentat declares MIT OR Apache-2.0, the checkpoint is MIT, and the DFlash2 drafter is CC BY-NC-ND 4.0 on its original release and Apache-2.0 on its current card.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "glm-5-3-flash-nvfp4-dflash2-kindlingai-vllm-dual"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "adaptive-k",
+    "dflash2",
+    "glm-5.3",
+    "image-input",
+    "mentat",
+    "modelopt",
+    "multimodal",
+    "non-commercial-drafter",
+    "nvfp4",
+    "reasoning",
+    "roce",
+    "spark",
+    "structured-outputs",
+    "tool-use",
+    "two-spark",
+    "vllm"
+  ],
+  "title": "GLM 5.3 Flash NVFP4 DFlash2 vLLM mentat two Sparks (KindlingAI)"
+}
