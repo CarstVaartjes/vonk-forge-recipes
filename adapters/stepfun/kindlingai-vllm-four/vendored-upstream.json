@@ -1,0 +1,31 @@
+{
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "step-5-preview/dgx-spark/4x/nvfp4-vllm/compose.yaml",
+        "pattern": "^\\s+image: \\$\\{VLLM_IMAGE:-vllm/vllm-openai:[\\w.-]+@(?P<version>sha256:[0-9a-f]{64})\\}\\s*$",
+        "repo": "docker.io/vllm/vllm-openai"
+      },
+      "model": {
+        "binds": "primary",
+        "datasource": "hf-revision",
+        "file": "step-5-preview/dgx-spark/4x/nvfp4-vllm/.env.example",
+        "pattern": "^MODEL_REVISION=(?P<version>[0-9a-f]{40})\\s*$",
+        "repo": "stepfun-ai/Step-5-Preview-NVFP4"
+      }
+    },
+    "whole": true
+  },
+  "ours": [
+    "launcher",
+    "licenses/"
+  ],
+  "renamed_dirs": {
+    "fp8-kv/": "step-5-preview/dgx-spark/4x/nvfp4-vllm/fp8-kv/"
+  },
+  "source": {
+    "commit": "13c24ac483eaf8b2fcb828a62ae2604bcc038b92",
+    "repo": "kindlingai/recipes"
+  }
+}

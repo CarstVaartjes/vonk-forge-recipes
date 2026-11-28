@@ -1,0 +1,42 @@
+{
+  "capabilities": [
+    "chat",
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "tool-use",
+    "video-understanding"
+  ],
+  "description": "StepFun's Step 5 Preview (600B total, 27B active, vision-language) quantized to NVFP4 by ModelOpt: the checkpoint at bc246cc2 that KindlingAI's four-Spark recipe serves.",
+  "family_title": "Step 5 Preview NVFP4",
+  "identity": {
+    "publisher": "stepfun-ai",
+    "slug": "step-5-preview-nvfp4-bc246cc2"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "StepFun"
+    ],
+    "spdx": "LicenseRef-StepFun-Model-License-1.0",
+    "url": "https://huggingface.co/stepfun-ai/Step-5-Preview-NVFP4/blob/bc246cc2848e17b37f377eda8fd825c5b3018d1f/LICENSE.txt"
+  },
+  "lineage": {
+    "base_model": "stepfun-ai/Step-5-Preview",
+    "family": "step",
+    "generation": "Step 5",
+    "line": "step-5",
+    "model": "step-5-preview",
+    "variant_kind": "quantization"
+  },
+  "modalities": [
+    "image",
+    "text",
+    "video"
+  ],
+  "model_title": "Step 5 Preview NVFP4",
+  "tags": [
+    "stepfun-ai",
+    "step-5-preview-nvfp4"
+  ]
+}

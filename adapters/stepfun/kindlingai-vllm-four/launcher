@@ -1,0 +1,101 @@
+#!/usr/bin/env python3
+"""Bind Controller placement to KindlingAI's Step-5 Preview NVFP4 vLLM launch (four Sparks)."""
+
+from __future__ import annotations
+
+import os
+import sys
+from ipaddress import ip_address
+from pathlib import Path
+
+MODEL = Path("/models")
+OVERLAY = Path("/opt/step5-fp8kv/overlay")
+FABRIC = (
+    "NCCL_SOCKET_IFNAME",
+    "NCCL_IB_HCA",
+    "NCCL_IB_GID_INDEX",
+    "TP_SOCKET_IFNAME",
+    "GLOO_SOCKET_IFNAME",
+)
+
+
+def value(arguments: list[str], option: str) -> str | None:
+    if option not in arguments:
+        return None
+    index = arguments.index(option)
+    if index + 1 >= len(arguments):
+        raise SystemExit(f"{option} requires a value")
+    return arguments[index + 1]
+
+
+def placement(arguments: list[str]) -> tuple[str, str, str]:
+    """The Controller's rendezvous: the local address, the master address and its port."""
+    node_rank = value(arguments, "--node-rank")
+    local = os.environ.get("VONK_LOCAL_ADDR")
+    master = os.environ.get("VONK_MASTER_ADDR")
+    port = os.environ.get("VONK_MASTER_PORT")
+    try:
+        if value(arguments, "--distributed-executor-backend") != "mp":
+            raise ValueError
+        if value(arguments, "--nnodes") != "4" or node_rank not in {"0", "1", "2", "3"}:
+            raise ValueError
+        if ("--headless" in arguments) != (node_rank != "0"):
+            raise ValueError
+        if not local or not master or not port:
+            raise ValueError
+        if any(not os.environ.get(name) for name in FABRIC):
+            raise ValueError
+        if not port.isascii() or not port.isdigit() or not 1024 <= int(port) <= 65535:
+            raise ValueError
+        ip_address(local)
+        ip_address(master)
+    except ValueError:
+        raise SystemExit(
+            "Step 5 Preview NVFP4 TP4 requires complete Controller rendezvous and fabric"
+        ) from None
+    return local, master, port
+
+
+def fp8_kv(arguments: list[str]) -> list[str]:
+    """The creator's FP8 KV overlay (STEP5_FP8KV=1): its path, and the block arguments it needs."""
+    if os.environ.get("STEP5_FP8KV") != "1":
+        os.environ["STEP5_FP8KV"] = "0"
+        return []
+    blocks = os.environ.get("FP8KV_BLOCKS", "")
+    if not blocks.isascii() or not blocks.isdigit() or int(blocks) < 1:
+        raise SystemExit("STEP5_FP8KV=1 needs FP8KV_BLOCKS, a positive integer")
+    if value(arguments, "--kv-cache-dtype") != "fp8_e4m3" or "--hf-overrides" not in arguments:
+        raise SystemExit("STEP5_FP8KV=1 needs --kv-cache-dtype fp8_e4m3 and the dense attention override")
+    if not (OVERLAY / "step5_fp8kv").is_dir():
+        raise SystemExit("the FP8 KV overlay is missing from the image")
+    path = os.environ.get("PYTHONPATH")
+    os.environ["PYTHONPATH"] = f"{OVERLAY}:{path}" if path else str(OVERLAY)
+    return ["--block-size", "16", "--num-gpu-blocks-override", blocks]
+
+
+def main() -> None:
+    arguments = sys.argv[1:]
+    local, master, port = placement(arguments)
+    for name in ("config.json", "model.safetensors.index.json"):
+        if not (MODEL / name).is_file():
+            raise SystemExit(f"immutable model artifact is missing: {MODEL / name}")
+    arguments.extend(fp8_kv(arguments))
+    arguments.extend(("--master-addr", master, "--master-port", port))
+    os.environ["VLLM_HOST_IP"] = local
+    os.environ["MASTER_ADDR"] = master
+    os.environ["MASTER_PORT"] = port
+    vllm = next(
+        (
+            candidate
+            for candidate in ("/usr/local/bin/vllm", "/opt/vllm/.venv/bin/vllm")
+            if Path(candidate).is_file() and os.access(candidate, os.X_OK)
+        ),
+        None,
+    )
+    if vllm is None:
+        raise SystemExit("the pinned vLLM executable is missing")
+    os.execv(vllm, (vllm, "serve", str(MODEL), *arguments))
+
+
+if __name__ == "__main__":
+    main()

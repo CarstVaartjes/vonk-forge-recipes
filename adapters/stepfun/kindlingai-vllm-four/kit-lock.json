@@ -1,0 +1,22 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:784f5812c03fe18b11e33a01ea04e063b31fc14bc0fb1a1109f908adcc0619d1",
+      "kind": "digest",
+      "ref": "sha256:8bc189bb3f57183bcaf4f01405b29d4d92d782a182b384aac79b4b2885fb1fda",
+      "repo": "docker.io/vllm/vllm-openai"
+    },
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "bc246cc2848e17b37f377eda8fd825c5b3018d1f",
+      "repo": "stepfun-ai/Step-5-Preview-NVFP4",
+      "revision": "bc246cc2848e17b37f377eda8fd825c5b3018d1f"
+    }
+  },
+  "kit": {
+    "commit": "13c24ac483eaf8b2fcb828a62ae2604bcc038b92",
+    "repo": "kindlingai/recipes"
+  }
+}
