@@ -208,14 +208,20 @@
         {
           "slug": "qwen3-vl-embedding-2b",
           "title": "Qwen3-VL-Embedding 2B"
-        },
+        }
+      ],
+      "slug": "qwen-vl-embedding-2b",
+      "title": "Qwen VL Embedding 2B"
+    },
+    {
+      "models": [
         {
           "slug": "qwen3-vl-embedding-8b",
           "title": "Qwen3-VL-Embedding 8B"
         }
       ],
-      "slug": "qwen3-vl-embedding",
-      "title": "Qwen3-VL-Embedding"
+      "slug": "qwen-vl-embedding-8b",
+      "title": "Qwen VL Embedding 8B"
     }
   ],
   "slug": "qwen",
