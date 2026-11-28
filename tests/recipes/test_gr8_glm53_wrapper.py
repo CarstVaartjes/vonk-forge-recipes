@@ -17,7 +17,9 @@ DRAFTER_ADAPTERS = tuple(
 )
 # the wrappers that prepare the creator's compact expert copies; the two-Spark kit offers none
 COMPACT_ADAPTERS = tuple(
-    name for name in ADAPTERS if "COMPACT_EXPERTS" in (GLM / name / "gr8-serve").read_text()
+    name
+    for name in ADAPTERS
+    if "COMPACT_EXPERTS" in (GLM / name / "gr8-serve").read_text()
 )
 
 FAKE_ENTRYPOINT = """#!/bin/bash
@@ -189,7 +191,9 @@ def test_two_spark_drafter_is_converted_in_native_int4():
             done, dump = run({**placement(tp, 1), "TP": str(tp)})
             assert done.returncode == 0, done.stderr
             assert dump["DFLASH_DIR"] == f"{root}/outputs/cache/gr8/cache/dflash/{pack}"
-            complete = json.loads(Path(dump["DFLASH_DIR"], "rank1.COMPLETE").read_text())
+            complete = json.loads(
+                Path(dump["DFLASH_DIR"], "rank1.COMPLETE").read_text()
+            )
             assert complete["int4"] is int4
 
 
